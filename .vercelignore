@@ -1,0 +1,18 @@
+
+# Vercel Ignore File
+*.zip
+*.rar
+*.tar.gz
+*.mp4
+*.MP4
+*.mov
+*.MOV
+*.tif
+*.tiff
+*.m4a
+.git_backup
+.ds_store
+antigravity_module/
+antigravity_restored/
+node_modules/
+# Avoid ignoring valid image assets in public/

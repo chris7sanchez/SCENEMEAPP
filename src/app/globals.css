@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 95%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 45 93% 47%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 90%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 45 93% 47%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 45 93% 47%;
+    --radius: 0.1rem;
+    --chart-1: 45 93% 47%;
+    --chart-2: 0 0% 20%;
+    --chart-3: 0 0% 40%;
+    --chart-4: 0 0% 60%;
+    --chart-5: 0 0% 80%;
+  }
+
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 45 20% 90%;
+    --card: 0 0% 5%;
+    --card-foreground: 45 20% 90%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 45 20% 90%;
+    --primary: 45 93% 47%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 45 93% 47%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 45 93% 47%;
+    --radius: 0.1rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-headline tracking-wider;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .gold-text {
+    background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 200% auto;
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+    animation: shine-gold 4s linear infinite;
+  }
+
+  @keyframes shine-gold {
+    to {
+      background-position: 200% center;
+    }
+  }
+
+  @keyframes rotate-pause {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    15% {
+      transform: rotate(360deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-rotate-pause {
+    animation: rotate-pause 4s ease-in-out infinite;
+  }
+
+  @keyframes shine-pause {
+    0% {
+      background-position: -100%;
+    }
+
+    20% {
+      background-position: 200%;
+    }
+
+    100% {
+      background-position: 200%;
+    }
+  }
+
+  .animate-shine-pause {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+    background-size: 200% 100%;
+    animation: shine-pause 3s infinite;
+  }
+
+  @keyframes shine-text {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    100% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-shine-text {
+    background: linear-gradient(to right, #2563eb, #60a5fa, #2563eb);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 200% auto;
+    animation: shine-text 3s linear infinite;
+  }
+
+  @keyframes clapper {
+
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+
+    10% {
+      transform: rotate(-15deg);
+    }
+
+    20% {
+      transform: rotate(0deg);
+    }
+  }
+
+  .animate-clapper {
+    animation: clapper 2s ease-in-out infinite;
+    transform-origin: bottom left;
+  }
+
+  .pwa-splash {
+    display: none;
+  }
+
+  @media all and (display-mode: standalone) {
+    .pwa-splash {
+      display: flex;
+    }
+  }
+}
