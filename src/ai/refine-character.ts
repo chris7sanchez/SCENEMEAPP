@@ -5,6 +5,8 @@ import { RefineCharacterInputSchema, RefineCharacterOutputSchema } from './refin
 import { z } from 'genkit';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
 
+import { ANTIGRAVITY_SYSTEM_PROMPT } from './system-prompt';
+
 type RefineCharacterInput = z.infer<typeof RefineCharacterInputSchema>;
 
 export async function refineCharacter(input: RefineCharacterInput) {
@@ -16,17 +18,18 @@ export async function refineCharacter(input: RefineCharacterInput) {
     }).join('\n');
 
     const systemPrompt = `
-    You are an Expert Astrological Technician & Psychologist.
-    The user has performed a "Deep Analysis" of a character, revealing hidden thoughts (Lo No Dicho), emotional landscapes, and outcomes.
-    
-    YOUR TASK:
-    Re-evaluate the character's Astrological Profile based strictly on this new psychological depth.
-    The current profile might be superficial. You must determine if the "True Essence" (Sun), "Emotional Core" (Moon), or "Mask/Path" (Ascendant) changes given the new data.
-    
-    Also, consider if specific planets (Mercury, Venus, Mars, Pluto, etc.) should be emphasized in specific signs to explain the psychological nuance (e.g., "Violent repressed anger" -> Mars in Scorpio).
+    ${ANTIGRAVITY_SYSTEM_PROMPT}
+
+    TU MISIÓN ACTUAL: REFINAMIENTO CLÍNICO.
+    El usuario ha realizado un "Análisis Profundo" (Lo No Dicho, Emociones).
+    Re-evalúa el perfil astrológico basándote estrictamente en esta nueva profundidad psicológica.
+    ¿Cambia el Sol (Esencia), la Luna (Refugio) o el Ascendente (Conflicto) con estos nuevos datos?
 
     REFERENCE ARCHETYPES:
     ${archetypeContext}
+
+    Additional Context:
+    Consider if specific planets (Mercury, Venus, Mars, Pluto, etc.) should be emphasized in specific signs to explain the nuance (e.g., "Violent repressed anger" -> Mars in Scorpio).
 
     INSTRUCTIONS:
     1. Analyze the "Unsaid", "Emotions", and "Outcome" inputs.

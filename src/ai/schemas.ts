@@ -54,6 +54,13 @@ export const AnalyzeCharacterOutputSchema = z.object({
         moonReasoning: z.string().describe('Answer to: ¿Cómo siento y cómo son mis emociones? (Derived from inner world)'),
         ascendantReasoning: z.string().describe('Answer to: ¿Cómo me modifica la vida? (Derived from obstacles/others view)'),
     }).describe('The detailed reasoning for the Big Three placements based on specific psychological questions.'),
+    methodActing: z.object({
+        psychologicalGesture: z.string().describe('A specific physical movement that captures the character\'s essence (Chekhov).'),
+        voiceQuality: z.string().describe('Description of the voice (tempo, pitch, texture, rhythm).'),
+        animalTotem: z.string().describe('An animal metaphor for the character\'s movement and behavior.'),
+        physicalCenter: z.string().describe('Where the character leads their movement from (e.g., Head, Heart, Groin).'),
+        emotionalLandscape: z.string().describe('A metaphor for their internal emotional world (e.g., "A storm at sea", "A frozen desert").'),
+    }).describe('Deep method acting keys for embodiment.'),
 });
 
 export type AnalyzeCharacterOutput = z.infer<typeof AnalyzeCharacterOutputSchema>;
@@ -82,4 +89,44 @@ export const DailyReadingOutputSchema = z.object({
     advice: z.string().describe('A cryptic but actionable piece of advice for the alchemist.'),
 });
 
+
 export type DailyReadingOutput = z.infer<typeof DailyReadingOutputSchema>;
+
+export const AnalyzeSynastryInputSchema = z.object({
+    userBirthDate: z.string().describe('The ISO date string of the user birth.'),
+    targetBirthDate: z.string().describe('The ISO date string of the target person/character birth.'),
+    targetName: z.string().describe('The name of the target person/character.'),
+});
+
+export type AnalyzeSynastryInput = z.infer<typeof AnalyzeSynastryInputSchema>;
+
+export const AnalyzeSynastryOutputSchema = z.object({
+    synastry_title: z.string().describe('The main title of the alchemical combination.'),
+    phase1_survival_clash: z.object({
+        title: z.string(),
+        description: z.string(),
+        conflict_dynamic: z.string(),
+        shadow_projection: z.string(),
+    }).describe('FASE 1: El Choque de Mundos.'),
+    phase2_friction_flow: z.object({
+        title: z.string(),
+        description: z.string(),
+        flow_mechanics: z.string(),
+        friction_points: z.string(),
+    }).describe('FASE 2: La Fricción y el Flujo.'),
+    phase3_integration_bridge: z.object({
+        title: z.string(),
+        description: z.string(),
+        mission_statement: z.string(),
+        evolutionary_gift: z.string(),
+    }).describe('FASE 3: El Puente de Integración.'),
+    synchronization_exercise: z.object({
+        title: z.string(),
+        step1: z.string(),
+        step2: z.string(),
+        step3: z.string(),
+        mantra: z.string(),
+    }).describe('Ejercicio de Sincronización.'),
+});
+
+export type AnalyzeSynastryOutput = z.infer<typeof AnalyzeSynastryOutputSchema>;

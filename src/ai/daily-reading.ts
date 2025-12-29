@@ -3,34 +3,30 @@
 import { ai } from './genkit';
 import { DailyReadingInput, DailyReadingOutput, DailyReadingOutputSchema } from './schemas';
 
+import { ANTIGRAVITY_SYSTEM_PROMPT } from './system-prompt';
+
 export async function generateDailyReading(input: DailyReadingInput): Promise<DailyReadingOutput> {
     const { birthData, aspects, userName } = input;
 
     const systemPrompt = `
-    You are a Mystical Alchemist and Astrologer. 
-    Your task is to interpret the daily planetary transits for a specific individual based on their natal chart interactions.
+    ${ANTIGRAVITY_SYSTEM_PROMPT}
+
+    TAREA ESPECÍFICA (LECTURA DIARIA):
+    Interpreta los tránsitos planetarios actuales para este individuo.
     
-    TONE & STYLE:
-    - Mystical, deep, slightly cryptic but empowering.
-    - Use Alchemical metaphors (transmutation, calcination, gold, lead).
-    - Speak directly to the user ("Tú").
-    - Avoid generic horoscope clichés. Focus on the *energy* and *psychological/spiritual* impact.
-    - Language: SPANISH (Español).
+    INSTRUCCIONES ADICIONALES:
+    1. Analiza los aspectos proporcionados. Busca los temas más fuertes (ej. Plutón=Transformación, Saturno=Restricción).
+    2. Sintetiza estos aspectos en una narrativa coherente. No hagas una lista. TÉJELOS.
+    3. Si hay aspectos contradictorios, explica la tensión psicológica.
+    4. Crea un "Titular" que capture la esencia alquímica del día.
+    5. Proporciona un "Tema" (2-3 palabras).
+    6. Escribe la "Lectura" (párrafo profundo, usando el Marco Teórico del Héroe).
+    7. Da un "Consejo" práctico basado en el Nodo Norte o el tránsito principal.
 
-    INPUT DATA:
-    - User: ${userName || 'The Alchemist'}
-    - Birth Date: ${birthData.date}
-    - City: ${birthData.city || 'Unknown'}
-    - Key Transits (Aspects): List of how current planets interact with natal planets.
-
-    INSTRUCTIONS:
-    1. Analyze the provided aspects. Look for the strongest themes (e.g., Pluto = Transformation, Saturn = Restriction/Structure, Jupiter = Expansion).
-    2. Synthesize these aspects into a coherent narrative. Don't just list them. Weave them together.
-    3. If there are conflicting aspects (e.g., Saturn restricting while Jupiter expands), explain the tension.
-    4. Create a "Headline" that captures the essence.
-    5. Provide a "Theme" (2-3 words).
-    6. Write the "Reading" (paragraph).
-    7. Give a short "Advice".
+    DATOS DE ENTRADA:
+    - Usuario: ${userName || 'El Alquimista'}
+    - Fecha Nacimiento: ${birthData.date}
+    - Ciudad: ${birthData.city || 'Desconocida'}
     `;
 
     const userPrompt = `

@@ -3,6 +3,7 @@
 import { ai } from './genkit';
 import { AnalyzeCharacterInput, AnalyzeCharacterOutput, AnalyzeCharacterOutputSchema } from './schemas';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
+import { ANTIGRAVITY_SYSTEM_PROMPT } from './system-prompt';
 
 export async function analyzeCharacter(input: AnalyzeCharacterInput): Promise<AnalyzeCharacterOutput> {
     const { scriptSegment, characterName, customKnowledge } = input;
@@ -19,8 +20,11 @@ export async function analyzeCharacter(input: AnalyzeCharacterInput): Promise<An
     }
 
     const systemPrompt = `
-    You are an expert Astrological Profiler & Psychologist for Fictional Characters.
-    Your task is to analyze a character's dialogue, actions, and subtext to REVERSE ENGINEER their probable Birth Chart.
+    ${ANTIGRAVITY_SYSTEM_PROMPT}
+
+    TU MISIÓN ACTUAL: PERFILADO INVERSO (REVERSE ENGINEERING).
+    En lugar de interpretar una carta, debes DEDUCIRLA a partir del texto de un guión.
+    Usa tu profundo conocimiento del "Marco Teórico del Héroe" (Sol/Héroe, Luna/Refugio, Asc/Supervivencia) para encontrar qué arquetipos encajan con el personaje.
 
     REFERENCE DATA (Archetypes & Assimilated Wisdom):
     ${archetypeContext}
@@ -43,8 +47,16 @@ export async function analyzeCharacter(input: AnalyzeCharacterInput): Promise<An
        - Focus: The mask they wear, how they navigate obstacles, their destiny/path, physical presence.
        - Action: Synthesize their interaction with the world/fate into this answer, then pick the Ascendant.
 
+    4. **METHOD ACTING KEYS (Chekhov / Laban / Strasberg)**:
+       - **Psychological Gesture**: A single, repeatable physical action that summarizes their will.
+       - **Voice Quality**: Be specific about timbre, speed, and rhythm (e.g., "Staccato, metallic, fast").
+       - **Animal Totem**: A creature that moves/behaves like them.
+       - **Physical Center**: The body part they lead with (Head, Chest, Pelvis, Knees, etc.).
+       - **Emotional Landscape**: Use a nature metaphor for their inner state.
+
     FINAL OUTPUT:
     - Provide the reasoned "answers" for each pillar in the 'threePillars' field.
+    - **Fill the 'methodActing' object with rich, evocative, and practical performance directions.**
     - Select the Signs (Sun, Moon, Ascendant) effectively based on those answers.
     - Estimate elemental balance (Fire, Earth, Air, Water).
     `;
@@ -84,6 +96,13 @@ export async function analyzeCharacter(input: AnalyzeCharacterInput): Promise<An
                 sunReasoning: "Analysis failed.",
                 moonReasoning: "Analysis failed.",
                 ascendantReasoning: "Analysis failed."
+            },
+            methodActing: {
+                psychologicalGesture: "None",
+                voiceQuality: "Unknown",
+                animalTotem: "Unknown",
+                physicalCenter: "Unknown",
+                emotionalLandscape: "Unknown"
             }
         };
     }

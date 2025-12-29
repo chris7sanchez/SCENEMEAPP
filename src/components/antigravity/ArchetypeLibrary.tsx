@@ -12,10 +12,15 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [isScanning, setIsScanning] = useState(false);
+    const [history, setHistory] = useState<any[][]>([]);
     const [customKnowledge, setCustomKnowledge] = useState<any[]>([]);
+    const [lastUpdated, setLastUpdated] = useState<string>('');
 
     // Load from API on mount
     React.useEffect(() => {
+        const storedDate = localStorage.getItem('archetypeLastUpdateDate');
+        if (storedDate) setLastUpdated(storedDate);
+
         fetch('/api/knowledge')
             .then(res => res.json())
             .then(data => {
@@ -24,6 +29,11 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
             .catch(err => console.error("Failed to load knowledge", err));
     }, []);
 
+    const updateHistory = (newHistory: any[][]) => {
+        setHistory(newHistory);
+        localStorage.setItem('archetypeUndoHistory', JSON.stringify(newHistory));
+    };
+
     const saveToApi = async (newData: any[]) => {
         setCustomKnowledge(newData);
         await fetch('/api/knowledge', {
@@ -31,6 +41,41 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newData)
         });
+        const now = new Date().toLocaleString();
+        setLastUpdated(now);
+        localStorage.setItem('archetypeLastUpdateDate', now);
+    };
+
+    const handleUndo = async () => {
+        if (history.length === 0) return;
+        const previousState = history[history.length - 1];
+        const newHistory = history.slice(0, -1);
+
+        updateHistory(newHistory);
+        await saveToApi(previousState);
+        alert("Acción deshecha. Se ha restaurado el estado anterior.");
+    };
+
+    const handleDeleteLastBatch = async () => {
+        if (customKnowledge.length === 0) return;
+        if (!confirm("¿Eliminar los últimos datos añadidos? (Esta acción es ciega, borrará lo último ingresado).")) return;
+
+        // Save state for Undo just in case
+        updateHistory([...history, customKnowledge]);
+
+        const newState = [...customKnowledge];
+        const removed = newState.pop(); // Remove 1
+        await saveToApi(newState);
+        alert(`Eliminado el último registro: ${removed?.value || 'Desconocido'}`);
+    };
+
+    const handleClearAll = async () => {
+        if (!confirm("⚠️ ¿ESTÁS SEGURO? \nEsto borrará TODO el conocimiento personalizado asimilado manualmente o por PDF.\nEsta acción no se puede deshacer.")) return;
+
+        // Save current to history just in case
+        setHistory(prev => [...prev, customKnowledge]);
+        await saveToApi([]);
+        alert("Biblioteca purgada. Volviendo a valores de fábrica.");
     };
 
     const signs = Object.entries(ZODIAC_ARCHETYPES);
@@ -38,6 +83,10 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
     const handleAssimilate = async () => {
         if (!knowledgeInput.trim()) return;
         setIsAssimilating(true);
+
+        // Save to History before changing
+        setHistory(prev => [...prev, customKnowledge]);
+
         try {
             const result = await assimilateKnowledge({ content: knowledgeInput });
             const newKnowledge = result.knowledge;
@@ -73,8 +122,11 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
             const result = await parsePdfAction(formData);
             if (result.error) {
                 alert(`Error al leer PDF: ${result.error}`);
+            } else if (!result.text || !result.text.trim()) {
+                alert("El PDF parece estar vacío o ser una imagen sin texto (OCR no disponible).");
             } else {
                 setKnowledgeInput(prev => prev + "\n\n" + result.text);
+                setShowAdd(true); // Automatically open the panel
                 alert("PDF Procesado. Texto añadido al área de asimilación. Revisa y pulsa 'Asimilar'.");
             }
         } catch (err) {
@@ -92,11 +144,17 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
             const res = await fetch('/api/ingest-folder', { method: 'POST' });
             const data = await res.json();
             if (data.success) {
-                alert(data.message);
-                // Reload
-                const kRes = await fetch('/api/knowledge');
-                const kData = await kRes.json();
-                setCustomKnowledge(kData);
+                if (data.count && data.count > 0) {
+                    alert(`ÉXITO: ${data.message}`);
+                    const kRes = await fetch('/api/knowledge');
+                    const kData = await kRes.json();
+                    await saveToApi(kData);
+                } else {
+                    alert("Biblioteca Actualizada. No se ha encontrado nueva información en la carpeta.");
+                    const now = new Date().toLocaleString();
+                    setLastUpdated(now);
+                    localStorage.setItem('archetypeLastUpdateDate', now);
+                }
             } else {
                 alert(data.message || "Error scanning folder.");
             }
@@ -156,7 +214,6 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
                             className="hidden"
                         />
 
-                        {/* Manual Entry Toggle */}
                         <button
                             onClick={() => setShowAdd(!showAdd)}
                             className={`px-4 py-2 rounded text-[10px] uppercase font-bold tracking-wider transition-colors flex items-center gap-2 border ${showAdd ? 'bg-white text-black border-white' : 'bg-transparent text-white border-white/30 hover:bg-white/10'}`}
@@ -164,14 +221,39 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
                             <Plus size={14} /> <span>Manual</span>
                         </button>
 
-                        <div className="hidden md:block w-px h-8 bg-white/10 mx-2"></div>
+                        {/* HISTORY CONTROLS */}
+                        <div className="flex items-center gap-1 bg-white/5 p-1 rounded-lg border border-white/10">
+                            {/* UNDO */}
+                            <button
+                                onClick={handleUndo}
+                                disabled={history.length === 0}
+                                className="px-3 py-1.5 rounded text-[10px] uppercase font-bold tracking-wider transition-colors flex items-center gap-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/50 hover:bg-yellow-500 hover:text-black disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Deshacer última importación"
+                            >
+                                <span className="text-sm">↺</span>
+                            </button>
 
-                        <button
-                            onClick={onClose}
-                            className="text-gray-400 hover:text-white transition-colors text-2xl ml-2"
-                        >
-                            ×
-                        </button>
+                            {/* DELETE LAST */}
+                            <button
+                                onClick={handleDeleteLastBatch}
+                                disabled={customKnowledge.length === 0}
+                                className="px-3 py-1.5 rounded text-[10px] uppercase font-bold tracking-wider transition-colors flex items-center gap-2 text-orange-400 hover:bg-orange-500/20 hover:text-orange-200 disabled:opacity-30"
+                                title="Borrar último registro añadido (Manual)"
+                            >
+                                <span>Borrar Último</span>
+                            </button>
+
+                            {/* PANIC */}
+                            <button
+                                onClick={handleClearAll}
+                                className="px-3 py-1.5 rounded text-[10px] transition-colors text-red-500/50 hover:text-red-500 hover:bg-red-500/10"
+                                title="BORRADO TOTAL"
+                            >
+                                🗑
+                            </button>
+                        </div>
+
+                        <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors text-2xl ml-2">×</button>
                     </div>
                 </div>
 
@@ -189,13 +271,13 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
                                 value={knowledgeInput}
                                 onChange={(e) => setKnowledgeInput(e.target.value)}
                             />
-                            <div className="flex flex-col gap-2 justify-end">
+                            <div className="flex flex-col gap-2 justify-end w-48">
                                 <button
                                     onClick={handleAssimilate}
                                     disabled={isAssimilating}
-                                    className="bg-white text-black px-6 py-3 rounded font-bold uppercase tracking-widest text-xs hover:bg-[#C55959] hover:text-white transition-colors disabled:opacity-50 h-full"
+                                    className="bg-white text-black px-4 py-3 rounded font-bold uppercase tracking-widest text-xs hover:bg-[#C55959] hover:text-white transition-colors disabled:opacity-50 h-full flex items-center justify-center gap-2"
                                 >
-                                    {isAssimilating ? <Loader2 className="animate-spin" /> : 'Asimilar Texto'}
+                                    {isAssimilating ? <Loader2 className="animate-spin" /> : <><BookOpen size={16} /> ASIMILAR</>}
                                 </button>
                             </div>
                         </div>
@@ -286,6 +368,13 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
                         ))}
                     </div>
 
+                </div>
+
+                {/* FOOTER: LAST UPDATE */}
+                <div className="bg-[#1a1a1a] p-2 text-center border-t border-white/10 shrink-0 z-50">
+                    <p className="text-[10px] uppercase tracking-widest text-[#5B7C99]">
+                        Última Actualización de Biblioteca: <span className="text-white font-bold ml-1">{lastUpdated || 'Pendiente'}</span>
+                    </p>
                 </div>
             </div>
         </div >

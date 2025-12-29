@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { parsePdf } from '@/ai/flows/parse-pdf';
-import { assimilateKnowledge } from '@/ai/flows/assimilate-knowledge';
+import { parsePdfBuffer } from '@/ai/parse-pdf';
+import { assimilateKnowledge } from '@/ai/assimilate-knowledge';
 
 const KNOWLEDGE_DIR = path.join(process.cwd(), 'knowledge-base');
 const DATA_FILE = path.join(process.cwd(), 'data', 'custom-knowledge.json');
@@ -39,7 +39,7 @@ export async function POST() {
             const fileBuffer = fs.readFileSync(filePath);
 
             // Parse PDF
-            const text = await parsePdf(fileBuffer);
+            const text = await parsePdfBuffer(fileBuffer);
 
             // Assimilate
             const assimilation = await assimilateKnowledge({ content: text });

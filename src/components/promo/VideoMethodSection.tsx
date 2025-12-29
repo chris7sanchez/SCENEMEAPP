@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 
 const STEPS = [
@@ -73,6 +73,12 @@ function VideoCard({ step }: { step: typeof STEPS[0] }) {
         }
     };
 
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.defaultMuted = true;
+        }
+    }, []);
+
     return (
         <div className="group relative aspect-[9/16] bg-zinc-100 rounded-2xl overflow-hidden shadow-xl border-4 border-white cursor-pointer" onClick={togglePlay}>
             <video
@@ -80,11 +86,13 @@ function VideoCard({ step }: { step: typeof STEPS[0] }) {
                 src={step.videoSrc}
                 className="w-full h-full object-cover"
                 loop
-                muted={true}
+                muted
                 autoPlay
                 playsInline
+                preload="metadata"
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
+                onError={(e) => console.error("Video load error:", e)}
             />
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 pointer-events-none" />

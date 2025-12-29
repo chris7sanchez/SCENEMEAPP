@@ -3,6 +3,8 @@ import React, { useState, useId } from 'react';
 import { Plus, Minus, Save } from 'lucide-react';
 import NatalChart2D from '@/components/antigravity/NatalChart2D';
 
+type ViewMode = 'COSMOS' | 'BODY' | 'SPIRIT' | 'ALCHIMESTRY';
+
 interface ChartViewerProps {
     date?: string;
     latitude?: number;

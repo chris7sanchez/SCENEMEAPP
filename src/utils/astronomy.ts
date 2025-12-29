@@ -88,12 +88,75 @@ export function calculateRealPlanets(dateStr: string, latitude: number = 40.4168
     // Calculate Ascendant
     const ascendant = calculateAscendant(date, latitude, longitude);
 
-    // For specific house systems (Placidus is complex), we'll simulate Equal House system from Ascendant for now 
-    // to ensure 12th house logic is somewhat sound relative to Ascendant.
-    // Ideally we'd implement Placidus.
-    // Let's stick to Equal Houses for stability in this iteration:
-    // House 1 = Ascendant, House 2 = Asc + 30, etc.
-    const houses = Array.from({ length: 12 }).map((_, i) => (ascendant + i * 30) % 360);
+    // 1. Calculate MC (Midheaven)
+    // MC is the intersection of the Meridian and the Ecliptic.
+    // tan(MC) = tan(RAMC) / cos(Eps)
+    // RAMC = LST
+
+    // We need to re-calculate LST here or extract it.
+    // Let's copy the LST logic briefly.
+    const time = date.getTime();
+    const JD = (time / 86400000) + 2440587.5;
+    const T = (JD - 2451545.0) / 36525.0;
+    let GMST = 280.46061837 + 360.98564736629 * (JD - 2451545.0) + 0.000387933 * T * T - T * T * T / 38710000.0;
+    GMST = (GMST % 360 + 360) % 360;
+    const LST = (GMST + longitude) % 360;
+    const LSTrad = (LST * Math.PI) / 180;
+    const Eps = 23.4392911; // Obliquity
+    const EpsRad = (Eps * Math.PI) / 180;
+
+    // MC Calculation
+    const tanMC = Math.tan(LSTrad) / Math.cos(EpsRad);
+    let MC = (Math.atan(tanMC) * 180) / Math.PI;
+    if (MC < 0) MC += 360;
+
+    // Adjust quadrant for MC
+    if (LST > 90 && LST < 270) {
+        MC = (MC + 180) % 360;
+    } else if (LST >= 270 && MC < 180) {
+        MC = (MC + 180) % 360;
+    } else if (LST < 90 && MC > 180) {
+        MC = (MC + 180) % 360;
+    }
+
+    // Now we have Ascendant (House 1) and MC (House 10).
+    // We will use Porphyry system (simplest unequal system) to satisfy "Real Sizes".
+    // Porphyry divides the quadrants into 3 equal parts.
+
+    const H1 = ascendant;
+    const H10 = MC;
+    const H4 = (MC + 180) % 360; // IC
+    const H7 = (ascendant + 180) % 360; // Descendant
+
+    // Quadrant 1: H1 to H4 (Eastern Hemisphere, Bottom) - Houses 1, 2, 3
+    let diff14 = (H4 - H1);
+    if (diff14 < 0) diff14 += 360;
+    const step14 = diff14 / 3;
+    const H2 = (H1 + step14) % 360;
+    const H3 = (H1 + 2 * step14) % 360;
+
+    // Quadrant 2: H4 to H7 - Houses 4, 5, 6
+    let diff47 = (H7 - H4);
+    if (diff47 < 0) diff47 += 360;
+    const step47 = diff47 / 3;
+    const H5 = (H4 + step47) % 360;
+    const H6 = (H4 + 2 * step47) % 360;
+
+    // Quadrant 3: H7 to H10 - Houses 7, 8, 9
+    let diff710 = (H10 - H7);
+    if (diff710 < 0) diff710 += 360;
+    const step710 = diff710 / 3;
+    const H8 = (H7 + step710) % 360;
+    const H9 = (H7 + 2 * step710) % 360;
+
+    // Quadrant 4: H10 to H1 - Houses 10, 11, 12
+    let diff101 = (H1 - H10);
+    if (diff101 < 0) diff101 += 360;
+    const step101 = diff101 / 3;
+    const H11 = (H10 + step101) % 360;
+    const H12 = (H10 + 2 * step101) % 360;
+
+    const houses = [H1, H2, H3, H4, H5, H6, H7, H8, H9, H10, H11, H12];
 
     const planets = PLANET_DATA.map(p => {
         // 1. Get Geocentric Equatorial Vector

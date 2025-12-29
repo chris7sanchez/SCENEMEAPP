@@ -1,20 +1,9 @@
 import { genkit } from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI, gemini15Flash } from '@genkit-ai/googleai';
 
-// Safely initialize plugins purely to prevent top-level crash on import
-let plugins: any[] = [];
-try {
-    // Only attempt to init plugin if key exists to avoid throws
-    if (process.env.GOOGLE_GENAI_API_KEY) {
-        plugins.push(googleAI());
-    } else {
-        console.warn("GOOGLE_GENAI_API_KEY missing in environment variables.");
-    }
-} catch (error) {
-    console.error("Failed to initialize Google AI plugin:", error);
-}
-
+// Initialize Genkit with the Google AI plugin.
+// The plugin will automatically look for GOOGLE_GENAI_API_KEY in the environment.
 export const ai = genkit({
-    plugins,
-    model: 'googleai/gemini-2.5-flash',
+    plugins: [googleAI()],
+    model: gemini15Flash,
 });

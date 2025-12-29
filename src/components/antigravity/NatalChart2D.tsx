@@ -27,11 +27,65 @@ interface NatalChartProps {
     customPlanets?: Record<string, string | undefined>; // NEW: Full System Override
     transparent?: boolean;
     forceAriesZero?: boolean; // NEW: Force rotation to 0 Aries
+    theme?: 'classic' | 'modern' | 'alchemical'; // NEW: Visual Theme
+    showTransits?: boolean; // Optional: Show/Hide Transits explicitly
 }
 
-export default function NatalChart2D({ date, latitude = 40.4168, longitude = -3.7038, transitsDate, knownAscendant, knownMoon, customPlanets, transparent = false, forceAriesZero = false }: NatalChartProps) {
-    const { natalPlanets, ascendant, chartRotation } = useMemo(() => {
-        if (!date) return { natalPlanets: [], ascendant: 0, chartRotation: 0 };
+const THEMES = {
+    classic: {
+        bg: 'white',
+        text: 'black',
+        line: '#333',
+        houseLine: '#e5e7eb',
+        ring: '#000',
+        font: 'sans-serif',
+        planetBg: 'white',
+        accent: '#C55959',
+        // Sizes
+        planetRadius: 10,
+        planetFontSize: 12, // Standard
+        signFontSize: 14,
+        strokeNormal: "1",
+        strokeBold: "2"
+    },
+    modern: {
+        bg: '#0f172a',
+        text: '#f8fafc',
+        line: '#475569',
+        houseLine: '#334155',
+        ring: '#94a3b8',
+        font: 'Inter, sans-serif',
+        planetBg: '#1e293b',
+        accent: '#38bdf8',
+        // Sizes - Bold & Readable
+        planetRadius: 12, // Larger touch targets
+        planetFontSize: 14, // Larger symbols
+        signFontSize: 16,
+        strokeNormal: "1.5",
+        strokeBold: "2.5"
+    },
+    alchemical: {
+        bg: '#F2F0E9', // Papyrus
+        text: '#5c4d44', // Sepia/Ink
+        line: '#8c7b70',
+        houseLine: '#d6cfc7',
+        ring: '#5c4d44',
+        font: 'serif',
+        planetBg: '#F9F8F4',
+        accent: '#D4AF37', // Gold
+        // Sizes - Manuscript Style
+        planetRadius: 14, // Significant presence
+        planetFontSize: 18, // Very large symbols
+        signFontSize: 18,
+        strokeNormal: "1.2",
+        strokeBold: "3"
+    }
+};
+
+export default function NatalChart2D({ date, latitude = 40.4168, longitude = -3.7038, transitsDate, knownAscendant, knownMoon, customPlanets, transparent = false, forceAriesZero = false, theme = 'classic' }: NatalChartProps) {
+    const style = THEMES[theme] || THEMES.classic;
+    const { natalPlanets, ascendant, houses, chartRotation } = useMemo(() => {
+        if (!date) return { natalPlanets: [], ascendant: 0, houses: [], chartRotation: 0 };
 
         const data = calculateRealPlanets(date, latitude, longitude);
 
@@ -90,6 +144,7 @@ export default function NatalChart2D({ date, latitude = 40.4168, longitude = -3.
         return {
             natalPlanets: finalPlanets,
             ascendant: finalAscendant,
+            houses: data.houses || Array.from({ length: 12 }).map((_, i) => (finalAscendant + i * 30) % 360),
             chartRotation: rotation
         };
     }, [date, latitude, longitude, knownAscendant, knownMoon, customPlanets, forceAriesZero]);
@@ -118,26 +173,70 @@ export default function NatalChart2D({ date, latitude = 40.4168, longitude = -3.
         <div className={`w-full h-full flex items-center justify-center relative ${transparent ? 'bg-transparent' : 'bg-white rounded-full shadow-2xl'} p-0 text-black`}>
             <svg viewBox="-50 -50 500 500" className="w-full h-full" style={{ overflow: 'visible' }}>
                 {/* Paper Background - Only if not transparent */}
-                {!transparent && <circle cx={center} cy={center} r={radius + 5} fill="white" />}
+                {!transparent && <circle cx={center} cy={center} r={radius + 5} fill={style.bg} />}
 
                 {/* Outer Zodiac Ring Boundary */}
-                <circle cx={center} cy={center} r={radius} fill="none" stroke="#000" strokeWidth="1.5" />
-                <circle cx={center} cy={center} r={radius * 0.88} fill="none" stroke="#000" strokeWidth="0.5" />
+                <circle cx={center} cy={center} r={radius} fill="none" stroke={style.ring} strokeWidth={style.strokeBold} />
+                <circle cx={center} cy={center} r={radius * 0.88} fill="none" stroke={style.ring} strokeWidth={style.strokeNormal} />
 
-                {/* House Cusps (Lines) */}
+                {/* ZODIAC SIGNS BOUNDS (30 Degree Segments) - FIXED TO ZODIAC */}
                 {Array.from({ length: 12 }).map((_, i) => {
-                    const cuspLon = ascendant + (i * 30);
-                    const coords = getCoordinates(cuspLon, radius);
-                    // Draw line from inner ring to outer edge
-                    return <line key={`house-line-${i}`} x1={center} y1={center} x2={coords.x} y2={coords.y} stroke="#eee" strokeWidth="1" />;
+                    const signCusp = i * 30; // 0, 30, 60...
+                    const coords = getCoordinates(signCusp, radius);
+                    return (
+                        <line
+                            key={`sign-boundary-${i}`}
+                            x1={center} y1={center} x2={coords.x} y2={coords.y}
+                            stroke={style.ring}
+                            strokeWidth="0.5"
+                            strokeDasharray="4,2" // Dashed line for Sign Boundaries to differentiate from Houses
+                            opacity="0.5"
+                        />
+                    );
+                })}
+
+                {/* House Cusps (Lines) - UNEQUAL (Placidus/Porphyry) */}
+                {houses.map((cuspLon, i) => {
+                    const coords = getCoordinates(cuspLon, radius * 0.88); // Draw house lines slightly shorter or up to inner ring
+                    // Draw line from center (or inner hub) to outer edge
+                    return (
+                        <g key={`house-line-${i}`}>
+                            <line
+                                x1={center} y1={center} x2={coords.x} y2={coords.y}
+                                stroke={style.houseLine}
+                                strokeWidth={style.strokeNormal}
+                            />
+                            {/* House Number - Centered in wedge */}
+                            {(() => {
+                                // Calculate mid-house for number placement
+                                const nextCusp = houses[(i + 1) % 12];
+                                let midHouseLon = (cuspLon + nextCusp) / 2;
+                                if (nextCusp < cuspLon) midHouseLon = (cuspLon + nextCusp + 360) / 2; // Handle wrapping
+
+                                const numCoords = getCoordinates(midHouseLon, radius * 0.35); // Number near center
+                                return (
+                                    <text
+                                        x={numCoords.x} y={numCoords.y}
+                                        textAnchor="middle" dominantBaseline="middle"
+                                        fill={style.text} opacity="0.6"
+                                        fontSize={theme === 'alchemical' ? "10" : "8"}
+                                        fontWeight={theme === 'modern' ? 'bold' : 'normal'}
+                                        fontFamily={style.font}
+                                    >
+                                        {i + 1}
+                                    </text>
+                                );
+                            })()}
+                        </g>
+                    );
                 })}
 
                 {/* Horizon / Ascendant-Descendant Axis (Bold) */}
                 <line
                     x1={center + radius * Math.cos(Math.PI)} y1={center + radius * Math.sin(Math.PI)}
                     x2={center + radius * Math.cos(0)} y2={center + radius * Math.sin(0)}
-                    stroke="#000" strokeWidth="2"
-                    opacity="0.3"
+                    stroke={style.line} strokeWidth={style.strokeBold}
+                    opacity="0.8"
                 />
 
                 {/* Zodiac Signs (Simplified, no house numbers to declutter) */}
@@ -151,9 +250,10 @@ export default function NatalChart2D({ date, latitude = 40.4168, longitude = -3.
                                 y={coords.y}
                                 textAnchor="middle"
                                 dominantBaseline="middle"
-                                fill={sign.color}
-                                fontSize="14"
+                                fill={theme === 'modern' ? style.accent : sign.color}
+                                fontSize={style.signFontSize}
                                 fontWeight="bold"
+                                fontFamily={style.font}
                             >
                                 {sign.symbol}
                             </text>
@@ -211,36 +311,35 @@ export default function NatalChart2D({ date, latitude = 40.4168, longitude = -3.
                 {natalPlanets.map((planet, i) => {
                     const coords = getCoordinates(planet.longitude, radius * 0.75); // Inner ring
 
-                    // Simple collision avoidance or stacking could optionally go here
-                    // Text offset
-
                     // Calculate degree in sign (0-29)
                     const absoluteLon = planet.longitude;
                     const degreeInSign = Math.floor(absoluteLon % 30);
 
                     return (
                         <g key={`natal-${planet.name}`}>
-                            <line x1={center} y1={center} x2={coords.x} y2={coords.y} stroke={planet.color} strokeWidth="0.5" opacity="0.2" />
-                            <circle cx={coords.x} cy={coords.y} r="9" fill="white" stroke={planet.color} strokeWidth="1.5" />
+                            <line x1={center} y1={center} x2={coords.x} y2={coords.y} stroke={planet.color} strokeWidth="0.5" opacity="0.4" />
+                            <circle cx={coords.x} cy={coords.y} r={style.planetRadius} fill={style.planetBg} stroke={planet.color} strokeWidth={style.strokeNormal} />
                             <text
                                 x={coords.x}
                                 y={coords.y}
                                 textAnchor="middle"
                                 dominantBaseline="middle"
-                                fill="#000"
-                                fontSize="12"
+                                fill={theme === 'modern' ? 'white' : 'black'}
+                                fontSize={style.planetFontSize}
                                 fontWeight="bold"
+                                fontFamily={style.font}
                             >
                                 {planet.symbol}
                             </text>
                             {/* Degree Label */}
                             <text
                                 x={coords.x}
-                                y={coords.y + 14}
+                                y={coords.y + style.planetRadius + 6}
                                 textAnchor="middle"
-                                fill="#333"
+                                fill={style.text}
                                 fontSize="8"
                                 fontFamily="monospace"
+                                opacity="0.8"
                             >
                                 {degreeInSign}°
                             </text>

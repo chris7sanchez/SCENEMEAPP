@@ -50,6 +50,26 @@ export default function CelestialSphere({ date, width = 500, height = 500 }: Cel
         isDragging.current = false;
     };
 
+    // Touch Events for Mobile
+    const handleTouchStart = (e: React.TouchEvent) => {
+        isDragging.current = true;
+        const touch = e.touches[0];
+        lastMouse.current = { x: touch.clientX, y: touch.clientY };
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (!isDragging.current) return;
+        const touch = e.touches[0];
+        const dx = touch.clientX - lastMouse.current.x;
+        const dy = touch.clientY - lastMouse.current.y;
+        setRotation(prev => ({ x: prev.x + dy * 0.5, y: prev.y + dx * 0.5 }));
+        lastMouse.current = { x: touch.clientX, y: touch.clientY };
+    };
+
+    const handleTouchEnd = () => {
+        isDragging.current = false;
+    };
+
     // 3D Math Helpers
     const project = (x: number, y: number, z: number) => {
         // Rotate around X axis
@@ -164,11 +184,14 @@ export default function CelestialSphere({ date, width = 500, height = 500 }: Cel
 
     return (
         <div
-            className="w-full h-full bg-black relative overflow-hidden cursor-move group"
+            className="w-full h-full bg-black relative overflow-hidden cursor-move group touch-none"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
         >
             <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_#1a1a1a_0%,_#000_100%)]"></div>
 
