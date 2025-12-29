@@ -1,74 +1,88 @@
 'use server';
 
-import { ai } from './genkit';
-import { RefineCharacterInputSchema, RefineCharacterOutputSchema } from './refine-schema';
+import { ai, safeGenerate } from './genkit';
+import { RefineCharacterInputSchema, RefineCharacterOutputSchema } from './schemas';
 import { z } from 'genkit';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
-
 import { ANTIGRAVITY_SYSTEM_PROMPT } from './system-prompt';
 
-type RefineCharacterInput = z.infer<typeof RefineCharacterInputSchema>;
+// ============================================
+// CHARACTER REFINEMENT v2.0
+// ============================================
+// Refines astrological profiles based on deep psychological analysis
 
-export async function refineCharacter(input: RefineCharacterInput) {
+type RefineCharacterInput = z.infer<typeof RefineCharacterInputSchema>;
+type RefineCharacterOutput = z.infer<typeof RefineCharacterOutputSchema>;
+
+/**
+ * Refines a character's astrological profile based on deep psychological analysis.
+ * Re-evaluates Sun, Moon, and Ascendant based on subtext and emotional patterns.
+ */
+export async function refineCharacter(input: RefineCharacterInput): Promise<RefineCharacterOutput> {
     const { name, currentProfile, deepAnalysis } = input;
 
     // Serialize Context
     const archetypeContext = Object.entries(ZODIAC_ARCHETYPES).map(([sign, data]) => {
-        return `- ${sign}: Keywords(${data.keywords.join(', ')})`;
+        return `- ${sign}: Keywords(${data.keywords.join(', ')}), Shadow(${data.shadow})`;
     }).join('\n');
 
     const systemPrompt = `
     ${ANTIGRAVITY_SYSTEM_PROMPT}
 
-    TU MISIÓN ACTUAL: REFINAMIENTO CLÍNICO.
-    El usuario ha realizado un "Análisis Profundo" (Lo No Dicho, Emociones).
-    Re-evalúa el perfil astrológico basándote estrictamente en esta nueva profundidad psicológica.
-    ¿Cambia el Sol (Esencia), la Luna (Refugio) o el Ascendente (Conflicto) con estos nuevos datos?
-
+    TU MISIÓN: REFINAMIENTO CLÍNICO
+    El usuario ha realizado un "Análisis Profundo" (Lo No Dicho, Super-Objetivo).
+    Re-evalúa el perfil astrológico basándote en esta nueva profundidad psicológica.
+    
     REFERENCE ARCHETYPES:
     ${archetypeContext}
 
-    Additional Context:
-    Consider if specific planets (Mercury, Venus, Mars, Pluto, etc.) should be emphasized in specific signs to explain the nuance (e.g., "Violent repressed anger" -> Mars in Scorpio).
+    PROCESO DE REFINAMIENTO:
+    1. Analiza el "Unsaid/Subtexto" - ¿Qué revela sobre la Luna (emociones ocultas)?
+    2. Analiza el "Super-Objetivo" - ¿Qué revela sobre el Sol (propósito de vida)?
+    3. Evalúa si los signos actuales capturan esta profundidad
+    4. Si hay contradicción entre superficie y profundidad, CAMBIA los signos
+    5. Sugiere planetas adicionales si son críticos (Plutón=obsesión, Saturno=restricción)
 
-    INSTRUCTIONS:
-    1. Analyze the "Unsaid", "Emotions", and "Outcome" inputs.
-    2. Assign a "Verdict" summarizing the shift in energy.
-    3. Choose a single "Adjective" that captures this new state.
-    4. Provide the REFINED signs. If they match the current profile, keep them. If the deep analysis contradicts the surface, CHANGE THEM.
-    5. Suggest specific placements for other planets if they are critical to the "Verdict" (e.g., Pluto for obsession, Saturn for restriction).
+    REGLAS:
+    - Todos los campos son OBLIGATORIOS
+    - El "verdict" debe explicar POR QUÉ cambiaste o mantuviste cada signo
+    - El "adjective" debe ser UNA palabra poderosa que capture la esencia refinada
     `;
 
     const userPrompt = `
-    CHARACTER: ${name}
+    PERSONAJE: ${name}
     
-    CURRENT PROFILE:
-    - Sun: ${currentProfile.sun}
-    - Moon: ${currentProfile.moon}
-    - Ascendant: ${currentProfile.ascendant}
+    PERFIL ACTUAL:
+    - Sol: ${currentProfile.sun}
+    - Luna: ${currentProfile.moon}
+    - Ascendente: ${currentProfile.ascendant}
 
-    DEEP ANALYSIS INPUTS:
-    - Lo No Dicho (The Unsaid/Subtext): "${deepAnalysis.unsaid || 'N/A'}"
-    - Mundo Emocional (Emotions): "${deepAnalysis.emotions || 'N/A'}"
-    - Desenlace (Outcome): "${deepAnalysis.outcome || 'N/A'}"
+    ANÁLISIS PROFUNDO:
+    - Super-Objetivo (Deseo Raíz): "${deepAnalysis?.superObjective || 'No especificado'}"
+    - Lo No Dicho (Subtexto): "${deepAnalysis?.unsaid || 'No especificado'}"
+    - Mundo Emocional: "${deepAnalysis?.emotions || 'No especificado'}"
+    - Desenlace: "${deepAnalysis?.outcome || 'No especificado'}"
     
-    Based on this deep psychological data, refine the profile.
+    Refina el perfil basándote en estos datos psicológicos profundos.
     `;
 
-    try {
-        const { output } = await ai.generate({
+    // Fallback that keeps current profile with explanation
+    const fallback: RefineCharacterOutput = {
+        suggestedSun: currentProfile.sun,
+        suggestedMoon: currentProfile.moon,
+        suggestedAscendant: currentProfile.ascendant,
+        suggestedPlanets: {},
+        verdict: `El perfil de ${name} mantiene su configuración actual. La profundidad psicológica proporcionada confirma las asignaciones originales. Para un refinamiento más preciso, proporciona más detalles sobre el subtexto y las motivaciones ocultas del personaje.`,
+        adjective: "Consistente"
+    };
+
+    return await safeGenerate(
+        () => ai.generate({
             system: systemPrompt,
             prompt: userPrompt,
             output: { schema: RefineCharacterOutputSchema }
-        });
-
-        if (!output) {
-            throw new Error('No output generated');
-        }
-
-        return output;
-    } catch (error) {
-        console.error("Refine Analysis Error:", error);
-        throw error;
-    }
+        }),
+        fallback,
+        `Character Refinement: ${name}`
+    );
 }

@@ -1,109 +1,164 @@
 'use server';
 
-import { ai } from './genkit';
+import { ai, safeGenerate } from './genkit';
 import { AnalyzeCharacterInput, AnalyzeCharacterOutput, AnalyzeCharacterOutputSchema } from './schemas';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
 import { ANTIGRAVITY_SYSTEM_PROMPT } from './system-prompt';
 
+// ============================================
+// CHARACTER ANALYZER v2.0
+// ============================================
+// Uses safeGenerate with automatic retry and intelligent fallback
+
+/**
+ * Analyzes a character from script text and generates an astrological profile.
+ * Uses "Reverse Engineering" methodology to deduce the Big Three from behavior.
+ */
 export async function analyzeCharacter(input: AnalyzeCharacterInput): Promise<AnalyzeCharacterOutput> {
     const { scriptSegment, characterName, customKnowledge } = input;
 
     // Serialize Archetypes for Context
     let archetypeContext = Object.entries(ZODIAC_ARCHETYPES).map(([sign, data]) => {
-        return `- ${sign}: Sun(${data.sun}), Moon(${data.moon}), Asc(${data.ascendant}), Shadow(${data.shadow})`;
+        return `- ${sign}: Sun(${data.sun}), Moon(${data.moon}), Asc(${data.ascendant}), Shadow(${data.shadow}), Light(${data.light})`;
     }).join('\n');
 
-    // Append Custom Knowledge if available
+    // Append Custom Knowledge if available (prioritized)
     if (customKnowledge && customKnowledge.length > 0) {
-        const customContext = customKnowledge.map(k => `[NEW KNOWLEDGE] Target: ${k.target} | Category: ${k.category} | Info: ${k.value} (${k.description})`).join('\n');
-        archetypeContext += `\n\nADDITIONAL ASSIMILATED WISDOM (PRIORITIZE THIS):\n${customContext}`;
+        const customContext = customKnowledge.map(k =>
+            `[WISDOM] ${k.target}: ${k.category} → ${k.value} (${k.description})`
+        ).join('\n');
+        archetypeContext += `\n\n--- ASSIMILATED WISDOM (PRIORITIZE) ---\n${customContext}`;
     }
 
     const systemPrompt = `
     ${ANTIGRAVITY_SYSTEM_PROMPT}
 
-    TU MISIÓN ACTUAL: PERFILADO INVERSO (REVERSE ENGINEERING).
-    En lugar de interpretar una carta, debes DEDUCIRLA a partir del texto de un guión.
-    Usa tu profundo conocimiento del "Marco Teórico del Héroe" (Sol/Héroe, Luna/Refugio, Asc/Supervivencia) para encontrar qué arquetipos encajan con el personaje.
-
-    REFERENCE DATA (Archetypes & Assimilated Wisdom):
+    TU MISIÓN: PERFILADO ASTROLÓGICO INVERSO
+    Deduce la carta natal de un personaje a partir de su comportamiento en el guión.
+    
+    REFERENCE DATA:
     ${archetypeContext}
 
-    METHODOLOGY (THE THREE PILLARS):
-    You must answer three specific sets of questions to derive the "Big Three" signs.
-    
-    1. **SUN SIGN (The Essence)**:
-       - Question: "¿Cómo soy en esencia?" (How am I in essence?)
-       - Focus: Key identity, conscious drive, the "I Am".
-       - Action: Synthesize their core behavior into this answer, then pick the Sun Sign that best fits this essence.
+    METODOLOGÍA DE LOS TRES PILARES:
 
-    2. **MOON SIGN (The Emotions)**:
-       - Question: "¿Cómo siento y cómo son mis emociones?" (How do I feel?)
-       - Focus: Inner world, instinctual reactions, what comforts them, hidden needs.
-       - Action: Synthesize their emotional landscape into this answer, then pick the Moon Sign that best fits.
+    1. **SOL (Esencia)** → "¿Cómo soy en esencia?"
+       - Identidad consciente, propósito de vida, el "YO SOY"
+       - Busca: motivaciones principales, cómo se define a sí mismo
+       
+    2. **LUNA (Emociones)** → "¿Cómo siento y cómo son mis emociones?"
+       - Mundo interior, reacciones instintivas, necesidades ocultas
+       - Busca: comportamiento bajo estrés, qué le da seguridad
+       
+    3. **ASCENDENTE (Máscara)** → "¿Cómo me ve el otro? ¿Cuál es mi destino?"
+       - Máscara social, primera impresión, cómo navega obstáculos
+       - Busca: presencia física, cómo interactúa con extraños
 
-    3. **ASCENDANT (The Path & Mask)**:
-       - Questions: "¿Cómo me modifica la vida?", "¿Cómo me ve el otro?", "¿Cuál es mi objetivo vs obstáculo?"
-       - Focus: The mask they wear, how they navigate obstacles, their destiny/path, physical presence.
-       - Action: Synthesize their interaction with the world/fate into this answer, then pick the Ascendant.
+    METHOD ACTING (Para el Actor):
+    - Gesto Psicológico: Un movimiento físico que capture la esencia
+    - Cualidad Vocal: Tempo, tono, textura, ritmo específicos
+    - Animal Tótem: Criatura que encarne su energía
+    - Centro Físico: ¿De dónde lidera el cuerpo?
+    - Paisaje Emocional: Metáfora de naturaleza para su mundo interno
 
-    4. **METHOD ACTING KEYS (Chekhov / Laban / Strasberg)**:
-       - **Psychological Gesture**: A single, repeatable physical action that summarizes their will.
-       - **Voice Quality**: Be specific about timbre, speed, and rhythm (e.g., "Staccato, metallic, fast").
-       - **Animal Totem**: A creature that moves/behaves like them.
-       - **Physical Center**: The body part they lead with (Head, Chest, Pelvis, Knees, etc.).
-       - **Emotional Landscape**: Use a nature metaphor for their inner state.
-
-    FINAL OUTPUT:
-    - Provide the reasoned "answers" for each pillar in the 'threePillars' field.
-    - **Fill the 'methodActing' object with rich, evocative, and practical performance directions.**
-    - Select the Signs (Sun, Moon, Ascendant) effectively based on those answers.
-    - Estimate elemental balance (Fire, Earth, Air, Water).
+    REGLAS CRÍTICAS:
+    - TODOS los campos son OBLIGATORIOS
+    - Los signos deben ser exactamente uno de los 12 del zodiaco
+    - Los elementos deben sumar 100
+    - Sé específico y evita respuestas genéricas
     `;
 
     const userPrompt = `
-    CHARACTER NAME: ${characterName}
+    PERSONAJE A ANALIZAR: ${characterName}
     
-    SCRIPT SEGMENT:
+    FRAGMENTO DEL GUIÓN:
     """
-    ${scriptSegment.substring(0, 15000)} 
+    ${scriptSegment.substring(0, 12000)}
     """
+    
+    Genera el perfil astrológico completo de ${characterName}.
     `;
 
-    try {
-        const { output } = await ai.generate({
+    // Generate intelligent fallback based on character name analysis
+    const fallback = generateCharacterFallback(characterName, scriptSegment);
+
+    return await safeGenerate(
+        () => ai.generate({
             system: systemPrompt,
             prompt: userPrompt,
             output: { schema: AnalyzeCharacterOutputSchema }
-        });
+        }),
+        fallback,
+        `Character Analysis: ${characterName}`
+    );
+}
 
-        if (!output) {
-            throw new Error('No output generated from AI model.');
+/**
+ * Generates a thoughtful fallback profile when AI is unavailable.
+ * Uses heuristics based on character name and text analysis.
+ */
+function generateCharacterFallback(characterName: string, scriptSegment: string): AnalyzeCharacterOutput {
+    // Simple text analysis for element determination
+    const textLower = scriptSegment.toLowerCase();
+
+    const fireWords = ['anger', 'passion', 'fight', 'rage', 'bold', 'fire', 'explosion', 'furia', 'pasión', 'lucha'];
+    const earthWords = ['money', 'work', 'stable', 'practical', 'ground', 'dinero', 'trabajo', 'estable', 'práctico'];
+    const airWords = ['think', 'idea', 'talk', 'logic', 'reason', 'piensa', 'idea', 'habla', 'lógica', 'razón'];
+    const waterWords = ['feel', 'emotion', 'cry', 'love', 'intuition', 'siente', 'emoción', 'llora', 'amor', 'intuición'];
+
+    const countWords = (words: string[]) => words.filter(w => textLower.includes(w)).length;
+
+    const fireScore = countWords(fireWords) * 10 + 15;
+    const earthScore = countWords(earthWords) * 10 + 15;
+    const airScore = countWords(airWords) * 10 + 15;
+    const waterScore = countWords(waterWords) * 10 + 15;
+
+    const total = fireScore + earthScore + airScore + waterScore;
+
+    // Determine dominant element and corresponding signs
+    const elements = {
+        fire: Math.round((fireScore / total) * 100),
+        earth: Math.round((earthScore / total) * 100),
+        air: Math.round((airScore / total) * 100),
+        water: Math.round((waterScore / total) * 100)
+    };
+
+    // Normalize to exactly 100
+    const diff = 100 - (elements.fire + elements.earth + elements.air + elements.water);
+    elements.fire += diff;
+
+    // Determine signs based on dominant element
+    const elementSigns = {
+        fire: ['Aries', 'Leo', 'Sagittarius'],
+        earth: ['Taurus', 'Virgo', 'Capricorn'],
+        air: ['Gemini', 'Libra', 'Aquarius'],
+        water: ['Cancer', 'Scorpio', 'Pisces']
+    };
+
+    const dominant = Object.entries(elements).sort((a, b) => b[1] - a[1])[0][0] as keyof typeof elementSigns;
+    const secondary = Object.entries(elements).sort((a, b) => b[1] - a[1])[1][0] as keyof typeof elementSigns;
+
+    const sunSign = elementSigns[dominant][0];
+    const moonSign = elementSigns[secondary][1];
+    const ascendant = elementSigns[dominant][2];
+
+    return {
+        sunSign,
+        moonSign,
+        ascendant,
+        elements,
+        archetype: "El Misterio Emergente",
+        analysis: `${characterName} presenta una energía predominantemente de ${dominant}. Este perfil provisional se basa en el análisis textual y requiere refinamiento con la IA completa.`,
+        threePillars: {
+            sunReasoning: `Basado en el comportamiento observado, ${characterName} parece operar desde una energía ${sunSign}.`,
+            moonReasoning: `Las reacciones emocionales sugieren un refugio interno tipo ${moonSign}.`,
+            ascendantReasoning: `La primera impresión y presencia física apuntan hacia ${ascendant}.`
+        },
+        methodActing: {
+            psychologicalGesture: "Un gesto de búsqueda constante hacia adelante",
+            voiceQuality: "Tempo moderado, textura variada según el contexto emocional",
+            animalTotem: dominant === 'fire' ? "Lobo" : dominant === 'water' ? "Delfín" : dominant === 'earth' ? "Oso" : "Águila",
+            physicalCenter: dominant === 'fire' ? "Plexo Solar" : dominant === 'water' ? "Corazón" : dominant === 'earth' ? "Pelvis" : "Cabeza",
+            emotionalLandscape: dominant === 'fire' ? "Un volcán activo con lagos de lava" : dominant === 'water' ? "Un océano profundo y misterioso" : dominant === 'earth' ? "Un bosque antiguo y denso" : "Un cielo infinito con corrientes de viento"
         }
-
-        return output;
-    } catch (error) {
-        console.error("AI Analysis Error:", error);
-        // Fallback for demo prevention of crash
-        return {
-            sunSign: "Unknown",
-            moonSign: "Unknown",
-            ascendant: "Unknown",
-            elements: { fire: 25, earth: 25, air: 25, water: 25 },
-            archetype: "The Mystery",
-            analysis: "Could not analyze text. Please try again or check API key.",
-            threePillars: {
-                sunReasoning: "Analysis failed.",
-                moonReasoning: "Analysis failed.",
-                ascendantReasoning: "Analysis failed."
-            },
-            methodActing: {
-                psychologicalGesture: "None",
-                voiceQuality: "Unknown",
-                animalTotem: "Unknown",
-                physicalCenter: "Unknown",
-                emotionalLandscape: "Unknown"
-            }
-        };
-    }
+    };
 }

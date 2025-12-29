@@ -1,121 +1,180 @@
 'use server';
 
-import { ai } from './genkit';
-import { AssimilateKnowledgeInputSchema, AssimilateKnowledgeOutputSchema } from './knowledge-schema';
+import { ai, safeGenerate } from './genkit';
+import { AssimilateKnowledgeInputSchema, AssimilateKnowledgeOutputSchema } from './schemas';
 import { z } from 'genkit';
 
-type AssimilateKnowledgeInput = z.infer<typeof AssimilateKnowledgeInputSchema>;
+// ============================================
+// KNOWLEDGE ASSIMILATION v2.0
+// ============================================
+// Converts raw text (PDFs, notes) into structured astrological knowledge
 
-export async function assimilateKnowledge(input: AssimilateKnowledgeInput) {
+type AssimilateKnowledgeInput = z.infer<typeof AssimilateKnowledgeInputSchema>;
+type AssimilateKnowledgeOutput = z.infer<typeof AssimilateKnowledgeOutputSchema>;
+
+/**
+ * Assimilates raw text into structured astrological knowledge entries.
+ * Uses AI for intelligent extraction with deterministic fallback.
+ */
+export async function assimilateKnowledge(input: AssimilateKnowledgeInput): Promise<AssimilateKnowledgeOutput> {
     const { content } = input;
 
     const systemPrompt = `
-    ROLE: Senior Astrological Data Analyst & Systematizer.
-    TASK: Convert raw text inputs (PDFs, notes) into structured, high-logic database entries.
-    LANGUAGE: ALWAYS OUTPUT IN SPANISH. TRANSLATE IF SOURCE IS ENGLISH.
+    ROL: Analista Senior de Datos Astrológicos y Sistematizador.
+    TAREA: Convertir texto crudo (PDFs, notas) en entradas de base de datos estructuradas y lógicas.
+    IDIOMA: SIEMPRE EN ESPAÑOL. Traduce si la fuente está en inglés.
     
-    USER REQUIREMENT: "The info must be concrete, concise, easy to assimilate, and logical."
+    REQUISITO CRÍTICO: "La información debe ser concreta, concisa, fácil de asimilar y lógica."
     
-    INSTRUCTIONS:
-    1. READ the text analytically. Ignore fluff. Search for HARD DATA (rules, correspondences, definitions).
-    2. CATEGORIZE ruthlessly.
-       - BAD: Category="About Aries", Value="It is energetic"
-       - GOOD: Category="Archetype Keyword", Value="Warrior", Description="Represents raw initialization energy."
-    3. TARGET MAPPING:
-       - Assign every piece of data to a specific Node (e.g., 'Aries', 'Sun', 'House 1', 'Mercury').
-    4. OUTPUT FORMATTING:
-       - Value: Short, punchy strings (1-5 words).
-       - Description: One clear sentence explaining the 'Why' or 'How'. No poetry.
+    INSTRUCCIONES:
+    1. LEE el texto analíticamente. Ignora la paja. Busca DATOS DUROS (reglas, correspondencias, definiciones).
+    
+    2. CATEGORIZA sin piedad:
+       ❌ MAL: Category="Sobre Aries", Value="Es energético"
+       ✅ BIEN: Category="Palabra Clave Arquetipo", Value="Guerrero", Description="Representa la energía de iniciación pura."
+    
+    3. MAPEO DE TARGETS:
+       - Asigna cada dato a un nodo específico: 'Aries', 'Sol', 'Casa 1', 'Mercurio', etc.
+       - Normaliza nombres: "Taurus" → "Tauro", "Scorpio" → "Escorpio"
+    
+    4. FORMATO DE SALIDA:
+       - Value: Cadenas cortas y contundentes (1-5 palabras)
+       - Description: Una oración clara explicando el "Por qué" o "Cómo". Sin poesía.
+    
     5. SUMMARY:
-       - Provide a summary that reads like a changelog or executive brief. "Extracted 5 key traits for Scorpio and updated Venus mapping."
+       - Debe leerse como un changelog ejecutivo
+       - Ejemplo: "Extraídos 5 rasgos clave para Escorpio y actualizado mapeo de Venus."
+
+    CATEGORÍAS VÁLIDAS:
+    - Psychology, Archetype, Health, Career, Relationship, Shadow, Evolution, 
+    - Planetary Rulership, House Meaning, Aspect Interpretation
     `;
 
     const userPrompt = `
-    NEW KNOWLEDGE FRAGMENT:
+    FRAGMENTO DE CONOCIMIENTO NUEVO:
     """
     ${content.substring(0, 20000)}
     """
     
-    EXTRACT DATA NOW. FOCUS ON LOGIC AND CLARITY.
+    EXTRAE DATOS AHORA. ENFÓCATE EN LÓGICA Y CLARIDAD.
     `;
 
-    try {
-        const { output } = await ai.generate({
+    // Fallback using deterministic parser
+    const fallback = fallbackDeterministicAssimilation(content);
+
+    return await safeGenerate(
+        () => ai.generate({
             system: systemPrompt,
             prompt: userPrompt,
             output: { schema: AssimilateKnowledgeOutputSchema }
-        });
-
-        if (!output) throw new Error('Assimilation failed.');
-
-        return output;
-    } catch (error) {
-        console.error("Knowledge Assimilation Error (AI Failed):", error);
-        console.log("Engaging Deterministic Fallback Protocols...");
-
-        // DETERMINISTIC FALLBACK (For PDF Tables/Raw Text)
-        return fallbackDeterministicAssimilation(content);
-    }
+        }),
+        fallback,
+        'Knowledge Assimilation'
+    );
 }
 
-function fallbackDeterministicAssimilation(text: string) {
-    const knowledge: any[] = [];
+/**
+ * Deterministic fallback parser for when AI is unavailable.
+ * Extracts structure from tables, key-value pairs, and headings.
+ */
+function fallbackDeterministicAssimilation(text: string): AssimilateKnowledgeOutput {
+    const knowledge: Array<{
+        target: string;
+        category: string;
+        value: string;
+        description: string;
+    }> = [];
 
-    // 1. Split by lines
     const lines = text.split('\n');
     let currentTarget = "General";
 
-    // 2. Simple Heuristic Parser for Tables/Lists
+    // Sign name normalization
+    const signNormalize: Record<string, string> = {
+        'aries': 'Aries', 'taurus': 'Tauro', 'tauro': 'Tauro',
+        'gemini': 'Géminis', 'géminis': 'Géminis',
+        'cancer': 'Cáncer', 'cáncer': 'Cáncer',
+        'leo': 'Leo',
+        'virgo': 'Virgo',
+        'libra': 'Libra',
+        'scorpio': 'Escorpio', 'escorpio': 'Escorpio',
+        'sagittarius': 'Sagitario', 'sagitario': 'Sagitario',
+        'capricorn': 'Capricornio', 'capricornio': 'Capricornio',
+        'aquarius': 'Acuario', 'acuario': 'Acuario',
+        'pisces': 'Piscis', 'piscis': 'Piscis'
+    };
+
     lines.forEach(line => {
         const clean = line.trim();
-        if (!clean) return;
+        if (!clean || clean.length < 3) return;
 
-        // Detect Sign Headings (Aries, Tauro, etc)
-        const signMatch = clean.match(/^(Aries|Tauro|Taurus|Géminis|Gemini|Cáncer|Cancer|Leo|Virgo|Libra|Escorpio|Scorpio|Sagitario|Sagittarius|Capricornio|Capricorn|Acuario|Aquarius|Piscis|Pisces)/i);
+        // Detect Sign Headings
+        const signPattern = /^(Aries|Taur[ou]s?|Géminis|Gemini|Cáncer|Cancer|Leo|Virgo|Libra|Escorpio|Scorpio|Sagitario|Sagittarius|Capricornio|Capricorn|Acuario|Aquarius|Piscis|Pisces)/i;
+        const signMatch = clean.match(signPattern);
+
         if (signMatch && clean.length < 50) {
-            currentTarget = signMatch[1];
-            return;
+            const normalized = signNormalize[signMatch[1].toLowerCase()];
+            if (normalized) {
+                currentTarget = normalized;
+                return;
+            }
         }
 
         // Detect Table Row (Separator | )
         if (clean.includes('|')) {
-            const parts = clean.split('|').map(s => s.trim());
+            const parts = clean.split('|').map(s => s.trim()).filter(s => s);
             if (parts.length >= 2) {
                 knowledge.push({
-                    target: parts[0] || currentTarget,
-                    category: "General Attributes",
+                    target: signNormalize[parts[0].toLowerCase()] || parts[0] || currentTarget,
+                    category: "Atributos Generales",
                     value: parts[1],
-                    description: parts.slice(2).join(' ') || "Extracted from table"
+                    description: parts.slice(2).join(' ') || "Extraído de tabla"
                 });
             }
         }
         // Detect Colon Key: Value
-        else if (clean.includes(':')) {
-            const [key, val] = clean.split(':').map(s => s.trim());
-            if (key && val) {
+        else if (clean.includes(':') && !clean.startsWith('http')) {
+            const colonIndex = clean.indexOf(':');
+            const key = clean.substring(0, colonIndex).trim();
+            const val = clean.substring(colonIndex + 1).trim();
+
+            if (key && val && key.length < 50 && val.length < 200) {
                 knowledge.push({
                     target: currentTarget,
                     category: key,
-                    value: val,
-                    description: "Manual entry extraction"
+                    value: val.substring(0, 100),
+                    description: val.length > 100 ? val : "Extracción de entrada manual"
+                });
+            }
+        }
+        // Detect bullet points or dashes
+        else if (clean.startsWith('-') || clean.startsWith('•') || clean.startsWith('*')) {
+            const content = clean.substring(1).trim();
+            if (content.length > 5 && content.length < 200) {
+                knowledge.push({
+                    target: currentTarget,
+                    category: "Nota",
+                    value: content.substring(0, 50),
+                    description: content
                 });
             }
         }
     });
 
-    // If no structure found, just dump huge chunks? No, better to return nothing than garbage.
-    // Allow at least one entry if list is empty
+    // Ensure at least one entry
     if (knowledge.length === 0) {
+        const preview = text.substring(0, 200).replace(/\n/g, ' ').trim();
         knowledge.push({
             target: "General",
-            category: "Unstructured Notes",
-            value: "Raw Text Segment",
-            description: text.substring(0, 100) + "..."
+            category: "Notas Desestructuradas",
+            value: "Fragmento de Texto",
+            description: preview + (text.length > 200 ? '...' : '')
         });
     }
 
+    const uniqueTargets = [...new Set(knowledge.map(k => k.target))];
+
     return {
-        summary: "Conocimiento asimilado mediante Algoritmo Determinista (AI Bypass). Se ha extraído la estructura base.",
-        knowledge: knowledge.slice(0, 50) // Limit to 50 items to be safe
+        summary: `Asimilación Determinista: ${knowledge.length} entradas extraídas para ${uniqueTargets.length} objetivo(s): ${uniqueTargets.slice(0, 5).join(', ')}${uniqueTargets.length > 5 ? '...' : ''}.`,
+        knowledge: knowledge.slice(0, 50)
     };
 }

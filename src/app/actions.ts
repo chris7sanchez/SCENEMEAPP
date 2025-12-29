@@ -1,6 +1,8 @@
 'use server';
 
-import { generateVideoScript, type GenerateVideoScriptInput } from '@/ai/flows/generate-video-script';
+import { generateVideoScript } from '@/ai/flows/generate-video-script';
+import { type GenerateVideoScriptInput } from '@/ai/schemas';
+
 
 export async function generateScriptAction(data: GenerateVideoScriptInput) {
     try {
