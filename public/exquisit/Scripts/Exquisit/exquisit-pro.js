@@ -1660,161 +1660,82 @@ class ExquisitPro {
             elementos_trabajados: []
         };
 
-        // Determinar qué elementos potenciar
-        let elementosPotenciar = [];
-        let descripcionIntencion = '';
+        const configAstrologica = CORRESPONDENCIAS_ASTROLOGICAS;
 
-        if (intencion === 'elevar_fuego') {
-            elementosPotenciar = ['Fuego'];
-            descripcionIntencion = 'Elevar tu Fuego interior: Acción, coraje, vitalidad y liderazgo';
-        } else if (intencion === 'elevar_tierra') {
-            elementosPotenciar = ['Tierra'];
-            descripcionIntencion = 'Elevar tu Tierra: Estabilidad, manifestación y arraigo';
-        } else if (intencion === 'elevar_aire') {
-            elementosPotenciar = ['Aire'];
-            descripcionIntencion = 'Elevar tu Aire: Comunicación, claridad mental y relaciones';
-        } else if (intencion === 'elevar_agua') {
-            elementosPotenciar = ['Agua'];
-            descripcionIntencion = 'Elevar tu Agua: Intuición, emociones y sensibilidad';
-        } else if (intencion === 'potenciar_sol') {
-            descripcionIntencion = `Potenciar tu esencia Solar ${sol}`;
-        } else if (intencion === 'armonizar_luna') {
-            descripcionIntencion = `Armonizar tu mundo emocional Lunar ${luna}`;
-        } else if (intencion === 'equilibrio_total') {
-            descripcionIntencion = 'Equilibrio elemental total';
-            elementosPotenciar = ['Fuego', 'Tierra', 'Aire', 'Agua'];
-        }
-
-        formula.proposito = descripcionIntencion;
-
-        // CONSTRUCCIÓN SEGÚN INTENCIÓN
+        // 1. DETERMINAR PROPÓSITO E INTENCIÓN
+        let elementosAPotenciar = [];
         if (intencion.startsWith('elevar_')) {
-            // Añadir moléculas del elemento a potenciar
-            elementosPotenciar.forEach(elemento => {
-                const moleculasElem = CORRESPONDENCIAS_ASTROLOGICAS.elementos[elemento].moleculas_potenciadoras;
-                formula.corazon.push({
-                    molecula: moleculasElem[0],
-                    porcentaje: 35,
-                    razon: `Potenciador principal de ${elemento}`,
-                    chakra: null
-                });
-                formula.fondo.push({
-                    molecula: moleculasElem[1],
-                    porcentaje: 30,
-                    razon: `Fijador de ${elemento}`,
-                    chakra: null
-                });
-            });
-
-            // Añadir nota de salida del Ascendente
-            const molsAsc = CORRESPONDENCIAS_ASTROLOGICAS.signos[asc].moleculas;
-            formula.salida.push({
-                molecula: molsAsc[0],
-                porcentaje: 20,
-                razon: `Ascendente ${asc} - Tu presencia`,
-                chakra: CORRESPONDENCIAS_ASTROLOGICAS.signos[asc].chakra
-            });
-
-            // Añadir equilibrio del Sol
-            const molsSol = CORRESPONDENCIAS_ASTROLOGICAS.signos[sol].moleculas;
-            formula.corazon.push({
-                molecula: molsSol[1],
-                porcentaje: 15,
-                razon: `Sol ${sol} - Tu esencia equilibradora`,
-                chakra: CORRESPONDENCIAS_ASTROLOGICAS.signos[sol].chakra
-            });
-
-        } else if (intencion === 'potenciar_sol') {
-            // Fórmula centrada en el Sol
-            const molsSol = CORRESPONDENCIAS_ASTROLOGICAS.signos[sol].moleculas;
-            formula.fondo.push({
-                molecula: molsSol[0],
-                porcentaje: 40,
-                razon: `Sol ${sol} - Tu núcleo esencial`,
-                chakra: CORRESPONDENCIAS_ASTROLOGICAS.signos[sol].chakra
-            });
-            formula.corazon.push({
-                molecula: molsSol[1],
-                porcentaje: 25,
-                razon: `Radiación solar de ${sol}`,
-                chakra: CORRESPONDENCIAS_ASTROLOGICAS.signos[sol].chakra
-            });
-
-            const molsLuna = CORRESPONDENCIAS_ASTROLOGICAS.signos[luna].moleculas;
-            formula.corazon.push({
-                molecula: molsLuna[0],
-                porcentaje: 20,
-                razon: `Luna ${luna} - Soporte emocional`,
-                chakra: CORRESPONDENCIAS_ASTROLOGICAS.signos[luna].chakra
-            });
-
-            const molsAsc = CORRESPONDENCIAS_ASTROLOGICAS.signos[asc].moleculas;
-            formula.salida.push({
-                molecula: molsAsc[0],
-                porcentaje: 15,
-                razon: `Ascendente ${asc} - Expresión exterior`,
-                chakra: CORRESPONDENCIAS_ASTROLOGICAS.signos[asc].chakra
-            });
-
-        } else if (intencion === 'armonizar_luna') {
-            // Fórmula centrada en la Luna
-            const molsLuna = CORRESPONDENCIAS_ASTROLOGICAS.signos[luna].moleculas;
-            formula.corazon.push({
-                molecula: molsLuna[0],
-                porcentaje: 40,
-                razon: `Luna ${luna} - Tu alma emocional`,
-                chakra: CORRESPONDENCIAS_ASTROLOGICAS.signos[luna].chakra
-            });
-            formula.fondo.push({
-                molecula: molsLuna[1],
-                porcentaje: 30,
-                razon: `Profundidad lunar de ${luna}`,
-                chakra: CORRESPONDENCIAS_ASTROLOGICAS.signos[luna].chakra
-            });
-
-            const molsSol = CORRESPONDENCIAS_ASTROLOGICAS.signos[sol].moleculas;
-            formula.salida.push({
-                molecula: molsSol[0],
-                porcentaje: 18,
-                razon: `Sol ${sol} - Iluminación consciente`,
-                chakra: CORRESPONDENCIAS_ASTROLOGICAS.signos[sol].chakra
-            });
-
-            const molsAsc = CORRESPONDENCIAS_ASTROLOGICAS.signos[asc].moleculas;
-            formula.corazon.push({
-                molecula: molsAsc[1],
-                porcentaje: 12,
-                razon: `Ascendente ${asc} - Integración social`,
-                chakra: CORRESPONDENCIAS_ASTROLOGICAS.signos[asc].chakra
-            });
-
+            elementosAPotenciar = [intencion.split('_')[1].charAt(0).toUpperCase() + intencion.split('_')[1].slice(1)];
+            formula.proposito = `Efluvios de ${elementosAPotenciar[0]}: ${configAstrologica.elementos[elementosAPotenciar[0]].intention}`;
         } else if (intencion === 'equilibrio_total') {
-            // Balance de los 4 elementos
-            formula.salida.push({
-                molecula: CORRESPONDENCIAS_ASTROLOGICAS.elementos['Aire'].moleculas_potenciadoras[0],
-                porcentaje: 25,
-                razon: 'Elemento Aire - Comunicación',
-                chakra: null
-            });
-            formula.corazon.push({
-                molecula: CORRESPONDENCIAS_ASTROLOGICAS.elementos['Agua'].moleculas_potenciadoras[0],
-                porcentaje: 25,
-                razon: 'Elemento Agua - Intuición',
-                chakra: null
-            });
-            formula.corazon.push({
-                molecula: CORRESPONDENCIAS_ASTROLOGICAS.elementos['Fuego'].moleculas_potenciadoras[0],
-                porcentaje: 25,
-                razon: 'Elemento Fuego - Acción',
-                chakra: null
-            });
-            formula.fondo.push({
-                molecula: CORRESPONDENCIAS_ASTROLOGICAS.elementos['Tierra'].moleculas_potenciadoras[0],
-                porcentaje: 25,
-                razon: 'Elemento Tierra - Estabilidad',
-                chakra: null
+            elementosAPotenciar = ['Fuego', 'Tierra', 'Aire', 'Agua'];
+            formula.proposito = 'Armonía Universal: Equilibrio absoluto de los cuatro elementos';
+        } else {
+            formula.proposito = `Esencia de ${sol} con alma de ${luna}`;
+        }
+
+        // 2. AÑADIR POTENCIADORES ELEMENTALES (40% de la fórmula)
+        if (elementosAPotenciar.length > 0) {
+            elementosAPotenciar.forEach(elem => {
+                const mols = configAstrologica.elementos[elem].moleculas_potenciadoras;
+                const peso = Math.floor(40 / elementosAPotenciar.length);
+
+                formula.salida.push({ molecula: mols[0], porcentaje: Math.floor(peso * 0.3), razon: `Vibración de ${elem} (Salida)`, chakra: null });
+                formula.corazon.push({ molecula: mols[1] || mols[0], porcentaje: Math.floor(peso * 0.4), razon: `Corazón de ${elem}`, chakra: null });
+                formula.fondo.push({ molecula: mols[2] || mols[1], porcentaje: Math.floor(peso * 0.3), razon: `Anclaje de ${elem}`, chakra: null });
             });
         }
+
+        // 3. AÑADIR IDENTIDAD SOLAR (25% de la fórmula)
+        const molsSol = configAstrologica.signos[sol].moleculas;
+        formula.corazon.push({
+            molecula: molsSol[0],
+            porcentaje: 15,
+            razon: `Sol en ${sol}: Tu esencia consciente`,
+            chakra: configAstrologica.signos[sol].chakra
+        });
+        formula.salida.push({
+            molecula: molsSol[1] || molsSol[0],
+            porcentaje: 10,
+            razon: `Brillo Solar (${sol})`,
+            chakra: configAstrologica.signos[sol].chakra
+        });
+
+        // 4. AÑADIR MUNDO LUNAR (20% de la fórmula)
+        const molsLuna = configAstrologica.signos[luna].moleculas;
+        formula.fondo.push({
+            molecula: molsLuna[0],
+            porcentaje: 12,
+            razon: `Luna en ${luna}: Tu profundidad emocional`,
+            chakra: configAstrologica.signos[luna].chakra
+        });
+        formula.corazon.push({
+            molecula: molsLuna[1] || molsLuna[0],
+            porcentaje: 8,
+            razon: `Reflejo Lunar (${luna})`,
+            chakra: configAstrologica.signos[luna].chakra
+        });
+
+        // 5. AÑADIR MÁSCARA DEL ASCENDENTE (15% de la fórmula)
+        const molsAsc = configAstrologica.signos[asc].moleculas;
+        formula.salida.push({
+            molecula: molsAsc[0],
+            porcentaje: 8,
+            razon: `Ascendente ${asc}: Tu proyección al mundo`,
+            chakra: configAstrologica.signos[asc].chakra
+        });
+        formula.corazon.push({
+            molecula: molsAsc[1] || molsAsc[0],
+            porcentaje: 7,
+            razon: `Matiz del Ascendente (${asc})`,
+            chakra: configAstrologica.signos[asc].chakra
+        });
+
+        // Limpieza: Asegurar que no hay moléculas undefined y normalizar porcentajes
+        const limpiar = (arr) => arr.filter(n => n && n.molecula && MOLECULAS[n.molecula]);
+        formula.salida = limpiar(formula.salida);
+        formula.corazon = limpiar(formula.corazon);
+        formula.fondo = limpiar(formula.fondo);
 
         this.mostrarFormulaAlquimica(formula, { sol, luna, asc }, intencion);
     }
@@ -1824,7 +1745,10 @@ class ExquisitPro {
 
         const renderNota = (nota) => {
             const dataMol = MOLECULAS[nota.molecula];
-            if (!dataMol) return '';
+            if (!dataMol) {
+                console.warn(`Molecula no encontrada en inventario: ${nota.molecula}`);
+                return '';
+            }
 
             const coste = (dataMol.coste / dataMol.ml) * (nota.porcentaje / 10);
 
