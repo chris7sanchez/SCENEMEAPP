@@ -924,115 +924,26 @@ const ACORDES_PROFESIONALES = {
     }
 };
 
-// ═══════════════════════════════════════════════════════════
-// MAPEO ASTROLÓGICO DE MOLÉCULAS PROFESIONALES
-// ═══════════════════════════════════════════════════════════
-
 const CORRESPONDENCIAS_ASTROLOGICAS = {
     signos: {
-        'Aries': {
-            elemento: 'Fuego',
-            chakra: 'Plexo Solar',
-            moleculas: ['Iso E Super', 'Aldehído C12 MNA', 'Bergamota FCF', 'Neroli (Azahar)'],
-            propiedades: 'Acción, coraje, liderazgo, iniciativa',
-            nota_dominante: 'Salida'
-        },
-        'Tauro': {
-            elemento: 'Tierra',
-            chakra: 'Raíz',
-            moleculas: ['Sándalo Australiano', 'Rosa Absoluto (Bulgaria)', 'Vainilla Absoluto', 'Labdanum Absoluto'],
-            propiedades: 'Estabilidad, sensualidad, abundancia',
-            nota_dominante: 'Fondo'
-        },
-        'Géminis': {
-            elemento: 'Aire',
-            chakra: 'Garganta',
-            moleculas: ['Hedione', 'Bergamota FCF', 'Neroli (Azahar)', 'Verdox (Terpenos)'],
-            propiedades: 'Comunicación, agilidad mental, versatilidad',
-            nota_dominante: 'Salida'
-        },
-        'Cáncer': {
-            elemento: 'Agua',
-            chakra: 'Corazón',
-            moleculas: ['Jazmín Sambac Absoluto', 'Rosa Absoluto (Bulgaria)', 'Ylang Ylang Extra', 'Sándalo Australiano'],
-            propiedades: 'Protección emocional, nutrición, intuición',
-            nota_dominante: 'Corazón'
-        },
-        'Leo': {
-            elemento: 'Fuego',
-            chakra: 'Plexo Solar',
-            moleculas: ['Ambroxan', 'Incienso / Frankincense', 'Neroli (Azahar)', 'Iso E Super'],
-            propiedades: 'Poder personal, confianza, vitalidad solar',
-            nota_dominante: 'Fondo'
-        },
-        'Virgo': {
-            elemento: 'Tierra',
-            chakra: 'Plexo Solar',
-            moleculas: ['Vetiver Haití', 'Verdox (Terpenos)', 'Bergamota FCF', 'Neroli (Azahar)'],
-            propiedades: 'Purificación, precisión, orden, sanación',
-            nota_dominante: 'Corazón'
-        },
-        'Libra': {
-            elemento: 'Aire',
-            chakra: 'Corazón',
-            moleculas: ['Rosa Absoluto (Bulgaria)', 'Ylang Ylang Extra', 'Galaxolide', 'Hedione'],
-            propiedades: 'Armonía, equilibrio, belleza, relaciones',
-            nota_dominante: 'Corazón'
-        },
-        'Escorpio': {
-            elemento: 'Agua',
-            chakra: 'Sacro',
-            moleculas: ['Patchouli Envejecido', 'Oud Assam (India)', 'Muscone (Almizcle)', 'Oakmoss Absoluto'],
-            propiedades: 'Transformación, poder oculto, regeneración',
-            nota_dominante: 'Fondo'
-        },
-        'Sagitario': {
-            elemento: 'Fuego',
-            chakra: 'Tercer Ojo',
-            moleculas: ['Jazmín Sambac Absoluto', 'Incienso / Frankincense', 'Cetalox (Ambrox)', 'Immortelle (H. italicum)'],
-            propiedades: 'Expansión, sabiduría, optimismo, aventura',
-            nota_dominante: 'Corazón'
-        },
-        'Capricornio': {
-            elemento: 'Tierra',
-            chakra: 'Raíz',
-            moleculas: ['Vetiver Haití', 'Cetalox (Ambrox)', 'Patchouli Envejecido', 'Vertofix (Acetato de Cedro)'],
-            propiedades: 'Estructura, manifestación, disciplina',
-            nota_dominante: 'Fondo'
-        },
-        'Acuario': {
-            elemento: 'Aire',
-            chakra: 'Tercer Ojo',
-            moleculas: ['Ambroxan', 'Hedione (Metil Dihidrojasmonato)', 'Incienso / Frankincense', 'Cashmeran'],
-            propiedades: 'Innovación, liberación, visión cósmica',
-            nota_dominante: 'Fondo'
-        },
-        'Piscis': {
-            elemento: 'Agua',
-            chakra: 'Corona',
-            moleculas: ['Jazmín Sambac Absoluto', 'Ylang Ylang Extra', 'Sándalo Australiano', 'Ambrettolide'],
-            propiedades: 'Misticismo, compasión, conexión espiritual',
-            nota_dominante: 'Corazón'
-        }
+        'Aries': { elemento: 'Fuego', chakra: 'Plexo Solar', moleculas: ['Iso E Super', 'Safraleine', 'Aceite Esencial de Pimienta Negra', 'Limón'], propiedades: 'Acción, coraje, liderazgo' },
+        'Tauro': { elemento: 'Tierra', chakra: 'Raíz', moleculas: ['Sándalo Australiano', 'Rose Absolute Base', 'Ethyl Vanillin', 'Aceite Esencial de Benjuí'], propiedades: 'Estabilidad, sensualidad, abundancia' },
+        'Géminis': { elemento: 'Aire', chakra: 'Garganta', moleculas: ['Hedione', 'Bergamota FCF', 'Aceite Esencial de Azahar (Neroli)', 'Stemone'], propiedades: 'Comunicación, agilidad mental' },
+        'Cáncer': { elemento: 'Agua', chakra: 'Corazón', moleculas: ['Jazmín Sambac Absoluto', 'Rose Absolute Base', 'Ylang Ylang Extra', 'Sándalo Australiano'], propiedades: 'Protección, intuición' },
+        'Leo': { elemento: 'Fuego', chakra: 'Plexo Solar', moleculas: ['Ambroxan', 'Encens Resinoide 100% P&N', 'Aceite Esencial de Azahar (Neroli)', 'Iso E Super'], propiedades: 'Poder personal, vitalidad' },
+        'Virgo': { elemento: 'Tierra', chakra: 'Plexo Solar', moleculas: ['Vetiver Haití', 'Geosmina 1% DPG', 'Lima (exprimida)', 'Aceite Esencial de Benjuí'], propiedades: 'Purificación, precisión' },
+        'Libra': { elemento: 'Aire', chakra: 'Corazón', moleculas: ['Rose Absolute Base', 'Ylang Ylang Extra', 'Galaxolide', 'Hedione'], propiedades: 'Armonía, belleza' },
+        'Escorpio': { elemento: 'Agua', chakra: 'Sacro', moleculas: ['Absoluto de Tabaco 10% DPG', 'Oud Base', 'Black Agar Givco 215', 'Patchouli Envejecido'], propiedades: 'Transformación, regeneración' },
+        'Sagitario': { elemento: 'Fuego', chakra: 'Tercer Ojo', moleculas: ['Jazmín Sambac Absoluto', 'Encens Resinoide 100% P&N', 'Ambrocenide 10% DPG', 'Aceite Esencial de Aguaribay o Pimienta Rosa'], propiedades: 'Expansión, sabiduría' },
+        'Capricornio': { elemento: 'Tierra', chakra: 'Raíz', moleculas: ['Vetiver Haití', 'Abedul Rectificado 5% Alcohol', 'Black Agar Givco 215', 'Patchouli Envejecido'], propiedades: 'Estructura, manifestación' },
+        'Acuario': { elemento: 'Aire', chakra: 'Tercer Ojo', moleculas: ['Ambroxan', 'Hedione', 'Encens Resinoide 100% P&N', 'Cashmeran'], propiedades: 'Innovación, visión' },
+        'Piscis': { elemento: 'Agua', chakra: 'Corona', moleculas: ['Jazmín Sambac Absoluto', 'Ambergris Base Type', 'Sándalo Australiano', 'Ambrettolide'], propiedades: 'Misticismo, compasión' }
     },
-
     elementos: {
-        'Fuego': {
-            moleculas_potenciadoras: ['Iso E Super', 'Ambroxan', 'Aldehído C12 MNA', 'Neroli (Azahar)', 'Incienso / Frankincense'],
-            intention: 'Elevar la acción, coraje, vitalidad y liderazgo'
-        },
-        'Tierra': {
-            moleculas_potenciadoras: ['Sándalo Australiano', 'Vetiver Haití', 'Patchouli Envejecido', 'Cetalox (Ambrox)', 'Labdanum Absoluto'],
-            intention: 'Elevar la estabilidad, manifestación y arraigo'
-        },
-        'Aire': {
-            moleculas_potenciadoras: ['Hedione', 'Bergamota FCF', 'Neroli (Azahar)', 'Rosa Absoluto (Bulgaria)', 'Galaxolide'],
-            intention: 'Elevar la comunicación, claridad mental y relaciones'
-        },
-        'Agua': {
-            moleculas_potenciadoras: ['Jazmín Sambac Absoluto', 'Rosa Absoluto (Bulgaria)', 'Ylang Ylang Extra', 'Ambrettolide', 'Muscone (Almizcle)'],
-            intention: 'Elevar la intuición, emociones y sensibilidad'
-        }
+        'Fuego': { moleculas_potenciadoras: ['Iso E Super', 'Ambroxan', 'Safraleine', 'Jengibre', 'Encens Resinoide 100% P&N'], intention: 'Elevar acción y coraje' },
+        'Tierra': { moleculas_potenciadoras: ['Sándalo Australiano', 'Vetiver Haití', 'Patchouli Envejecido', 'Ambergris Base Type', 'Aceite Esencial de Benjuí'], intention: 'Elevar estabilidad y arraigo' },
+        'Aire': { moleculas_potenciadoras: ['Hedione', 'Bergamota FCF', 'Aceite Esencial de Azahar (Neroli)', 'Rose Absolute Base', 'Aurantiol'], intention: 'Elevar comunicación y claridad' },
+        'Agua': { moleculas_potenciadoras: ['Jazmín Sambac Absoluto', 'Rose Absolute Base', 'Ylang Ylang Extra', 'Ambrettolide', 'Maritima'], intention: 'Elevar intuición y sensibilidad' }
     }
 };
 
@@ -1680,56 +1591,38 @@ class ExquisitPro {
                 const mols = configAstrologica.elementos[elem].moleculas_potenciadoras;
                 const peso = Math.floor(40 / elementosAPotenciar.length);
 
-                formula.salida.push({ molecula: mols[0], porcentaje: Math.floor(peso * 0.3), razon: `Vibración de ${elem} (Salida)`, chakra: null });
-                formula.corazon.push({ molecula: mols[1] || mols[0], porcentaje: Math.floor(peso * 0.4), razon: `Corazón de ${elem}`, chakra: null });
-                formula.fondo.push({ molecula: mols[2] || mols[1], porcentaje: Math.floor(peso * 0.3), razon: `Anclaje de ${elem}`, chakra: null });
+                // Asegurar que usamos todos los potenciadores disponibles del elemento
+                mols.forEach((mol, idx) => {
+                    const pct = Math.floor(peso / mols.length);
+                    const notaDestino = idx === 0 ? 'salida' : (idx < 3 ? 'corazon' : 'fondo');
+                    formula[notaDestino].push({
+                        molecula: mol,
+                        porcentaje: pct,
+                        razon: `Potenciador de ${elem}`,
+                        chakra: null
+                    });
+                });
             });
         }
 
-        // 3. AÑADIR IDENTIDAD SOLAR (25% de la fórmula)
-        const molsSol = configAstrologica.signos[sol].moleculas;
-        formula.corazon.push({
-            molecula: molsSol[0],
-            porcentaje: 15,
-            razon: `Sol en ${sol}: Tu esencia consciente`,
-            chakra: configAstrologica.signos[sol].chakra
-        });
-        formula.salida.push({
-            molecula: molsSol[1] || molsSol[0],
-            porcentaje: 10,
-            razon: `Brillo Solar (${sol})`,
-            chakra: configAstrologica.signos[sol].chakra
-        });
+        // 3. AÑADIR TODAS LAS MOLÉCULAS DE LA CARTA NATAL (Sol, Luna, Asc)
+        const añadirMolsSigno = (signo, rol, pctBase) => {
+            const mols = configAstrologica.signos[signo].moleculas;
+            mols.forEach((mol, idx) => {
+                const pct = Math.floor(pctBase / mols.length);
+                const notaDestino = idx === 0 ? 'salida' : (idx < 3 ? 'corazon' : 'fondo');
+                formula[notaDestino].push({
+                    molecula: mol,
+                    porcentaje: pct,
+                    razon: `${rol} en ${signo}`,
+                    chakra: configAstrologica.signos[signo].chakra
+                });
+            });
+        };
 
-        // 4. AÑADIR MUNDO LUNAR (20% de la fórmula)
-        const molsLuna = configAstrologica.signos[luna].moleculas;
-        formula.fondo.push({
-            molecula: molsLuna[0],
-            porcentaje: 12,
-            razon: `Luna en ${luna}: Tu profundidad emocional`,
-            chakra: configAstrologica.signos[luna].chakra
-        });
-        formula.corazon.push({
-            molecula: molsLuna[1] || molsLuna[0],
-            porcentaje: 8,
-            razon: `Reflejo Lunar (${luna})`,
-            chakra: configAstrologica.signos[luna].chakra
-        });
-
-        // 5. AÑADIR MÁSCARA DEL ASCENDENTE (15% de la fórmula)
-        const molsAsc = configAstrologica.signos[asc].moleculas;
-        formula.salida.push({
-            molecula: molsAsc[0],
-            porcentaje: 8,
-            razon: `Ascendente ${asc}: Tu proyección al mundo`,
-            chakra: configAstrologica.signos[asc].chakra
-        });
-        formula.corazon.push({
-            molecula: molsAsc[1] || molsAsc[0],
-            porcentaje: 7,
-            razon: `Matiz del Ascendente (${asc})`,
-            chakra: configAstrologica.signos[asc].chakra
-        });
+        añadirMolsSigno(sol, 'Sol', 25);
+        añadirMolsSigno(luna, 'Luna', 20);
+        añadirMolsSigno(asc, 'Ascendente', 15);
 
         // Limpieza: Asegurar que no hay moléculas undefined y normalizar porcentajes
         const limpiar = (arr) => arr.filter(n => n && n.molecula && MOLECULAS[n.molecula]);
