@@ -394,6 +394,18 @@ const MOLECULAS = {
         proveedor: 'Bello #15115'
     },
 
+    'Hedione': {
+        tipo: 'Sintética',
+        familia: 'Floral-Jazmín',
+        perfil: 'Jazmín transparente, luminoso, radiante, difusivo',
+        fuerza: 'Media-Fuerte',
+        coste: 12.00,
+        ml: 30,
+        notas: 'Metil Dihidrojasmonato - Molécula radiante icónica de Dior Eau Sauvage',
+        ifra: 'Sin restricciones',
+        proveedor: 'Estimado'
+    },
+
     //===== TU INVENTARIO REAL - ACEITES ESENCIALES Y ABSOLUTOS =====
 
     'Vetiver Haití': {
@@ -921,7 +933,7 @@ const CORRESPONDENCIAS_ASTROLOGICAS = {
         'Aries': {
             elemento: 'Fuego',
             chakra: 'Plexo Solar',
-            moleculas: ['ISO E Super', 'Aldehído C12 MNA', 'Bergamota FCF', 'Neroli (Azahar)'],
+            moleculas: ['Iso E Super', 'Aldehído C12 MNA', 'Bergamota FCF', 'Neroli (Azahar)'],
             propiedades: 'Acción, coraje, liderazgo, iniciativa',
             nota_dominante: 'Salida'
         },
@@ -935,7 +947,7 @@ const CORRESPONDENCIAS_ASTROLOGICAS = {
         'Géminis': {
             elemento: 'Aire',
             chakra: 'Garganta',
-            moleculas: ['Hedione (Metil Dihidrojasmonato)', 'Bergamota FCF', 'Neroli (Azahar)', 'Verdox (Terpenos)'],
+            moleculas: ['Hedione', 'Bergamota FCF', 'Neroli (Azahar)', 'Verdox (Terpenos)'],
             propiedades: 'Comunicación, agilidad mental, versatilidad',
             nota_dominante: 'Salida'
         },
@@ -949,7 +961,7 @@ const CORRESPONDENCIAS_ASTROLOGICAS = {
         'Leo': {
             elemento: 'Fuego',
             chakra: 'Plexo Solar',
-            moleculas: ['Ambroxan', 'Incienso / Frankincense', 'Neroli (Azahar)', 'ISO E Super'],
+            moleculas: ['Ambroxan', 'Incienso / Frankincense', 'Neroli (Azahar)', 'Iso E Super'],
             propiedades: 'Poder personal, confianza, vitalidad solar',
             nota_dominante: 'Fondo'
         },
@@ -963,7 +975,7 @@ const CORRESPONDENCIAS_ASTROLOGICAS = {
         'Libra': {
             elemento: 'Aire',
             chakra: 'Corazón',
-            moleculas: ['Rosa Absoluto (Bulgaria)', 'Ylang Ylang Extra', 'Galaxolide', 'Hedione (Metil Dihidrojasmonato)'],
+            moleculas: ['Rosa Absoluto (Bulgaria)', 'Ylang Ylang Extra', 'Galaxolide', 'Hedione'],
             propiedades: 'Armonía, equilibrio, belleza, relaciones',
             nota_dominante: 'Corazón'
         },
@@ -1006,7 +1018,7 @@ const CORRESPONDENCIAS_ASTROLOGICAS = {
 
     elementos: {
         'Fuego': {
-            moleculas_potenciadoras: ['ISO E Super', 'Ambroxan', 'Aldehído C12 MNA', 'Neroli (Azahar)', 'Incienso / Frankincense'],
+            moleculas_potenciadoras: ['Iso E Super', 'Ambroxan', 'Aldehído C12 MNA', 'Neroli (Azahar)', 'Incienso / Frankincense'],
             intention: 'Elevar la acción, coraje, vitalidad y liderazgo'
         },
         'Tierra': {
@@ -1014,7 +1026,7 @@ const CORRESPONDENCIAS_ASTROLOGICAS = {
             intention: 'Elevar la estabilidad, manifestación y arraigo'
         },
         'Aire': {
-            moleculas_potenciadoras: ['Hedione (Metil Dihidrojasmonato)', 'Bergamota FCF', 'Neroli (Azahar)', 'Rosa Absoluto (Bulgaria)', 'Galaxolide'],
+            moleculas_potenciadoras: ['Hedione', 'Bergamota FCF', 'Neroli (Azahar)', 'Rosa Absoluto (Bulgaria)', 'Galaxolide'],
             intention: 'Elevar la comunicación, claridad mental y relaciones'
         },
         'Agua': {
