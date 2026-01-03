@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alchemistery - Generador de Avatares Astrales</title>
+    <meta name="description"
+        content="Genera ilustraciones superheroicas únicas basadas en tu carta astral. Combina tu Sol, Luna y Ascendente en arte místico.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="cosmic-background"></div>
+
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="2" />
+                    <circle cx="50" cy="50" r="5" fill="currentColor" />
+                    <path d="M 50 20 L 50 35 M 50 65 L 50 80 M 20 50 L 35 50 M 65 50 L 80 50" stroke="currentColor"
+                        stroke-width="2" />
+                </svg>
+                <h1>Alchemistery</h1>
+            </div>
+            <p class="tagline">Transforma tu carta astral en arte épico</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="generator-section">
+            <div class="card main-card">
+                <h2 class="section-title">
+                    <span class="icon">✨</span>
+                    Crea tu Avatar Astral
+                </h2>
+
+                <form id="astralForm" class="astral-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="sunSign">
+                                <span class="label-icon">☉</span>
+                                Signo Solar
+                            </label>
+                            <select id="sunSign" required>
+                                <option value="">Selecciona tu Sol...</option>
+                                <option value="aries">♈ Aries</option>
+                                <option value="tauro">♉ Tauro</option>
+                                <option value="geminis">♊ Géminis</option>
+                                <option value="cancer">♋ Cáncer</option>
+                                <option value="leo">♌ Leo</option>
+                                <option value="virgo">♍ Virgo</option>
+                                <option value="libra">♎ Libra</option>
+                                <option value="escorpio">♏ Escorpio</option>
+                                <option value="sagitario">♐ Sagitario</option>
+                                <option value="capricornio">♑ Capricornio</option>
+                                <option value="acuario">♒ Acuario</option>
+                                <option value="piscis">♓ Piscis</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="moonSign">
+                                <span class="label-icon">☽</span>
+                                Signo Lunar
+                            </label>
+                            <select id="moonSign" required>
+                                <option value="">Selecciona tu Luna...</option>
+                                <option value="aries">♈ Aries</option>
+                                <option value="tauro">♉ Tauro</option>
+                                <option value="geminis">♊ Géminis</option>
+                                <option value="cancer">♋ Cáncer</option>
+                                <option value="leo">♌ Leo</option>
+                                <option value="virgo">♍ Virgo</option>
+                                <option value="libra">♎ Libra</option>
+                                <option value="escorpio">♏ Escorpio</option>
+                                <option value="sagitario">♐ Sagitario</option>
+                                <option value="capricornio">♑ Capricornio</option>
+                                <option value="acuario">♒ Acuario</option>
+                                <option value="piscis">♓ Piscis</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ascendant">
+                                <span class="label-icon">↑</span>
+                                Ascendente
+                            </label>
+                            <select id="ascendant" required>
+                                <option value="">Selecciona tu Ascendente...</option>
+                                <option value="aries">♈ Aries</option>
+                                <option value="tauro">♉ Tauro</option>
+                                <option value="geminis">♊ Géminis</option>
+                                <option value="cancer">♋ Cáncer</option>
+                                <option value="leo">♌ Leo</option>
+                                <option value="virgo">♍ Virgo</option>
+                                <option value="libra">♎ Libra</option>
+                                <option value="escorpio">♏ Escorpio</option>
+                                <option value="sagitario">♐ Sagitario</option>
+                                <option value="capricornio">♑ Capricornio</option>
+                                <option value="acuario">♒ Acuario</option>
+                                <option value="piscis">♓ Piscis</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="characterName">
+                                <span class="label-icon">👤</span>
+                                Nombre del Personaje (opcional)
+                            </label>
+                            <input type="text" id="characterName" placeholder="Ej: El Guardián Estelar">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="style">
+                                <span class="label-icon">🎨</span>
+                                Estilo Artístico
+                            </label>
+                            <select id="style">
+                                <option value="superhero">Superhéroe Épico</option>
+                                <option value="mythology">Deidad Mitológica</option>
+                                <option value="fantasy">Guerrero Fantasy</option>
+                                <option value="cosmic">Ser Cósmico</option>
+                                <option value="alchemical">Alquimista Místico</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-generate" id="generateBtn">
+                        <span class="btn-icon">⚡</span>
+                        Generar Avatar Astral
+                    </button>
+                </form>
+
+                <div id="loadingState" class="loading-state hidden">
+                    <div class="cosmic-loader">
+                        <div class="orbit"></div>
+                        <div class="orbit orbit-2"></div>
+                        <div class="orbit orbit-3"></div>
+                        <div class="core"></div>
+                    </div>
+                    <p class="loading-text">Canalizando energías cósmicas...</p>
+                    <p class="loading-subtext" id="loadingSubtext"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="resultSection" class="result-section hidden">
+            <div class="card result-card">
+                <h2 class="section-title">
+                    <span class="icon">🌟</span>
+                    Tu Avatar Astral
+                </h2>
+
+                <div class="result-content">
+                    <div class="image-container">
+                        <img id="generatedImage" src="" alt="Avatar Astral Generado">
+                        <div class="image-overlay">
+                            <button class="btn-download" id="downloadBtn">
+                                <span>⬇</span> Descargar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="interpretation">
+                        <h3 id="characterTitle">Tu Arquetipo Cósmico</h3>
+                        <div class="astral-signature">
+                            <span class="signature-item" id="sunDisplay"></span>
+                            <span class="signature-divider">×</span>
+                            <span class="signature-item" id="moonDisplay"></span>
+                            <span class="signature-divider">×</span>
+                            <span class="signature-item" id="ascDisplay"></span>
+                        </div>
+                        <p id="interpretationText" class="interpretation-text"></p>
+
+                        <div class="elemental-balance">
+                            <h4>Balance Elemental</h4>
+                            <div class="elements-grid" id="elementsGrid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-secondary" id="createAnotherBtn">
+                    Crear Otro Avatar
+                </button>
+            </div>
+        </section>
+
+        <section class="gallery-section">
+            <div class="card">
+                <h2 class="section-title">
+                    <span class="icon">🖼️</span>
+                    Galería de Avatares
+                </h2>
+                <div id="gallery" class="gallery-grid">
+                    <div class="gallery-placeholder">
+                        <p>Tus avatares generados aparecerán aquí</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <p>Alchemistery © 2025 - Donde la astrología se encuentra con el arte</p>
+    </footer>
+
+    <!-- API Configuration (opcional - solo si usas APIs reales) -->
+    <script src="config.js"></script>
+    <script src="api-integration.js"></script>
+
+    <!-- Core Application -->
+    <script src="astrology-data.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

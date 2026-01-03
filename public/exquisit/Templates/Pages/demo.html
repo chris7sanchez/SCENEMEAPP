@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alchemistery - Demo de Prompts Mejorados</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="demo-styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="cosmic-background"></div>
+
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="2" />
+                    <circle cx="50" cy="50" r="5" fill="currentColor" />
+                    <path d="M 50 20 L 50 35 M 50 65 L 50 80 M 20 50 L 35 50 M 65 50 L 80 50" stroke="currentColor"
+                        stroke-width="2" />
+                </svg>
+                <h1>Alchemistery</h1>
+            </div>
+            <p class="tagline">✨ Prompts Ultra-Mejorados - Demo Interactiva</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Sección de Generador -->
+        <section class="generator-section">
+            <div class="card main-card">
+                <h2 class="section-title">
+                    <span class="icon">🎨</span>
+                    Visualiza tu Prompt Mejorado
+                </h2>
+
+                <div class="info-banner">
+                    <p><strong>🎯 Demo Funcional:</strong> Esta versión muestra los prompts ultra-detallados que hemos
+                        creado. El prompt se genera instantáneamente y puedes copiarlo para usar con cualquier API de IA
+                        (DALL-E, Midjourney, Stable Diffusion, etc.)</p>
+                </div>
+
+                <form id="astralForm" class="astral-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="sunSign">
+                                <span class="label-icon">☉</span>
+                                Signo Solar
+                            </label>
+                            <select id="sunSign" required>
+                                <option value="">Selecciona tu Sol...</option>
+                                <option value="aries">♈ Aries</option>
+                                <option value="tauro">♉ Tauro</option>
+                                <option value="geminis">♊ Géminis</option>
+                                <option value="cancer">♋ Cáncer</option>
+                                <option value="leo">♌ Leo</option>
+                                <option value="virgo">♍ Virgo</option>
+                                <option value="libra">♎ Libra</option>
+                                <option value="escorpio">♏ Escorpio</option>
+                                <option value="sagitario">♐ Sagitario</option>
+                                <option value="capricornio">♑ Capricornio</option>
+                                <option value="acuario">♒ Acuario</option>
+                                <option value="piscis">♓ Piscis</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="moonSign">
+                                <span class="label-icon">☽</span>
+                                Signo Lunar
+                            </label>
+                            <select id="moonSign" required>
+                                <option value="">Selecciona tu Luna...</option>
+                                <option value="aries">♈ Aries</option>
+                                <option value="tauro">♉ Tauro</option>
+                                <option value="geminis">♊ Géminis</option>
+                                <option value="cancer">♋ Cáncer</option>
+                                <option value="leo">♌ Leo</option>
+                                <option value="virgo">♍ Virgo</option>
+                                <option value="libra">♎ Libra</option>
+                                <option value="escorpio">♏ Escorpio</option>
+                                <option value="sagitario">♐ Sagitario</option>
+                                <option value="capricornio">♑ Capricornio</option>
+                                <option value="acuario">♒ Acuario</option>
+                                <option value="piscis">♓ Piscis</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ascendant">
+                                <span class="label-icon">↑</span>
+                                Ascendente
+                            </label>
+                            <select id="ascendant" required>
+                                <option value="">Selecciona tu Ascendente...</option>
+                                <option value="aries">♈ Aries</option>
+                                <option value="tauro">♉ Tauro</option>
+                                <option value="geminis">♊ Géminis</option>
+                                <option value="cancer">♋ Cáncer</option>
+                                <option value="leo">♌ Leo</option>
+                                <option value="virgo">♍ Virgo</option>
+                                <option value="libra">♎ Libra</option>
+                                <option value="escorpio">♏ Escorpio</option>
+                                <option value="sagitario">♐ Sagitario</option>
+                                <option value="capricornio">♑ Capricornio</option>
+                                <option value="acuario">♒ Acuario</option>
+                                <option value="piscis">♓ Piscis</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="style">
+                                <span class="label-icon">🎨</span>
+                                Estilo Artístico
+                            </label>
+                            <select id="style">
+                                <option value="superhero">Superhéroe Épico</option>
+                                <option value="mythology">Deidad Mitológica</option>
+                                <option value="fantasy">Guerrero Fantasy</option>
+                                <option value="cosmic">Ser Cósmico</option>
+                                <option value="alchemical">Alquimista Místico</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-generate" id="generateBtn">
+                        <span class="btn-icon">✨</span>
+                        Ver Prompt Mejorado
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Sección de Resultado -->
+        <section id="resultSection" class="result-section hidden">
+            <div class="card result-card">
+                <h2 class="section-title">
+                    <span class="icon">📝</span>
+                    Tu Prompt Ultra-Detallado
+                </h2>
+
+                <div class="result-content">
+                    <div class="prompt-display">
+                        <div class="prompt-header">
+                            <h3 id="characterTitle">Tu Arquetipo Cósmico</h3>
+                            <button class="btn-copy" id="copyBtn">
+                                <span>📋</span> Copiar Prompt
+                            </button>
+                        </div>
+
+                        <div class="astral-signature">
+                            <span class="signature-item" id="sunDisplay"></span>
+                            <span class="signature-divider">×</span>
+                            <span class="signature-item" id="moonDisplay"></span>
+                            <span class="signature-divider">×</span>
+                            <span class="signature-item" id="ascDisplay"></span>
+                        </div>
+
+                        <div class="prompt-box">
+                            <pre id="promptText"></pre>
+                        </div>
+
+                        <div class="prompt-stats">
+                            <div class="stat">
+                                <span class="stat-label">Longitud:</span>
+                                <span class="stat-value" id="promptLength">0</span> caracteres
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Características:</span>
+                                <span class="stat-value" id="featureCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interpretation">
+                        <h4>Interpretación Astrológica</h4>
+                        <p id="interpretationText"></p>
+
+                        <div class="elemental-balance">
+                            <h4>Balance Elemental</h4>
+                            <div class="elements-grid" id="elementsGrid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="api-integration-info">
+                    <h4>🚀 Cómo usar este prompt:</h4>
+                    <ol>
+                        <li>Copia el prompt usando el botón de arriba</li>
+                        <li>Ve a tu plataforma de IA favorita (DALL-E 3, Midjourney, Leonardo.ai, etc.)</li>
+                        <li>Pega el prompt y genera tu avatar astral</li>
+                        <li>¡Disfruta de tu superhéroe cósmico personalizado!</li>
+                    </ol>
+                </div>
+
+                <button class="btn-secondary" id="createAnotherBtn">
+                    Crear Otro Prompt
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <p>Alchemistery © 2025 - Prompts Ultra-Mejorados para Generación de IA</p>
+    </footer>
+
+    <script src="astrology-data.js"></script>
+    <script src="demo-app.js"></script>
+</body>
+
+</html>

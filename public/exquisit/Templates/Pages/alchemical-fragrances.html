@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alchemical Fragrances — Alchemistery</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --void: #0a0a0c;
+            --steel: #1a1b1e;
+            --steel-light: #2a2b2e;
+            --silver: #8a8b8e;
+            --gold: #d4af37;
+            --gold-dim: #b8992f;
+            --white: #fafafa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--void);
+            color: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            padding: 5rem 2rem 4rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 5rem;
+            font-weight: 300;
+            letter-spacing: 0.08em;
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 0.8rem;
+            color: var(--silver);
+            font-weight: 400;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+        }
+
+        /* Calculator Section */
+        .calculator {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 3rem;
+            background: var(--steel);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 1rem;
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 1.25rem;
+            background: var(--steel-light);
+            border: 1px solid rgba(138, 139, 142, 0.3);
+            color: var(--white);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-group select:hover,
+        .form-group select:focus {
+            border-color: var(--gold);
+            outline: none;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 1.5rem;
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-weight: 500;
+        }
+
+        .calculate-btn:hover {
+            background: var(--gold);
+            color: var(--void);
+        }
+
+        /* Result Section */
+        .result {
+            max-width: 1000px;
+            margin: 4rem auto;
+            padding: 4rem;
+            background: var(--steel);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            display: none;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .fragrance-header {
+            text-align: center;
+            margin-bottom: 4rem;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+            padding-bottom: 3rem;
+        }
+
+        .fragrance-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3.5rem;
+            font-weight: 300;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        .fragrance-subtitle {
+            font-size: 0.85rem;
+            color: var(--silver);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .astral-signature {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            font-size: 2.5rem;
+            color: var(--gold);
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        /* Notes Pyramid */
+        .notes-pyramid {
+            margin: 4rem 0;
+        }
+
+        .note-layer {
+            margin-bottom: 3rem;
+            padding: 2.5rem;
+            background: var(--steel-light);
+            border-left: 3px solid var(--gold);
+        }
+
+        .note-layer h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .note-layer .layer-info {
+            font-size: 0.75rem;
+            color: var(--silver);
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .ingredients {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .ingredient {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            border: 1px solid rgba(138, 139, 142, 0.3);
+            font-size: 0.85rem;
+            color: var(--white);
+            letter-spacing: 0.05em;
+        }
+
+        .note-description {
+            font-size: 0.95rem;
+            color: var(--silver);
+            line-height: 1.9;
+            font-weight: 300;
+        }
+
+        /* Character */
+        .character-section {
+            margin: 4rem 0;
+            padding: 3rem;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        .character-section h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--gold);
+            margin-bottom: 2rem;
+            letter-spacing: 0.05em;
+        }
+
+        .character-section p {
+            font-size: 1rem;
+            color: var(--silver);
+            line-height: 2;
+            font-weight: 300;
+        }
+
+        /* Stats */
+        .fragrance-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: rgba(212, 175, 55, 0.1);
+            margin-top: 4rem;
+        }
+
+        .stat {
+            background: var(--steel-light);
+            padding: 2.5rem;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.75rem;
+            font-weight: 400;
+            color: var(--white);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .calculator,
+            .result {
+                padding: 2rem;
+                margin: 2rem 1rem;
+            }
+
+            .fragrance-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Alchemical Fragrances</h1>
+        <p class="subtitle">Your Cosmic Signature in Scent</p>
+    </header>
+
+    <div class="calculator">
+        <form id="fragranceForm">
+            <div class="form-group">
+                <label for="sunSign">Signo Solar — First Impression</label>
+                <select id="sunSign" required>
+                    <option value="">Select your Sun sign...</option>
+                    <option value="aries">♈ Aries</option>
+                    <option value="tauro">♉ Tauro</option>
+                    <option value="geminis">♊ Géminis</option>
+                    <option value="cancer">♋ Cáncer</option>
+                    <option value="leo">♌ Leo</option>
+                    <option value="virgo">♍ Virgo</option>
+                    <option value="libra">♎ Libra</option>
+                    <option value="escorpio">♏ Escorpio</option>
+                    <option value="sagitario">♐ Sagitario</option>
+                    <option value="capricornio">♑ Capricornio</option>
+                    <option value="acuario">♒ Acuario</option>
+                    <option value="piscis">♓ Piscis</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="moonSign">Signo Lunar — Emotional Heart</label>
+                <select id="moonSign" required>
+                    <option value="">Select your Moon sign...</option>
+                    <option value="aries">♈ Aries</option>
+                    <option value="tauro">♉ Tauro</option>
+                    <option value="geminis">♊ Géminis</option>
+                    <option value="cancer">♋ Cáncer</option>
+                    <option value="leo">♌ Leo</option>
+                    <option value="virgo">♍ Virgo</option>
+                    <option value="libra">♎ Libra</option>
+                    <option value="escorpio">♏ Escorpio</option>
+                    <option value="sagitario">♐ Sagitario</option>
+                    <option value="capricornio">♑ Capricornio</option>
+                    <option value="acuario">♒ Acuario</option>
+                    <option value="piscis">♓ Piscis</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ascendant">Ascendente — Lasting Impression</label>
+                <select id="ascendant" required>
+                    <option value="">Select your Ascendant...</option>
+                    <option value="aries">♈ Aries</option>
+                    <option value="tauro">♉ Tauro</option>
+                    <option value="geminis">♊ Géminis</option>
+                    <option value="cancer">♋ Cáncer</option>
+                    <option value="leo">♌ Leo</option>
+                    <option value="virgo">♍ Virgo</option>
+                    <option value="libra">♎ Libra</option>
+                    <option value="escorpio">♏ Escorpio</option>
+                    <option value="sagitario">♐ Sagitario</option>
+                    <option value="capricornio">♑ Capricornio</option>
+                    <option value="acuario">♒ Acuario</option>
+                    <option value="piscis">♓ Piscis</option>
+                </select>
+            </div>
+
+            <button type="submit" class="calculate-btn">Create My Fragrance</button>
+        </form>
+    </div>
+
+    <div class="result" id="result">
+        <div class="fragrance-header">
+            <h2 class="fragrance-name" id="fragranceName"></h2>
+            <p class="fragrance-subtitle" id="fragranceSubtitle"></p>
+            <div class="astral-signature" id="astralSignature"></div>
+        </div>
+
+        <div class="notes-pyramid">
+            <div class="note-layer">
+                <h3>Notes de Cabeza</h3>
+                <p class="layer-info">First Impression — Solar Energy</p>
+                <div class="ingredients" id="topNotes"></div>
+                <p class="note-description" id="topDesc"></p>
+            </div>
+
+            <div class="note-layer">
+                <h3>Notes de Corazón</h3>
+                <p class="layer-info">Emotional Essence — Lunar Soul</p>
+                <div class="ingredients" id="heartNotes"></div>
+                <p class="note-description" id="heartDesc"></p>
+            </div>
+
+            <div class="note-layer">
+                <h3>Notes de Fondo</h3>
+                <p class="layer-info">Lasting Presence — Rising Aura</p>
+                <div class="ingredients" id="baseNotes"></div>
+                <p class="note-description" id="baseDesc"></p>
+            </div>
+        </div>
+
+        <div class="character-section">
+            <h3>Fragrance Character</h3>
+            <p id="characterDesc"></p>
+        </div>
+
+        <div class="fragrance-stats">
+            <div class="stat">
+                <div class="stat-label">Intensity</div>
+                <div class="stat-value" id="intensity"></div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Family</div>
+                <div class="stat-value" id="family"></div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Season</div>
+                <div class="stat-value" id="season"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="alchemical-fragrances.js"></script>
+</body>
+
+</html>

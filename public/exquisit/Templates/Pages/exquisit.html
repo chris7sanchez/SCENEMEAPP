@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXQUISIT — Alchemical Perfumery</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="exquisit-styles.css">
+</head>
+
+<body>
+    <!-- Background -->
+    <div class="ancient-bg"></div>
+
+    <!-- Header -->
+    <header class="main-header">
+        <div class="alchemical-symbol">⚗</div>
+        <h1>EXQUISIT</h1>
+        <p class="subtitle">Alchemical Perfumery · Astrological Aromatherapy</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="generator">Generador</button>
+        <button class="tab-btn" data-tab="inventory">Mi Inventario</button>
+        <button class="tab-btn" data-tab="library">Biblioteca</button>
+        <button class="tab-btn" data-tab="calculator">Calculadora</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+
+        <!-- Tab 1: Generator -->
+        <section id="tab-generator" class="tab-content active">
+            <div class="card">
+                <h2 class="card-title">Tu Carta Natal</h2>
+                <p class="card-subtitle">Los datos astrológicos guían la alquimia olfativa</p>
+
+                <form id="birthForm" class="birth-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre</label>
+                            <input type="text" id="name" placeholder="María" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Día</label>
+                                <input type="number" id="day" min="1" max="31" placeholder="15" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Mes</label>
+                                <input type="number" id="month" min="1" max="12" placeholder="8" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Año</label>
+                                <input type="number" id="year" min="1900" max="2025" placeholder="1990" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Hora (24h)</label>
+                                <input type="number" id="hour" min="0" max="23" placeholder="14" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Minuto</label>
+                                <input type="number" id="minute" min="0" max="59" placeholder="30" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <span>⚗</span> Crear Mi Fórmula Alquímica
+                    </button>
+                </form>
+            </div>
+
+            <!-- Results -->
+            <div id="results" class="results hidden">
+                <div class="card">
+                    <h2 class="card-title">Tu Perfil Astral</h2>
+                    <div class="astral-grid" id="astralGrid"></div>
+                </div>
+
+                <div class="card formula-card">
+                    <div class="formula-header">
+                        <h2 class="card-title">Essentia <span id="formulaName"></span></h2>
+                        <p class="card-subtitle">Fórmula personalizada · Perfumería de nicho</p>
+                    </div>
+
+                    <!-- Pyramid -->
+                    <div class="pyramid">
+                        <div class="pyramid-layer top">
+                            <div class="layer-header">
+                                <h3>Notas de Cabeza</h3>
+                                <span class="layer-subtitle">Prima Impressio · Ascendente</span>
+                            </div>
+                            <div id="topNotes" class="notes-list"></div>
+                        </div>
+
+                        <div class="pyramid-layer heart">
+                            <div class="layer-header">
+                                <h3>Notas de Corazón</h3>
+                                <span class="layer-subtitle">Anima Mundi · Luna</span>
+                            </div>
+                            <div id="heartNotes" class="notes-list"></div>
+                        </div>
+
+                        <div class="pyramid-layer base">
+                            <div class="layer-header">
+                                <h3>Notas de Fondo</h3>
+                                <span class="layer-subtitle">Fundamentum · Sol</span>
+                            </div>
+                            <div id="baseNotes" class="notes-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Properties -->
+                    <div class="therapeutic-properties" id="properties"></div>
+
+                    <!-- Recipe -->
+                    <div class="recipe-box">
+                        <h3>Codex Operandi</h3>
+                        <div id="recipe" class="recipe-content"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: Inventory -->
+        <section id="tab-inventory" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Mi Laboratorio</h2>
+                <p class="card-subtitle">Inventario personal de materias primas</p>
+
+                <div class="inventory-grid" id="inventoryGrid">
+                    <div class="inventory-item">
+                        <div class="item-name">Cargando inventario...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 3: Library -->
+        <section id="tab-library" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Materia Medica</h2>
+                <p class="card-subtitle">Conocimiento aromático ancestral</p>
+
+                <div class="search-box">
+                    <input type="text" id="librarySearch" placeholder="Buscar aceite esencial...">
+                </div>
+
+                <div class="library-grid" id="libraryGrid"></div>
+            </div>
+        </section>
+
+        <!-- Tab 4: Calculator -->
+        <section id="tab-calculator" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Calculadora Alquímica</h2>
+                <p class="card-subtitle">Proporciones profesionales para batch pequeño</p>
+
+                <div class="calculator-form">
+                    <div class="form-group">
+                        <label>Volumen total (ml)</label>
+                        <input type="number" id="totalVolume" value="10" min="1" max="1000">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Concentración (%)</label>
+                        <select id="concentration">
+                            <option value="15">Eau de Parfum (15%)</option>
+                            <option value="20" selected>Extrait de Parfum (20%)</option>
+                            <option value="25">Parfum (25%)</option>
+                            <option value="30">Huile de Parfum (30%)</option>
+                        </select>
+                    </div>
+
+                    <div class="calculation-result" id="calcResult">
+                        <p>Introduce los valores para calcular</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="main-footer">
+        <p>EXQUISIT © 2025 · Alchemical Transformations</p>
+    </footer>
+
+    <script src="exquisit-data.js"></script>
+    <script src="exquisit-app.js"></script>
+</body>
+
+</html>

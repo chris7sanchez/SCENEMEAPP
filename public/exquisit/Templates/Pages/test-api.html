@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API - Alchemistery</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            color: #e2e8f0;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #f59e0b;
+        }
+
+        .status {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .success {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: #22c55e;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+
+        .info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 1rem 2rem;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 0.5rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(107, 70, 193, 0.4);
+        }
+
+        pre {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: #f59e0b;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 Test de Configuración API</h1>
+
+    <div id="status"></div>
+
+    <button onclick="testConfig()">1. Verificar config.js</button>
+    <button onclick="testPrompt()">2. Generar Prompt de Prueba</button>
+    <button onclick="testAPI()">3. Test API Real (Genera Imagen)</button>
+
+    <div id="output"></div>
+
+    <script src="config.js"></script>
+    <script src="api-integration.js"></script>
+    <script src="astrology-data.js"></script>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function showOutput(content) {
+            document.getElementById('output').innerHTML = content;
+        }
+
+        function testConfig() {
+            showStatus('🔍 Verificando configuración...', 'info');
+
+            setTimeout(() => {
+                if (typeof API_CONFIG === 'undefined') {
+                    showStatus('❌ ERROR: config.js no encontrado o no cargado', 'error');
+                    showOutput(`
+                        <pre>
+SOLUCIÓN:
+1. Verifica que existe el archivo: config.js
+2. Recarga la página (Cmd+R o F5)
+3. Revisa la consola del navegador (F12) para ver errores
+                        </pre>
+                    `);
+                    return;
+                }
+
+                const apiKey = API_CONFIG.apiKeys.replicate;
+
+                if (!apiKey || apiKey === 'r8_YOUR_API_KEY_HERE') {
+                    showStatus('⚠️ API Key no configurada', 'error');
+                    showOutput(`
+                        <pre>
+ESTADO: config.js cargado pero API key no configurada
+
+SOLUCIÓN:
+1. Abre: config.js
+2. Reemplaza: 'r8_YOUR_API_KEY_HERE'
+3. Por tu API key real de Replicate
+4. Guarda el archivo
+5. Recarga esta página
+                        </pre>
+                    `);
+                    return;
+                }
+
+                if (!apiKey.startsWith('r8_')) {
+                    showStatus('⚠️ API Key parece incorrecta', 'error');
+                    showOutput(`
+                        <pre>
+PROBLEMA: La API key debe empezar con "r8_"
+Tu key actual: ${apiKey.substring(0, 10)}...
+
+SOLUCIÓN:
+Verifica que copiaste la key completa de Replicate
+                        </pre>
+                    `);
+                    return;
+                }
+
+                showStatus('✅ Configuración correcta!', 'success');
+                showOutput(`
+                    <pre>
+✅ config.js: Cargado
+✅ Provider: ${API_CONFIG.provider}
+✅ API Key: ${apiKey.substring(0, 10)}... (${apiKey.length} caracteres)
+✅ Modelo: ${API_CONFIG.replicate.model}
+
+🎉 ¡Todo listo para generar imágenes!
+                    </pre>
+                `);
+            }, 500);
+        }
+
+        function testPrompt() {
+            showStatus('📝 Generando prompt de prueba...', 'info');
+
+            setTimeout(() => {
+                const { prompt, characterTitle } = generateImagePrompt(
+                    'leo',
+                    'aries',
+                    'escorpio',
+                    'superhero',
+                    'El Guerrero Cósmico'
+                );
+
+                showStatus('✅ Prompt generado', 'success');
+                showOutput(`
+                    <h3>Título: ${characterTitle}</h3>
+                    <h4>Prompt completo (${prompt.length} caracteres):</h4>
+                    <pre>${prompt}</pre>
+                    <p><strong>Este es el texto que se enviará a la IA para generar la imagen.</strong></p>
+                `);
+            }, 500);
+        }
+
+        async function testAPI() {
+            if (typeof API_CONFIG === 'undefined' || !API_CONFIG.apiKeys.replicate.startsWith('r8_')) {
+                showStatus('❌ Primero configura tu API key (Test 1)', 'error');
+                return;
+            }
+
+            showStatus('🎨 Generando imagen real... <div class="loading"></div>', 'info');
+            showOutput('<p>Esto puede tomar 10-20 segundos...</p>');
+
+            try {
+                const { prompt } = generateImagePrompt('leo', 'aries', 'escorpio', 'superhero', 'Test');
+
+                const apiClient = new ImageGenerationAPI(API_CONFIG);
+                const imageUrl = await apiClient.generate(prompt);
+
+                showStatus('✅ ¡Imagen generada exitosamente!', 'success');
+                showOutput(`
+                    <h3>🎉 ¡FUNCIONA!</h3>
+                    <img src="${imageUrl}" style="max-width: 100%; border-radius: 12px; margin: 1rem 0;">
+                    <p><strong>URL:</strong> <a href="${imageUrl}" target="_blank">${imageUrl}</a></p>
+                    <p>Si ves un superhéroe épico con características de león, carnero y escorpión, ¡TODO ESTÁ PERFECTO!</p>
+                `);
+
+            } catch (error) {
+                showStatus('❌ Error al generar imagen', 'error');
+                showOutput(`
+                    <pre>
+ERROR: ${error.message}
+
+POSIBLES CAUSAS:
+1. API key incorrecta
+2. Sin créditos en Replicate
+3. Problema de red
+
+SOLUCIÓN:
+- Verifica tu API key en replicate.com/account/api-tokens
+- Asegúrate de tener método de pago configurado
+- Revisa la consola del navegador (F12) para más detalles
+                    </pre>
+                `);
+                console.error('Error completo:', error);
+            }
+        }
+
+        // Auto-test al cargar
+        window.addEventListener('load', () => {
+            setTimeout(testConfig, 1000);
+        });
+    </script>
+</body>
+
+</html>

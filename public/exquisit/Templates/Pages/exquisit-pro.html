@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚗ EXQUISIT PRO ⚗ Alta Perfumería Alquímica</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=JetBrains+Mono:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../../Styles/Library/premium-effects.css">
+    <style>
+        :root {
+            --ink: #1a0f0a;
+            --parchment: #f4e8d0;
+            --sepia: #704214;
+            --gold: #c9a961;
+            --gold-bright: #f4d799;
+            --copper: #b87333;
+            --bronze: #8c6239;
+            --obsidian: #0d0d0d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--ink);
+            color: var(--parchment);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* MANUSCRITO BACKGROUND CON ANIMACIÓN */
+        .manuscript-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(201, 169, 97, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(184, 115, 51, 0.05) 0%, transparent 50%);
+            background-color: var(--ink);
+        }
+
+        .manuscript-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(201, 169, 97, 0.015) 40px, rgba(201, 169, 97, 0.015) 41px),
+                repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(201, 169, 97, 0.015) 40px, rgba(201, 169, 97, 0.015) 41px);
+            opacity: 0.3;
+            animation: manuscript-shift 60s linear infinite;
+        }
+
+        @keyframes manuscript-shift {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(40px, 40px);
+            }
+        }
+
+        /* PARTÍCULAS DORADAS FLOTANTES */
+        .particles {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0;
+            animation: float-particle 15s infinite ease-in-out;
+            box-shadow: 0 0 4px var(--gold);
+        }
+
+        @keyframes float-particle {
+
+            0%,
+            100% {
+                opacity: 0;
+                transform: translateY(0) scale(1);
+            }
+
+            10%,
+            90% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+                transform: translateY(-100vh) scale(1.5);
+            }
+        }
+
+        /* HEADER ESPECTACULAR CON MOLÉCULAS */
+        header {
+            padding: 6rem 2rem 5rem;
+            text-align: center;
+            position: relative;
+            border-bottom: 2px solid var(--gold);
+            background: linear-gradient(180deg, rgba(26, 15, 10, 0.95) 0%, rgba(13, 13, 13, 0.8) 100%);
+            backdrop-filter: blur(20px);
+        }
+
+        .header-glow {
+            position: absolute;
+            top: -50%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(201, 169, 97, 0.3) 0%, transparent 70%);
+            filter: blur(80px);
+            animation: pulse-glow 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: translateX(-50%) scale(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: translateX(-50%) scale(1.3);
+            }
+        }
+
+        .logo-alchemical {
+            font-size: 8rem;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+            animation: rotate-symbol 30s linear infinite;
+            filter: drop-shadow(0 0 30px var(--gold));
+        }
+
+        @keyframes rotate-symbol {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 7rem;
+            font-weight: 900;
+            letter-spacing: 0.4em;
+            background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 50%, var(--copper) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 40px rgba(201, 169, 97, 0.5);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                filter: brightness(1);
+            }
+
+            50% {
+                filter: brightness(1.4);
+            }
+        }
+
+        .subtitle {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--gold);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 2rem;
+        }
+
+        .tagline {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--parchment);
+            opacity: 0.6;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* NAVEGACIÓN TIPO LABORATORIO */
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            background: linear-gradient(180deg, rgba(13, 13, 13, 0.9) 0%, rgba(26, 15, 10, 0.95) 100%);
+            border-bottom: 1px solid var(--gold);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1;
+            max-width: 250px;
+            padding: 1.5rem 2rem;
+            background: transparent;
+            border: none;
+            border-right: 1px solid rgba(201, 169, 97, 0.2);
+            color: var(--parchment);
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: linear-gradient(180deg, transparent 0%, var(--gold) 100%);
+            transition: height 0.4s ease;
+        }
+
+        .nav-item:hover::before {
+            height: 100%;
+        }
+
+        .nav-item:hover {
+            color: var(--ink);
+        }
+
+        .nav-item.active {
+            background: var(--gold);
+            color: var(--ink);
+            font-weight: 600;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-item span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* CONTENEDOR PRINCIPAL */
+        main {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* SECCIÓN ACTIVA */
+        .section {
+            display: none;
+            animation: section-reveal 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes section-reveal {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* CARDS TIPO FRASCO DE VIDRIO */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(244, 232, 208, 0.05) 0%, rgba(201, 169, 97, 0.03) 100%);
+            border: 2px solid var(--gold);
+            padding: 4rem;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.6),
+                inset 0 0 100px rgba(201, 169, 97, 0.05);
+            transition: all 0.6s ease;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: conic-gradient(from 0deg,
+                    transparent 0deg,
+                    rgba(201, 169, 97, 0.1) 90deg,
+                    transparent 180deg,
+                    rgba(184, 115, 51, 0.08) 270deg,
+                    transparent 360deg);
+            animation: rotate-glass 20s linear infinite;
+        }
+
+        @keyframes rotate-glass {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .glass-card:hover {
+            transform: translateY(-10px);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.7),
+                inset 0 0 120px rgba(201, 169, 97, 0.08),
+                0 0 40px rgba(201, 169, 97, 0.3);
+            border-color: var(--gold-bright);
+        }
+
+        .card-title {
+            font-family: 'Cinzel', serif;
+            font-size: 3.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.1em;
+        }
+
+        .card-subtitle {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            color: var(--gold);
+            font-style: italic;
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Continúa en siguiente mensaje... */
+    </style>
+</head>
+
+<body>
+    <div class="manuscript-bg"></div>
+    <div class="particles" id="particles"></div>
+    <div id="alchemical-portal"></div>
+
+    <header>
+        <div class="header-glow"></div>
+        <div class="logo-alchemical">⚗</div>
+        <h1>EXQUISIT</h1>
+        <p class="subtitle">Alta Perfumería Alquímica</p>
+        <p class="tagline">Laboratorio Profesional de Nicho · Desde MMXXV</p>
+    </header>
+
+    <nav>
+        <button class="nav-item active" data-section="alquimia"><span>🔮 Alquimia Astral</span></button>
+        <button class="nav-item" data-section="formulador"><span>⚗ Formulador</span></button>
+        <button class="nav-item" data-section="inventario"><span>🧪 Inventario</span></button>
+        <button class="nav-item" data-section="acordes"><span>🌹 Acordes</span></button>
+        <button class="nav-item" data-section="calculadora"><span>📊 Calculadora</span></button>
+    </nav>
+
+    <main>
+        <!-- Sections will be added via JavaScript -->
+        <div id="content"></div>
+    </main>
+    <script src="../../Scripts/Exquisit/exquisit-data.js"></script>
+    <script src="../../Scripts/Exquisit/energetic-engine.js"></script>
+    <script src="../../Scripts/Exquisit/exquisit-pro.js"></script>
+    <script src="../../Scripts/Exquisit/empowerment-controller.js"></script>
+
+    <script>
+        // Generate floating particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+    </script>
+</body>
+
+</html>
