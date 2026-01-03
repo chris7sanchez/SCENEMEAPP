@@ -1585,45 +1585,71 @@ class ExquisitPro {
             formula.proposito = `Esencia de ${sol} con alma de ${luna}`;
         }
 
-        // 2. AÑADIR POTENCIADORES ELEMENTALES (40% de la fórmula)
+        // REGISTRO TEMPORAL PARA COMPILAR INGREDIENTES
+        const registroIngredientes = new Map();
+
+        const registrarIngrediente = (mol, pct, razon, chakra, notaSugerida) => {
+            if (!MOLECULAS[mol]) return; // Evitar moléculas no existentes
+
+            if (registroIngredientes.has(mol)) {
+                const existente = registroIngredientes.get(mol);
+                existente.porcentaje += pct;
+                if (!existente.razones.includes(razon)) existente.razones.push(razon);
+                // Si el nuevo chakra no está y el anterior era null, lo actualizamos
+                if (chakra && !existente.chakra) existente.chakra = chakra;
+            } else {
+                registroIngredientes.set(mol, {
+                    molecula: mol,
+                    porcentaje: pct,
+                    razones: [razon],
+                    chakra: chakra,
+                    nota: notaSugerida
+                });
+            }
+        };
+
+        // 2. REGISTRAR POTENCIADORES ELEMENTALES (40% de la fórmula)
         if (elementosAPotenciar.length > 0) {
             elementosAPotenciar.forEach(elem => {
                 const mols = configAstrologica.elementos[elem].moleculas_potenciadoras;
                 const peso = Math.floor(40 / elementosAPotenciar.length);
 
-                // Asegurar que usamos todos los potenciadores disponibles del elemento
                 mols.forEach((mol, idx) => {
                     const pct = Math.floor(peso / mols.length);
                     const notaDestino = idx === 0 ? 'salida' : (idx < 3 ? 'corazon' : 'fondo');
-                    formula[notaDestino].push({
-                        molecula: mol,
-                        porcentaje: pct,
-                        razon: `Potenciador de ${elem}`,
-                        chakra: null
-                    });
+                    registrarIngrediente(mol, pct, `Potenciador de ${elem}`, null, notaDestino);
                 });
             });
         }
 
-        // 3. AÑADIR TODAS LAS MOLÉCULAS DE LA CARTA NATAL (Sol, Luna, Asc)
-        const añadirMolsSigno = (signo, rol, pctBase) => {
+        // 3. REGISTRAR MOLÉCULAS DE LA CARTA NATAL (60% restante)
+        const procesarSigno = (signo, rol, pctBase) => {
             const mols = configAstrologica.signos[signo].moleculas;
             mols.forEach((mol, idx) => {
                 const pct = Math.floor(pctBase / mols.length);
                 const notaDestino = idx === 0 ? 'salida' : (idx < 3 ? 'corazon' : 'fondo');
-                formula[notaDestino].push({
-                    molecula: mol,
-                    porcentaje: pct,
-                    razon: `${rol} en ${signo}`,
-                    chakra: configAstrologica.signos[signo].chakra
-                });
+                registrarIngrediente(mol, pct, `${rol} en ${signo}`, configAstrologica.signos[signo].chakra, notaDestino);
             });
         };
 
-        añadirMolsSigno(sol, 'Sol', 25);
-        añadirMolsSigno(luna, 'Luna', 20);
-        añadirMolsSigno(asc, 'Ascendente', 15);
+        procesarSigno(sol, 'Sol', 25);
+        procesarSigno(luna, 'Luna', 20);
+        procesarSigno(asc, 'Ascendente', 15);
 
+        // 4. COMPILAR Y DISTRIBUIR EN LA FÓRMULA FINAL
+        registroIngredientes.forEach((data, mol) => {
+            const itemFinal = {
+                molecula: mol,
+                porcentaje: data.porcentaje,
+                razon: data.razones.join(' + '),
+                chakra: data.chakra
+            };
+
+            // Clasificar en la nota correspondiente
+            if (data.nota === 'salida') formula.salida.push(itemFinal);
+            else if (data.nota === 'corazon') formula.corazon.push(itemFinal);
+            else formula.fondo.push(itemFinal);
+        });
         // Limpieza: Asegurar que no hay moléculas undefined y normalizar porcentajes
         const limpiar = (arr) => arr.filter(n => n && n.molecula && MOLECULAS[n.molecula]);
         formula.salida = limpiar(formula.salida);
