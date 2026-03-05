@@ -23,16 +23,35 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import SomaticBody from '@/components/antigravity/SomaticBody';
 import { getSomaticAnalysis, SomaticPoint } from '@/utils/somatic-mapping';
-import { ViewMode, AlchimestrySubView, UserData, ChartTheme, CosmosViewMode, CharacterProfile } from './types';
+import { ViewMode, AlchimestrySubView, UserData, ChartTheme, CosmosViewMode, CharacterProfile, ThemeSettings } from './types';
 import AlchimestryView from './AlchimestryView';
 import CosmosView from './CosmosView';
 import CharacterWorkshop from './CharacterWorkshop';
 import { ChartZoomWrapper, PlanetaryTrinity, CharacterTransits, downloadChartAsPDF } from './shared-components';
+import VisualEngine from './VisualEngine';
+import InteractiveStars from './InteractiveStars';
+import AlchemicalPortal from './AlchemicalPortal';
+import MiniCalculator from './MiniCalculator';
+import ChartNotesSystem from './ChartNotesSystem';
 
 export default function ScriptAnalyzer() {
     // --- STATE ---
     const [viewMode, setViewMode] = useState<ViewMode>('COSMOS');
+    const [previousViewMode, setPreviousViewMode] = useState<ViewMode>('COSMOS');
+    const [isTransitioning, setIsTransitioning] = useState(false);
     const [alchimestrySubView, setAlchimestrySubView] = useState<AlchimestrySubView>('inicio');
+
+    const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
+        backgroundColor: '#F2F0E9',
+        accentColor: '#C55959',
+        textColor: '#1a1a1a',
+        bgImage: '/antigravity/astral_background_v2.png',
+        bgOpacity: 15,
+        blurAmount: 0,
+        parallaxIntensity: 30,
+        fontFamily: 'serif',
+        glassOpacity: 70
+    });
 
     // QUANTUM SYNASTRY STATE
     const [synastryResult, setSynastryResult] = useState<AnalyzeSynastryOutput | null>(null);
@@ -75,6 +94,17 @@ export default function ScriptAnalyzer() {
     const [chartTheme, setChartTheme] = useState<ChartTheme>('classic');
     const [alignAries, setAlignAries] = useState(false);
 
+    // Portal transition handler
+    const handleViewModeChange = (newMode: ViewMode) => {
+        if (newMode === viewMode) return;
+        setPreviousViewMode(viewMode);
+        setIsTransitioning(true);
+        setTimeout(() => {
+            setViewMode(newMode);
+            setTimeout(() => setIsTransitioning(false), 1200);
+        }, 100);
+    };
+
     // UI state
     const [dateParts, setDateParts] = useState({ day: '', month: '', year: '' });
     const [searchQuery, setSearchQuery] = useState('');
@@ -90,6 +120,12 @@ export default function ScriptAnalyzer() {
         const friendsStr = localStorage.getItem('astroFriends');
         const scriptLibStr = localStorage.getItem('scriptLibrary');
         const lastSession = localStorage.getItem('lastSessionData');
+
+        const themeStr = localStorage.getItem('themeSettings');
+
+        if (themeStr) {
+            try { setThemeSettings(JSON.parse(themeStr)); } catch (e) { }
+        }
 
         if (userLibStr) {
             try { setUserLibrary(JSON.parse(userLibStr)); } catch (e) { }
@@ -301,7 +337,11 @@ export default function ScriptAnalyzer() {
             'Géminis': 'air', 'Libra': 'air', 'Acuario': 'air', 'Cáncer': 'water', 'Escorpio': 'water', 'Piscis': 'water'
         };
         const res = { fire: 0, earth: 0, air: 0, water: 0 };
-        const add = (s: string, w: number) => { const el = signs[Object.keys(signs).find(k => s.includes(k)) || 'Aries'] as keyof typeof res; res[el] += w; };
+        const add = (s: string, w: number) => {
+            const entry = Object.keys(signs).find(k => s.includes(k)) || 'Aries';
+            const el = signs[entry] as keyof typeof res;
+            res[el] += w;
+        };
         add(sun, 30); add(moon, 20); add(asc, 10);
         return res;
     };
@@ -375,13 +415,37 @@ export default function ScriptAnalyzer() {
     };
 
     return (
-        <div className="min-h-screen relative overflow-x-hidden selection:bg-[#C55959]/30">
-            {/* BACKGROUND LAYERS */}
-            <div className={`fixed inset-0 z-0 transition-all duration-1000 ${viewMode === 'COSMOS' ? 'bg-[#E0DED5]' : viewMode === 'BODY' ? 'bg-[#F2F0E9]' : 'bg-[#0f0c29]'}`} />
-            {backgroundImages.map((img, i) => (
-                <div key={i} className="fixed inset-0 z-0 opacity-30 mix-blend-overlay pointer-events-none bg-cover bg-center transition-opacity duration-1000" style={{ backgroundImage: `url('${img}')`, opacity: i === 0 ? 0.4 : 0.2 }} />
-            ))}
-            <div className="fixed inset-0 z-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
+        <div
+            className="min-h-screen relative overflow-x-hidden transition-colors duration-1000"
+            style={{
+                color: themeSettings.textColor,
+                fontFamily: themeSettings.fontFamily === 'serif' ? 'serif' : 'sans-serif',
+                backgroundColor: themeSettings.backgroundColor
+            }}
+        >
+            <VisualEngine
+                settings={themeSettings}
+                onSettingsChange={(newSettings) => {
+                    setThemeSettings(newSettings);
+                    localStorage.setItem('themeSettings', JSON.stringify(newSettings));
+                }}
+            />
+
+            {/* Interactive Stars Background */}
+            <InteractiveStars count={60} repulsionStrength={120} />
+
+            {/* Alchemical Portal Transition */}
+            <AlchemicalPortal
+                isTransitioning={isTransitioning}
+                fromMode={previousViewMode}
+                toMode={viewMode}
+            />
+
+            {/* Mini Calculator */}
+            <MiniCalculator currentDate={currentUser?.date} />
+
+            {/* Chart Notes System */}
+            <ChartNotesSystem chartId={currentUser?.date || 'default'} />
 
             <div className="max-w-[95vw] lg:max-w-[90vw] mx-auto p-4 md:p-8 relative z-10 font-sans text-gray-800">
                 {/* HEADER */}
@@ -405,16 +469,23 @@ export default function ScriptAnalyzer() {
                     </nav>
                 </header>
 
-                {/* ALCHIMESTRY BUTTON */}
-                <div className="flex justify-center mb-8 -mt-12 relative z-[60]">
-                    <button onClick={() => setViewMode('ALCHIMESTRY')} className={`group flex flex-col items-center gap-2 transition-all duration-700 ${viewMode === 'ALCHIMESTRY' ? 'scale-110' : 'opacity-40 hover:opacity-80'}`}>
-                        <div className="w-12 h-12 rounded-full flex items-center justify-center border border-[#C5A059] bg-[#050A14] shadow-lg"><span className="text-xl">⚗️</span></div>
-                        <span className="text-[9px] uppercase font-serif tracking-widest text-[#C5A059]">Alchimestry</span>
+                {/* ALCHIMESTRY BUTTON (MEJORADO) */}
+                <div className="flex justify-center mb-8 -mt-12 relative z-[100]">
+                    <button
+                        onClick={() => {
+                            console.log("[Antigravity] Opening Alchimestry...");
+                            setViewMode('ALCHIMESTRY');
+                        }}
+                        className={`group flex flex-col items-center gap-2 transition-all duration-700 ${viewMode === 'ALCHIMESTRY' ? 'scale-110 opacity-100' : 'opacity-60 hover:opacity-100'}`}
+                    >
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all duration-500 shadow-2xl ${viewMode === 'ALCHIMESTRY' ? 'border-amber-500 bg-amber-600/20' : 'border-[#C5A059]/30 bg-[#050A14] hover:border-amber-500'}`}>
+                            <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(197,160,89,0.5)]">⚗️</span>
+                        </div>
+                        <span className="text-[10px] uppercase font-black tracking-[0.4em] text-[#C5A059] group-hover:text-amber-500 transition-colors">Alchimestry</span>
                     </button>
                 </div>
 
                 <main className="relative">
-                    {viewMode === 'ALCHIMESTRY' && <AlchimestryView currentUser={currentUser || { name: '', date: new Date().toISOString(), latitude: 0, longitude: 0, city: '' }} setViewMode={setViewMode} />}
 
                     {viewMode === 'COSMOS' && (
                         <CosmosView
@@ -448,7 +519,7 @@ export default function ScriptAnalyzer() {
 
                     {viewMode === 'SPIRIT' && (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn pb-12">
-                            <div className="lg:col-span-1 glass-panel p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-white/40 shadow-xl">
+                            <div className="lg:col-span-1 glass-panel p-6 rounded-2xl shadow-xl">
                                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Users size={18} /> Mi Red</h3>
                                 <div className="space-y-2 mb-6">
                                     <button onClick={() => setSpiritTargetId('user')} className={`w-full text-left p-3 rounded border transition-all ${spiritTargetId === 'user' ? 'bg-black text-white' : 'bg-white hover:border-black'}`}>
@@ -479,7 +550,7 @@ export default function ScriptAnalyzer() {
                                 </div>
                             </div>
 
-                            <div className="lg:col-span-2 glass-panel p-8 bg-white/90 backdrop-blur-xl rounded-2xl border border-white/50 shadow-2xl flex flex-col items-center">
+                            <div className="lg:col-span-2 glass-panel p-8 rounded-2xl shadow-2xl flex flex-col items-center">
                                 <h2 className="text-2xl font-serif text-[#1a1a1a] mb-8 w-full">Sinergia de Almas</h2>
                                 {currentUser ? (
                                     <div className="w-full max-w-2xl aspect-square relative mb-8">
@@ -534,6 +605,14 @@ export default function ScriptAnalyzer() {
                 </div>
 
                 {showLibrary && <ArchetypeLibrary onClose={() => setShowLibrary(false)} />}
+
+                {/* ALCHIMESTRY VIEW (TOP LEVEL) */}
+                {viewMode === 'ALCHIMESTRY' && (
+                    <AlchimestryView
+                        currentUser={currentUser || { name: '', date: new Date().toISOString(), latitude: 0, longitude: 0, city: '' }}
+                        setViewMode={setViewMode}
+                    />
+                )}
             </div>
         </div>
     );

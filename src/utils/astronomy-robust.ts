@@ -1,4 +1,4 @@
-import { Body, Ecliptic, GeoVector, Observer, Equator } from 'astronomy-engine';
+import { Body, Ecliptic, GeoVector } from 'astronomy-engine';
 
 export interface PlanetPosition {
     name: string;
@@ -15,15 +15,19 @@ export interface HouseSystem {
 }
 
 // --- CONSTANTS ---
-const BODIES = [
-    "Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"
+// Map Body enum to Spanish names
+const BODY_CONFIG: { body: Body; spanishName: string }[] = [
+    { body: Body.Sun, spanishName: 'Sol' },
+    { body: Body.Moon, spanishName: 'Luna' },
+    { body: Body.Mercury, spanishName: 'Mercurio' },
+    { body: Body.Venus, spanishName: 'Venus' },
+    { body: Body.Mars, spanishName: 'Marte' },
+    { body: Body.Jupiter, spanishName: 'Júpiter' },
+    { body: Body.Saturn, spanishName: 'Saturno' },
+    { body: Body.Uranus, spanishName: 'Urano' },
+    { body: Body.Neptune, spanishName: 'Neptuno' },
+    { body: Body.Pluto, spanishName: 'Plutón' },
 ];
-
-const SPANISH_NAMES: Record<string, string> = {
-    "Sun": "Sol", "Moon": "Luna", "Mercury": "Mercurio", "Venus": "Venus",
-    "Mars": "Marte", "Jupiter": "Júpiter", "Saturn": "Saturno",
-    "Uranus": "Urano", "Neptune": "Neptuno", "Pluto": "Plutón"
-};
 
 /**
  * Calculates simple houses (Equal House system based on Ascendant)
@@ -113,14 +117,14 @@ export const calculateRobustChart = (date: Date, lat: number, lon: number) => {
     // 3. Planets
     // We utilize Geocentric positions which are standard for most astrological charts (Body center to Earth center)
     // rather than Topocentric (Observer based) to avoid complex coordinate transforms that are failing.
-    const planets: PlanetPosition[] = BODIES.map(bodyName => {
+    const planets: PlanetPosition[] = BODY_CONFIG.map(({ body, spanishName }) => {
         // Calculate Geocentric Vector
-        const vec = GeoVector(bodyName, date, true);
+        const vec = GeoVector(body, date, true);
         // Convert to Ecliptic coordinates
         const ecl = Ecliptic(vec);
 
         return {
-            name: SPANISH_NAMES[bodyName] || bodyName,
+            name: spanishName,
             longitude: ecl.elon,
             speed: 0, // Astronomy engine doesn't give speed easily in this call, default 0
             house: getHouse(ecl.elon),

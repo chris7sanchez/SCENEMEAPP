@@ -57,8 +57,19 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
     const somaticPoints = useMemo(() => {
         if (selectedCharacterId === null || !characterProfiles[selectedCharacterId]) return [];
         const char = characterProfiles[selectedCharacterId];
-        const planets = calculateRealPlanets(char.birthData.date, 40, -3);
-        return getSomaticAnalysis(planets.planets);
+        const basePlanets = calculateRealPlanets(char.birthData.date, 40, -3);
+
+        // Apply manual overrides to somatic calc too
+        const finalPlanets = basePlanets.planets.map(p => {
+            if (p.name === 'Luna' && char.fullAnalysis.knownMoon) {
+                const sIdx = ['Aries', 'Tauro', 'Géminis', 'Cáncer', 'Leo', 'Virgo', 'Libra', 'Escorpio', 'Sagitario', 'Capricornio', 'Acuario', 'Piscis'].indexOf(char.fullAnalysis.knownMoon);
+                if (sIdx !== -1) return { ...p, longitude: (sIdx * 30) + 15, sign: char.fullAnalysis.knownMoon };
+            }
+            // Add other overrides as needed
+            return p;
+        });
+
+        return getSomaticAnalysis(finalPlanets);
     }, [selectedCharacterId, characterProfiles]);
 
     const handleRefinement = async () => {
@@ -149,7 +160,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
         <div className="flex flex-col animate-fadeIn h-full min-h-screen pb-20">
             {/* --- HEADER CON STEPPER --- */}
             <header className="mb-12">
-                <div className="flex flex-col lg:flex-row justify-between items-center gap-8 bg-white/70 backdrop-blur-xl p-8 rounded-[40px] border border-white/40 shadow-2xl relative overflow-hidden group">
+                <div className="flex flex-col lg:flex-row justify-between items-center gap-8 glass-panel p-8 rounded-[40px] shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 left-0 w-2 h-full bg-amber-500/50" />
 
                     <div className="flex items-center gap-6 relative z-10">
@@ -200,7 +211,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                 {activeStep === 0 && (
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
                         <div className="lg:col-span-8 space-y-6">
-                            <div className="glass-panel p-0 overflow-hidden relative group rounded-[40px] border border-black/5 bg-white/40 shadow-2xl h-[600px]">
+                            <div className="glass-panel p-0 overflow-hidden relative group rounded-[40px] shadow-2xl h-[600px]">
                                 <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10 border-b border-black/5 bg-white/60 backdrop-blur-md">
                                     <span className="text-[11px] uppercase font-black tracking-[0.4em] text-gray-400 flex items-center gap-3">
                                         <FileText size={16} className="text-black" /> Laboratorio de Guiones
@@ -284,9 +295,9 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                     <div className="animate-in fade-in slide-in-from-right-8 duration-700">
                         {selectedCharacterId !== null && characterProfiles[selectedCharacterId] ? (
                             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-                                {/* Dashboard */}
-                                <div className="xl:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="glass-panel p-10 bg-white border border-black/5 shadow-2xl rounded-[40px] relative overflow-hidden flex flex-col min-h-[500px]">
+                                {/* Dashboard: Ahora expandido */}
+                                <div className="xl:col-span-9 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                    <div className="lg:col-span-7 glass-panel p-10 bg-white border border-black/5 shadow-2xl rounded-[40px] relative overflow-hidden flex flex-col min-h-[600px]">
                                         <div className="absolute -top-20 -right-20 p-20 opacity-[0.03] text-[15rem] font-serif pointer-events-none animate-spin-slow">❂</div>
 
                                         <header className="flex justify-between items-start mb-12 relative z-10">
@@ -308,9 +319,21 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                         </header>
 
                                         <div className="flex-1 flex items-center justify-center relative">
-                                            <div className="w-full max-w-[380px] aspect-square transform scale-110">
+                                            <div className="w-full max-w-[500px] aspect-square transform scale-100">
                                                 <ChartZoomWrapper title={`Speculum: ${characterProfiles[selectedCharacterId].name}`} theme={chartTheme} onThemeChange={setChartTheme}>
-                                                    <NatalChart2D date={characterProfiles[selectedCharacterId].birthData.date} latitude={40} longitude={-3} theme={chartTheme} />
+                                                    <NatalChart2D
+                                                        date={characterProfiles[selectedCharacterId].birthData.date}
+                                                        latitude={40}
+                                                        longitude={-3}
+                                                        theme={chartTheme}
+                                                        knownMoon={characterProfiles[selectedCharacterId].fullAnalysis.knownMoon}
+                                                        knownAscendant={characterProfiles[selectedCharacterId].fullAnalysis.knownAscendant}
+                                                        customPlanets={{
+                                                            'Mercurio': characterProfiles[selectedCharacterId].fullAnalysis.mercurySign,
+                                                            'Venus': characterProfiles[selectedCharacterId].fullAnalysis.venusSign,
+                                                            'Marte': characterProfiles[selectedCharacterId].fullAnalysis.marsSign
+                                                        }}
+                                                    />
                                                 </ChartZoomWrapper>
                                             </div>
                                         </div>
@@ -318,12 +341,15 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                         {/* Quick Edit */}
                                         {editingCharacterId === selectedCharacterId && (
                                             <div className="mt-8 p-8 bg-gray-50 rounded-3xl border border-black/5 animate-in slide-in-from-top-4 duration-300">
-                                                <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-6">Mutar Geometría</h4>
+                                                <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-6">Mutar Geometría (Overrides)</h4>
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                                     {[
                                                         { label: 'Sol', key: 'sunSign' },
                                                         { label: 'Luna', key: 'moonSign', override: 'knownMoon' },
-                                                        { label: 'Asc', key: 'ascendant', override: 'knownAscendant' },
+                                                        { label: 'Asc', key: 'ascendantSign', override: 'knownAscendant' },
+                                                        { label: 'Mercurio', key: 'mercurySign' },
+                                                        { label: 'Venus', key: 'venusSign' },
+                                                        { label: 'Marte', key: 'marsSign' },
                                                     ].map((item) => {
                                                         const val = (item.override ? characterProfiles[selectedCharacterId].fullAnalysis[item.override] : null) || characterProfiles[selectedCharacterId].fullAnalysis[item.key] || 'Aries';
                                                         return (
@@ -340,7 +366,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                                         setCharacterProfiles(updated);
                                                                     }}
                                                                 >
-                                                                    {['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'].map(s => (
+                                                                    {['Aries', 'Tauro', 'Géminis', 'Cáncer', 'Leo', 'Virgo', 'Libra', 'Escorpio', 'Sagitario', 'Capricornio', 'Acuario', 'Piscis'].map(s => (
                                                                         <option key={s} value={s}>{s}</option>
                                                                     ))}
                                                                 </select>
@@ -350,9 +376,44 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                 </div>
                                             </div>
                                         )}
+
+                                        {/* DEEP ALCHIMESTRY FOR CHARACTER */}
+                                        <div className="mt-8 pt-8 border-t border-black/5">
+                                            <button
+                                                onClick={async () => {
+                                                    const char = characterProfiles[selectedCharacterId];
+                                                    // We use the already imported generateDeepAlchimestry if we had it, 
+                                                    // but character workshop might need its own local logic or a prompt to ScriptAnalyzer
+                                                    // For now, let's add a state to show a "Deep Profile"
+                                                    setEditingCharacterId(editingCharacterId === -selectedCharacterId ? null : -selectedCharacterId);
+                                                }}
+                                                className="w-full py-4 bg-purple-600 text-white font-black uppercase tracking-widest text-[9px] rounded-xl flex items-center justify-center gap-2 hover:bg-purple-500 transition-all shadow-lg shadow-purple-900/10"
+                                            >
+                                                <Sparkles size={14} /> Revelación Alquímica del Personaje
+                                            </button>
+
+                                            {editingCharacterId === -selectedCharacterId && (
+                                                <div className="mt-6 p-6 bg-purple-50 rounded-2xl border border-purple-100 animate-in fade-in slide-in-from-top-2 duration-500">
+                                                    <h5 className="text-[10px] font-black uppercase text-purple-600 tracking-widest mb-4">La Esencia del Protagonista</h5>
+                                                    <p className="text-sm font-serif italic text-purple-900 leading-relaxed">
+                                                        "{characterProfiles[selectedCharacterId].fullAnalysis.analysis || "Analizando la profundidad psíquica..."}"
+                                                    </p>
+                                                    <div className="mt-6 grid grid-cols-1 gap-4">
+                                                        <div className="bg-white/50 p-4 rounded-xl">
+                                                            <span className="text-[8px] font-black uppercase text-purple-400 block mb-1">Gesto Psicológico</span>
+                                                            <p className="text-[11px] text-purple-950">{characterProfiles[selectedCharacterId].fullAnalysis.methodActing?.psychologicalGesture || "No definido"}</p>
+                                                        </div>
+                                                        <div className="bg-white/50 p-4 rounded-xl">
+                                                            <span className="text-[8px] font-black uppercase text-purple-400 block mb-1">Paisaje Interior</span>
+                                                            <p className="text-[11px] text-purple-950 font-serif italic">{characterProfiles[selectedCharacterId].fullAnalysis.methodActing?.emotionalLandscape || "No definido"}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <div className="glass-panel p-10 bg-[#F9F8F4] border border-amber-900/10 rounded-[40px] shadow-xl flex flex-col items-center">
+                                    <div className="lg:col-span-5 glass-panel p-10 bg-[#F9F8F4] border border-amber-900/10 rounded-[40px] shadow-xl flex flex-col items-center">
                                         <h4 className="text-[10px] font-black uppercase tracking-[0.6em] text-amber-800/20 mb-10">Equilibrio de Elementos</h4>
                                         <ElementalDiagram
                                             fire={characterProfiles[selectedCharacterId].elements?.fire || 25}
@@ -371,7 +432,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                 </div>
 
                                 {/* Sidebar: Refinement & Acting */}
-                                <div className="xl:col-span-4 space-y-8">
+                                <div className="xl:col-span-3 space-y-8">
                                     <div className="glass-panel p-10 bg-white border border-black/5 shadow-2xl rounded-[40px] relative overflow-hidden">
                                         <div className="absolute top-0 right-0 p-8 opacity-5">
                                             <Fingerprint size={80} />

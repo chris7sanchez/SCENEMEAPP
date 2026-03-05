@@ -14,12 +14,11 @@ const getAuthClient = () => {
         return null;
     }
 
-    const client = new google.auth.JWT(
-        clientEmail,
-        undefined,
-        privateKey.replace(/\\n/g, '\n'), // Fix para saltos de línea en Vercel/Env
-        SCOPES
-    );
+    const client = new google.auth.JWT({
+        email: clientEmail,
+        key: privateKey.replace(/\\n/g, '\n'), // Fix para saltos de línea en Vercel/Env
+        scopes: SCOPES
+    });
 
     return client;
 };

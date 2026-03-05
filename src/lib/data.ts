@@ -38,6 +38,7 @@ export const LENGTHS: TagOption[] = [
     { id: "240", label: "240 min (+15%)" }
 ];
 export const STEPS = ["El Plan Perfecto", "Selección", "Género", "Reparto", "Detalles", "Guion", "Presupuesto", "Finalizar"];
+export const PHOTO_STEPS = ["El Plan Perfecto", "Selección de Sesión", "Fechas", "Finalizar"];
 
 export const ETHNICITIES = [
     "Caucásico",
@@ -62,3 +63,70 @@ export const AVAILABLE_DATES = [
     new Date(2026, 0, 15),
     new Date(2026, 0, 22),
 ];
+
+export const PHOTO_TYPES = [
+    { id: 'actor', label: 'Book Actoral', desc: 'Material esencial para casting.' },
+    { id: 'editorial', label: 'Book Editorial', desc: 'Moda, Street Style y tendencias.' },
+    { id: 'conceptual', label: 'Book Conceptual', desc: 'Narrativa visual y conceptos creativos.' },
+    { id: 'event', label: 'Otras Peticiones', desc: 'Eventos, marcas y proyectos a medida.' }
+];
+
+export const PHOTO_PACKS_ACTOR = [
+    {
+        id: 'essential',
+        label: 'Básico / Esencial',
+        price: '150€',
+        features: ['8 Fotos Retocadas', 'Mejor iluminación y calidad', 'Toda la calidad que necesitas para mostrar tu mejor versión.', 'Entrega digital']
+    },
+    {
+        id: 'complete',
+        label: 'Completo',
+        price: '299€',
+        features: ['12-15 Fotos Retocadas', 'Máxima calidad y mejor luz', 'Variedad de planos y perfiles', 'Entrega digital']
+    },
+    {
+        id: 'premium',
+        label: 'Premium',
+        price: '399€',
+        features: ['15+ Fotos Retocadas', '3 Cambios de Ropa', 'Maquillaje y Peluquería', 'Reel de presentación (4K)']
+    }
+];
+
+export const PHOTO_PACKS_EDITORIAL = [
+    { id: 'street', label: 'Street Style', price: '250€', features: ['Luz natural / Exterior', '2 horas de sesión', '2 Cambios'] },
+    { id: 'fashion', label: 'Fashion Style', price: '350€', features: ['Iluminación Estudio', '3 horas de sesión', '3 Cambios'] },
+    { id: 'concept', label: 'Editorial Design', price: '450€', features: ['Dirección de Arte', '3 horas de sesión', 'Iluminación creativa'] }
+];
+
+export const PHOTO_PACKS_CONCEPTUAL = [
+    { id: 'creative', label: 'Creative Concept', price: '300€', features: ['Concepto a medida', '2 horas de sesión', 'Edición artística'] },
+    { id: 'story', label: 'Visual Story', price: '500€', features: ['Storytelling visual', '4 horas de sesión', 'Escenografía incluida'] }
+];
+
+// GALERIA DE FOTOS (Configuración rápida para el usuario)
+// Cambia los nombres de los archivos aquí para actualizar las fotos de cada book
+// GALERIA DE FOTOS (Configuración técnica de proporciones y orden)
+export const PHOTO_GALLERY = {
+    actor: [
+        { src: '/trabajos/2.jpg', isWide: false }, // PX2
+        { src: '/trabajos/8.jpg', isWide: false }, // PX2 (Chico)
+        { src: '/trabajos/9.jpg', isWide: false }  // PX3 (Chica)
+    ],
+    editorial: [
+        { src: '/trabajos/4.jpg', isWide: false }, // PX1
+        { src: '/trabajos/6.jpg', isWide: true },  // PX3 (Chica tumbada - Alargada)
+        { src: '/trabajos/5.jpg', isWide: false }  // PX2
+    ],
+    conceptual: [
+        { src: '/trabajos/3.jpg', isWide: false }, // PX3 de actoral (Caballo)
+        { src: '/trabajos/7.jpg', isWide: true },  // PX2 (Concepto Alargado)
+        { src: '/trabajos/1.jpg', isWide: false }  // PX1 de actoral
+    ],
+    default: [
+        { src: '/trabajos/10.jpg', isWide: false },
+        { src: '/trabajos/11.jpg', isWide: false },
+        { src: '/trabajos/1.jpg', isWide: false }
+    ]
+};
+
+

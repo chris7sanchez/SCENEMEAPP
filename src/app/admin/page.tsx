@@ -279,7 +279,7 @@ export default function AdminPage() {
             setScripts(newScripts);
         } catch (error) {
             console.error("Error generating script:", error);
-            alert("Error al generar el guion.");
+            alert("Error al generar el guion: " + (error instanceof Error ? error.message : String(error)));
         } finally {
             setIsGenerating(prev => {
                 const next = [...prev];

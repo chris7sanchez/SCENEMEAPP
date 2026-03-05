@@ -33,32 +33,32 @@ export async function analyzeCharacter(input: AnalyzeCharacterInput): Promise<An
     const systemPrompt = `
     ${ANTIGRAVITY_SYSTEM_PROMPT}
 
-    TU MISIÓN: PERFILADO ASTROLÓGICO INVERSO
-    Deduce la carta natal de un personaje a partir de su comportamiento en el guión.
+    TU MISIÓN: PERFILADO PSICOLÓGICO Y ASTROLÓGICO PROFUNDO (WORKSPACE ANTIGRAVITY)
+    Deduce la arquitectura oculta de un personaje a partir de su comportamiento, subtexto y diálogos en el guión. 
     
     REFERENCE DATA:
     ${archetypeContext}
 
-    METODOLOGÍA DE LOS TRES PILARES:
+    METODOLOGÍA DE ANÁLISIS EXHAUSTIVO:
 
-    1. **SOL (Esencia)** → "¿Cómo soy en esencia?"
-       - Identidad consciente, propósito de vida, el "YO SOY"
-       - Busca: motivaciones principales, cómo se define a sí mismo
+    1. **SOL (Esencia Consciente)** 
+       - Identidad, propósito y ego manifiesto del personaje.
        
-    2. **LUNA (Emociones)** → "¿Cómo siento y cómo son mis emociones?"
-       - Mundo interior, reacciones instintivas, necesidades ocultas
-       - Busca: comportamiento bajo estrés, qué le da seguridad
+    2. **LUNA (Herida y Refugio)** 
+       - Mundo emocional, vulnerabilidad, reacciones instintivas y sombras lunares.
        
-    3. **ASCENDENTE (Máscara)** → "¿Cómo me ve el otro? ¿Cuál es mi destino?"
-       - Máscara social, primera impresión, cómo navega obstáculos
-       - Busca: presencia física, cómo interactúa con extraños
+    3. **ASCENDENTE (Máscara y Acción)** 
+       - Vehículo de acción, primera impresión y la energía del destino.
 
-    METHOD ACTING (Para el Actor):
-    - Gesto Psicológico: Un movimiento físico que capture la esencia
-    - Cualidad Vocal: Tempo, tono, textura, ritmo específicos
-    - Animal Tótem: Criatura que encarne su energía
-    - Centro Físico: ¿De dónde lidera el cuerpo?
-    - Paisaje Emocional: Metáfora de naturaleza para su mundo interno
+    4. **CRISTALIZACIÓN DE ESENCIA (Campo: essence)**
+       - Una sola frase potente que capture la contradicción fundamental del personaje (Aforismo Alquímico).
+
+    METHOD ACTING (Workspace Antigravity):
+    - Gesto Psicológico: Un movimiento físico ritual que capture la esencia (Chekhov).
+    - Cualidad Vocal: Describe la vibración, el aire y el "peso" de su palabra.
+    - Animal Tótem: Un animal que represente la energía motriz y los instintos.
+    - Centro Físico: ¿Desde qué zona corporal (Cabeza, Corazón, Pelvis, etc.) se mueve?
+    - Paisaje Emocional: Una metáfora visual y visceral de su mundo interno.
 
     REGLAS CRÍTICAS:
     - TODOS los campos son OBLIGATORIOS
@@ -147,6 +147,7 @@ function generateCharacterFallback(characterName: string, scriptSegment: string)
         ascendant,
         elements,
         archetype: "El Misterio Emergente",
+        essence: `${characterName} es la manifestación de una paradoja energética centrada en el elemento ${dominant}.`,
         analysis: `${characterName} presenta una energía predominantemente de ${dominant}. Este perfil provisional se basa en el análisis textual y requiere refinamiento con la IA completa.`,
         threePillars: {
             sunReasoning: `Basado en el comportamiento observado, ${characterName} parece operar desde una energía ${sunSign}.`,

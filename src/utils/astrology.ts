@@ -3,21 +3,26 @@ import { PlanetPosition } from './astronomy';
 export interface Aspect {
     planet1: string; // From Transit
     planet2: string; // From Natal
-    type: 'Conjunción' | 'Oposición' | 'Cuadratura' | 'Trígono' | 'Sextil';
+    type: 'Conjunción' | 'Oposición' | 'Cuadratura' | 'Trígono' | 'Sextil' | 'Quincuncio' | 'Semi-sextil';
     angle: number;
     orb: number;
     descriptionEs: string;
     descriptionEn: string;
     intensity: number; // 1-10
     symbol?: string;
+    isRetrograde?: boolean; // True if transit planet is retrograde
+    sign1?: string; // Sign of planet1
+    sign2?: string; // Sign of planet2
 }
 
 const ASPECTS = [
-    { name: 'Conjunción', angle: 0, orb: 8, symbol: '☌' },
-    { name: 'Oposición', angle: 180, orb: 8, symbol: '☍' },
-    { name: 'Cuadratura', angle: 90, orb: 7, symbol: '□' },
-    { name: 'Trígono', angle: 120, orb: 8, symbol: '△' },
-    { name: 'Sextil', angle: 60, orb: 5, symbol: '✱' }
+    { name: 'Conjunción', angle: 0, orb: 8, symbol: '☌', major: true },
+    { name: 'Oposición', angle: 180, orb: 8, symbol: '☍', major: true },
+    { name: 'Cuadratura', angle: 90, orb: 7, symbol: '□', major: true },
+    { name: 'Trígono', angle: 120, orb: 8, symbol: '△', major: true },
+    { name: 'Sextil', angle: 60, orb: 5, symbol: '✱', major: true },
+    { name: 'Quincuncio', angle: 150, orb: 3, symbol: '⚻', major: false },
+    { name: 'Semi-sextil', angle: 30, orb: 2, symbol: '⚺', major: false },
 ];
 
 // --- DEEP DATA ARCHETYPES ---
@@ -117,16 +122,29 @@ const PLANET_ARCHETYPES: Record<string, { transit: string, natal: string, keywor
         transit: "La transformación radical, la muerte y el renacimiento excavan",
         natal: "tu poder oculto y tus heridas profundas",
         keywords: ["poder", "transformación", "sombra", "intensidad", "crisis"]
+    },
+    'Nodo Norte': {
+        transit: "El destino kármico y la dirección evolutiva señalan",
+        natal: "tu propósito de alma y la lección que viniste a aprender",
+        keywords: ["destino", "dharma", "evolución", "propósito", "futuro"]
+    },
+    'North Node': {
+        transit: "El destino kármico y la dirección evolutiva señalan",
+        natal: "tu propósito de alma y la lección que viniste a aprender",
+        keywords: ["destino", "dharma", "evolución", "propósito", "futuro"]
     }
 };
 
-const ASPECT_MEANINGS = {
+const ASPECT_MEANINGS: Record<string, string> = {
     'Conjunción': "provocando una fusión intensa y un nuevo inicio de ciclo. Las energías se vuelven indistinguibles y poderosas, marcando un momento semilla.",
     'Oposición': "generando una tensión de 'tira y afloja' que exige consciencia objetiva. Es probable que proyectes esta energía en otros o enfrentes una decisión polarizada.",
     'Cuadratura': "creando una fricción dinámica que te obliga a tomar acción. No es un momento de paz, sino de construcción a través de la superación de un obstáculo.",
     'Trígono': "permitiendo un flujo armónico y talentoso. Las puertas se abren con facilidad y la energía circula sin resistencia, ideal para la expansión.",
-    'Sextil': "ofreciendo oportunidades estimulantes si decides tomarlas. Es un aspecto de cooperación mental y nuevas posibilidades creativas."
+    'Sextil': "ofreciendo oportunidades estimulantes si decides tomarlas. Es un aspecto de cooperación mental y nuevas posibilidades creativas.",
+    'Quincuncio': "creando una tensión sutil que requiere ajustes constantes. Es una relación incómoda que exige creatividad para integrar energías dispares.",
+    'Semi-sextil': "sugiriendo una conexión emergente y delicada. Es un aspecto de potencial latente que necesita atención consciente para manifestarse."
 };
+
 
 import { ZODIAC_ARCHETYPES } from './archetypes';
 import { getSignFromLongitude } from './astronomy';
@@ -166,6 +184,67 @@ function generateDeepInterpretation(tName: string, nName: string, aspectName: st
     return `${tArch.transit} ${nArch.natal}, ${aspectAction}.${nuance} Este tránsito activa temas de ${tArch.keywords[0]} y ${nArch.keywords[0]}. Observa cómo se manifiesta esta alquimia en tu realidad inmediata.`;
 }
 
+
+export interface AstroBalance {
+    elements: Record<'Fuego' | 'Tierra' | 'Aire' | 'Agua', number>;
+    modalities: Record<'Cardinal' | 'Fijo' | 'Mutable', number>;
+    polarities: Record<'Yang' | 'Yin', number>;
+}
+
+import { getElementForSign, getModalityForSign } from './astronomy';
+
+export function calculateAstroBalance(planets: PlanetPosition[]): AstroBalance {
+    const balance: AstroBalance = {
+        elements: { Fuego: 0, Tierra: 0, Aire: 0, Agua: 0 },
+        modalities: { Cardinal: 0, Fijo: 0, Mutable: 0 },
+        polarities: { Yang: 0, Yin: 0 }
+    };
+
+    // Weights per planet/point
+    const weights: Record<string, number> = {
+        'Sol': 3,
+        'Luna': 3,
+        'Nodo Norte': 0.5,
+        'Mercurio': 2,
+        'Venus': 2,
+        'Marte': 2,
+        'Júpiter': 1,
+        'Saturno': 1,
+        'Urano': 0.5,
+        'Neptuno': 0.5,
+        'Plutón': 0.5
+    };
+
+    let totalWeight = 0;
+
+    planets.forEach(p => {
+        const weight = weights[p.name] || 1;
+        const element = getElementForSign(p.sign);
+        const modality = getModalityForSign(p.sign);
+
+        // Yang (Fire/Air), Yin (Earth/Water)
+        const polarity = (element === 'Fuego' || element === 'Aire') ? 'Yang' : 'Yin';
+
+        balance.elements[element] += weight;
+        balance.modalities[modality] += weight;
+        balance.polarities[polarity] += weight;
+
+        totalWeight += weight;
+    });
+
+    // Normalize to percentages (0-100)
+    const normalize = (obj: any) => {
+        Object.keys(obj).forEach(key => {
+            obj[key] = totalWeight > 0 ? Math.round((obj[key] / totalWeight) * 100) : 0;
+        });
+    };
+
+    normalize(balance.elements);
+    normalize(balance.modalities);
+    normalize(balance.polarities);
+
+    return balance;
+}
 
 export function calculateAspects(transitPlanets: PlanetPosition[], targetPlanets: PlanetPosition[], context: 'NATAL' | 'MUNDANE' = 'NATAL'): Aspect[] {
     const aspects: Aspect[] = [];

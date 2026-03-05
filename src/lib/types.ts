@@ -50,6 +50,11 @@ export interface FormData extends SceneData {
     professionalScript: boolean;
     reviewByProfessional: boolean;
     professionalActors: boolean;
+
+    // Photo Booking Fields
+    serviceType: "scene" | "photo";
+    photoType?: "actor" | "editorial" | "conceptual" | "event";
+    photoPack?: string; // "essential", "complete", "premium", "street", "fashion", "concept"
 }
 
 export const initialSceneData: SceneData = {

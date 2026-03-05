@@ -1,20 +1,19 @@
 import { genkit, z } from 'genkit';
-import { googleAI, gemini20Flash } from '@genkit-ai/googleai';
+import { googleAI, gemini15Flash } from '@genkit-ai/googleai';
 
 // ============================================
 // ANTIGRAVITY AI ENGINE v2.0
-// Powered by Gemini 2.0 Flash
+// Powered by Gemini Flash
 // ============================================
 
 // Initialize Genkit with the Google AI plugin.
-// Using Gemini 2.0 Flash for:
-// - Faster response times
-// - Better structured output adherence
-// - Improved reasoning capabilities
-// - Larger context window (1M tokens)
+// Using Gemini Flash for:
+// - Universal availability and high quota
+// - Excellent structured output adherence
+// - Fast response times for real-time readings
 export const ai = genkit({
     plugins: [googleAI()],
-    model: gemini20Flash,
+    model: gemini15Flash,
 });
 
 // ============================================

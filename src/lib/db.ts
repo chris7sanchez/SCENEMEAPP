@@ -26,7 +26,7 @@ export const createOrder = async (formData: FormData, totalAmount: number, depos
         remainingAmount: totalAmount - depositAmount,
         paymentMethod: paymentMethod,
         // Sanitize undefined values to null for Firestore
-        shootDate: formData.shootDate ? formData.shootDate.toISOString() : null,
+        shootDates: formData.shootDates?.map(d => d.toISOString()) || [],
         preferredMonths: formData.preferredMonths || []
     };
 

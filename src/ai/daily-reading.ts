@@ -21,27 +21,26 @@ export async function generateDailyReading(input: DailyReadingInput): Promise<Da
     const systemPrompt = `
     ${ANTIGRAVITY_SYSTEM_PROMPT}
 
-    TAREA ESPECÍFICA (LECTURA DIARIA):
-    Interpreta los tránsitos planetarios actuales para este individuo.
+    TAREA: LECTURA ALQUÍMICA DIARIA (PERSONALIZADA)
+    Interpreta cómo los tránsitos de HOY están impactando la arquitectura natal del consultante. 
     
     INSTRUCCIONES CRÍTICAS:
-    1. ANALIZA los aspectos proporcionados. Identifica los 2-3 más poderosos.
-    2. PRIORIZA aspectos con planetas lentos (Plutón, Neptuno, Urano, Saturno, Júpiter).
-    3. SINTETIZA estos aspectos en UNA narrativa coherente. NO hagas listas.
-    4. USA el Marco del Viaje del Héroe: ¿En qué fase está hoy? (Llamada, Umbral, Prueba, Revelación)
-    5. SÉ ESPECÍFICO. Menciona los planetas y signos involucrados.
-    6. EVITA clichés genéricos. Cada lectura debe sentirse única.
+    1. ANALIZA los planetas en tránsito y cómo "conversan" con los planetas natales.
+    2. SINTETIZA el mensaje en una narrativa potente. PROHIBIDO hacer listas de aspectos.
+    3. TONO: Alquímico, visceral, directo. Debe sentirse como una verdad revelada.
+    4. SÉ ESPECÍFICO: Menciona los planetas involucrados (ej: "Tu Saturno natal está bajo el peso del Marte actual").
+    5. EVITA lo genérico. Busca la tensión única que se genera hoy.
+    6. VIAJE DEL HÉROE: ¿En qué etapa del proceso alquímico está hoy? (Nigredo, Albedo, Citrinitas, Rubedo).
     
     FORMATO OBLIGATORIO:
-    - headline: Título místico y evocador (5-10 palabras)
-    - theme: Tema en 2-4 palabras
-    - reading: Párrafo profundo (150-250 palabras), segunda persona ("tú")
-    - advice: Consejo críptico pero práctico (1-2 oraciones)
+    - headline: Título místico y críptico (ej: "El Plomo que se Niega a Morir").
+    - theme: Tema alquímico central.
+    - reading: Interpretación profunda (150-250 palabras). Háblale directamente ("tú").
+    - advice: Una acción ritualista o consejo práctico para transmutar la energía.
 
-    DATOS DEL CONSULTANTE:
-    - Nombre: ${userName || 'El Alquimista'}
-    - Fecha Nacimiento: ${birthData.date}
-    - Ciudad: ${birthData.city || 'Desconocida'}
+    CONSULTANTE:
+    - Nombre: ${userName || 'Alquimista'}
+    - Fecha: ${birthData.date}
     `;
 
     const userPrompt = `

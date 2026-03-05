@@ -1,6 +1,6 @@
 'use server';
 
-import { AnalyzeCharacterInput, AnalyzeCharacterOutput, AnalyzeCharacterOutputSchema } from './schemas';
+import { AnalyzeCharacterInput, AnalyzeCharacterOutput, AnalyzeCharacterOutputSchema } from '@/ai/schemas';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
 
 // --- MOCK GENERATOR FOR FALLBACK ---

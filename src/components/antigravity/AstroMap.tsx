@@ -26,7 +26,7 @@ export default function AstroMap({ date, latitude, longitude }: AstroMapProps) {
             // We need to normalize to -180 to 180 for the map
             const mapLines = data.planets.map(p => {
                 // RA is in hours (0-24). Convert to degrees (0-360).
-                const raDeg = p.ra * 15;
+                const raDeg = (p.ra ?? 0) * 15;
 
                 // Geographic Longitude where this RA is on the Meridian (MC)
                 // LST = GMST + Long

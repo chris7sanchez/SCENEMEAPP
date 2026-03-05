@@ -1,45 +1,21 @@
-import swissephFactory from 'swisseph-wasm';
+/**
+ * ============================================
+ * SWISS EPHEMERIS WRAPPER (Fallback Mode)
+ * ============================================
+ * 
+ * This module provides a Swiss Ephemeris-compatible API using
+ * our astronomy-engine based calculations as a fallback.
+ * 
+ * When swisseph-wasm is properly installed and configured,
+ * this module can be updated to use the actual Swiss Ephemeris.
+ * 
+ * Current status: Using astronomy-engine fallback
+ */
 
-// --- SINGLETON INITIALIZATION ---
-let swisseph: any = null;
-let initPromise: Promise<any> | null = null;
+import { calculateRealPlanets, type ChartData, type PlanetPosition } from './astronomy';
 
-const ensureSwisseph = async () => {
-    if (swisseph) return swisseph;
-    if (!initPromise) {
-        console.log("[SwissEph] Initializing WASM module...");
-        initPromise = (async () => {
-            try {
-                // 1. Instantiate the class
-                const instance = new (swissephFactory as any)();
-
-                // 2. Explicitly initialize the WASM backend
-                // The logs showed 'initSwissEph' in the prototype.
-                if (typeof instance.initSwissEph === 'function') {
-                    console.log("[SwissEph] Calling initSwissEph()...");
-                    await instance.initSwissEph();
-                    console.log("[SwissEph] initSwissEph() completed.");
-                } else {
-                    console.warn("[SwissEph] initSwissEph not found on instance, hoping it's auto-init...");
-                }
-
-                swisseph = instance;
-                return instance;
-            } catch (err) {
-                console.error("[SwissEph] Initialization failed:", err);
-                throw err;
-            }
-        })();
-    }
-    return initPromise;
-};
-
-// --- CONSTANTS MAPPING ---
-// We can't access constants from 'swisseph' variable until it's initialized.
-// However, standard SwissEph Integer constants (SE_SUN=0 etc) are universal.
-// We will access them from the initialized instance dynamically.
-
-export interface PlanetPosition {
+// Type exports for compatibility
+export interface SwissPlanetPosition {
     name: string;
     longitude: number;
     speed: number;
@@ -47,105 +23,82 @@ export interface PlanetPosition {
     isRetrograde: boolean;
 }
 
-export interface HouseSystem {
+export interface SwissHouseSystem {
     cusps: number[];
     ascendant: number;
     mc: number;
 }
 
-const getBodyName = (id: number, lib: any): string => {
-    switch (id) {
-        case lib.SE_SUN: return 'Sol';
-        case lib.SE_MOON: return 'Luna';
-        case lib.SE_MERCURY: return 'Mercurio';
-        case lib.SE_VENUS: return 'Venus';
-        case lib.SE_MARS: return 'Marte';
-        case lib.SE_JUPITER: return 'Júpiter';
-        case lib.SE_SATURN: return 'Saturno';
-        case lib.SE_URANUS: return 'Urano';
-        case lib.SE_NEPTUNE: return 'Neptuno';
-        case lib.SE_PLUTO: return 'Plutón';
-        case lib.SE_CHIRON: return 'Quirón';
-        case lib.SE_LILITH: return 'Lilith';
-        case lib.SE_TRUE_NODE: return 'Nodo Norte';
-        default: return `Cuerpo ${id}`;
-    }
-};
+export interface SwissChartResult {
+    planets: SwissPlanetPosition[];
+    houses: SwissHouseSystem;
+    ascendant: number;
+    mc: number;
+}
 
 /**
- * Función Principal: Obtener Carta Completa
+ * Calculate a complete chart using Swiss Ephemeris
+ * Currently falls back to astronomy-engine implementation
  */
-export const calculateSwissChart = async (date: Date, lat: number, lon: number) => {
+export const calculateSwissChart = async (
+    date: Date,
+    lat: number,
+    lon: number
+): Promise<SwissChartResult> => {
     console.log(`[SwissEph] Calculating chart for ${date.toISOString()} at ${lat}, ${lon}`);
+    console.log('[SwissEph] Note: Using astronomy-engine fallback (swisseph-wasm not installed)');
 
     try {
-        const lib = await ensureSwisseph();
+        // Use our astronomy-engine based calculations
+        const chartData = calculateRealPlanets(date.toISOString(), lat, lon);
 
-        // Define flags
-        const flag = lib.SEFLG_SPEED | lib.SEFLG_SWIEPH;
+        // Convert to Swiss Ephemeris format
+        const planets: SwissPlanetPosition[] = chartData.planets.map(p => ({
+            name: p.name,
+            longitude: p.longitude,
+            speed: p.speed,
+            house: p.house,
+            isRetrograde: p.isRetrograde
+        }));
 
-        // Julian Day
-        const jd = lib.julday(
-            date.getUTCFullYear(),
-            date.getUTCMonth() + 1,
-            date.getUTCDate(),
-            date.getUTCHours() + date.getUTCMinutes() / 60,
-            lib.SE_GREG_CAL
-        );
-
-        // Bodies to calculate
-        // We access constants dynamically from the lib instance
-        const bodyIds = [
-            lib.SE_SUN, lib.SE_MOON, lib.SE_MERCURY, lib.SE_VENUS,
-            lib.SE_MARS, lib.SE_JUPITER, lib.SE_SATURN, lib.SE_URANUS,
-            lib.SE_NEPTUNE, lib.SE_PLUTO, lib.SE_CHIRON, lib.SE_TRUE_NODE
-        ];
-
-
-        const planets = bodyIds.map((bodyId: number) => {
-            const result = lib.calc_ut(jd, bodyId, flag);
-            if (result.error) {
-                console.warn(`[SwissEph] Error calculating body ${bodyId}:`, result.error);
-                return { name: 'Error', longitude: 0, speed: 0, isRetrograde: false };
-            }
-            return {
-                name: getBodyName(bodyId, lib),
-                longitude: result.longitude,
-                speed: result.longitudeSpeed,
-                isRetrograde: result.longitudeSpeed < 0
-            };
-        });
-
-        // Houses
-        // 'P' = Placidus
-        const houseResult = lib.houses(jd, lat, lon, 'P'.charCodeAt(0));
-
-        const houses = {
-            cusps: houseResult.houseCusps,
-            ascendant: houseResult.ascendant,
-            mc: houseResult.mc
+        const houses: SwissHouseSystem = {
+            cusps: chartData.houses,
+            ascendant: chartData.ascendant,
+            mc: chartData.mc
         };
 
         return {
             planets,
             houses,
-            ascendant: houses.ascendant,
-            mc: houses.mc
+            ascendant: chartData.ascendant,
+            mc: chartData.mc
         };
     } catch (error) {
-        console.error("[SwissEph] CRITICAL ERROR in calculateSwissChart:", error);
+        console.error('[SwissEph] Error in calculateSwissChart:', error);
         throw error;
     }
 };
 
-// Deprecated or Helper only if needed externally (must await lib)
+/**
+ * Get Julian Day for a date
+ */
 export const getJulianDay = async (date: Date): Promise<number> => {
-    const lib = await ensureSwisseph();
-    return lib.julday(
-        date.getUTCFullYear(),
-        date.getUTCMonth() + 1,
-        date.getUTCDate(),
-        date.getUTCHours() + date.getUTCMinutes() / 60,
-        lib.SE_GREG_CAL
-    );
+    // Julian Day calculation
+    const JD = (date.getTime() / 86400000) + 2440587.5;
+    return JD;
+};
+
+/**
+ * Status of Swiss Ephemeris initialization
+ */
+export const getSwissEphStatus = (): {
+    initialized: boolean;
+    mode: 'native' | 'fallback';
+    version: string;
+} => {
+    return {
+        initialized: true,
+        mode: 'fallback',
+        version: 'astronomy-engine-2.x'
+    };
 };

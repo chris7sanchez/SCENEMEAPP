@@ -62,6 +62,7 @@ export const AnalyzeCharacterOutputSchema = z.object({
         water: z.number().min(0).max(100).describe('REQUIRED. Percentage of Water element (0-100). Water = emotion, intuition, sensitivity.'),
     }).describe('REQUIRED. The elemental balance of the character. All four must sum to 100.'),
     archetype: z.string().describe('REQUIRED. The Jungian or literary archetype (e.g., "The Rebel", "The Caregiver", "The Trickster", "The Shadow").'),
+    essence: z.string().describe('REQUIRED. "Cristalización de Esencia" - A powerful, one-sentence alchemical aphorism that captures the character\'s core contradiction and psychological truth.'),
     analysis: z.string().describe('REQUIRED. A 2-3 sentence explanation of why these astrological placements perfectly capture this character\'s psychology and behavior.'),
     threePillars: z.object({
         sunReasoning: z.string().describe('REQUIRED. Answer to: "¿Cómo soy en esencia?" - What drives their ego, identity, and life purpose?'),
@@ -209,3 +210,24 @@ export const AssimilateKnowledgeOutputSchema = z.object({
 });
 
 export type AssimilateKnowledgeOutput = z.infer<typeof AssimilateKnowledgeOutputSchema>;
+// ============================================
+// ALCHIMESTRY DEEP ANALYSIS
+// ============================================
+
+export const AlchimestryDeepAnalysisInputSchema = z.object({
+    userName: z.string().describe('The name of the alchemist.'),
+    birthData: z.string().describe('The birth date and time in ISO format.'),
+    subject: z.string().describe('The specific planet or house being analyzed (e.g., "Sol", "Luna", "Casa 1").'),
+    sign: z.string().optional().describe('The zodiac sign associated with the subject in your chart.'),
+    context: z.string().optional().describe('Additional context about your chart or current life situation.'),
+});
+
+export type AlchimestryDeepAnalysisInput = z.infer<typeof AlchimestryDeepAnalysisInputSchema>;
+
+export const AlchimestryDeepAnalysisOutputSchema = z.object({
+    meditation: z.string().describe('A mystical and psychological meditation on the archetype (100-150 words).'),
+    practicalWisdom: z.string().describe('A concrete piece of advice or ritual for integrating this energy into daily life.'),
+    alchemicalKey: z.string().describe('A single powerful phrase or word that serves as a mantra for this placement.'),
+});
+
+export type AlchimestryDeepAnalysisOutput = z.infer<typeof AlchimestryDeepAnalysisOutputSchema>;

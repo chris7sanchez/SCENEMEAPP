@@ -54,7 +54,7 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
 
             {/* ITEM 1: INPUTS */}
             <div className="lg:col-span-4 flex flex-col gap-4 order-1">
-                <div className="glass-panel p-8 relative overflow-hidden group h-fit bg-white/70 backdrop-blur-md border border-white/40">
+                <div className="glass-panel p-8 relative overflow-hidden group h-fit">
                     <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                         <h1 className="text-9xl font-serif transform rotate-12 text-[#1a1a1a]">🜍</h1>
                     </div>
@@ -178,7 +178,7 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
 
             {/* ITEM 2: CHART */}
             <div className="lg:col-span-8 lg:row-span-2 flex flex-col gap-6 order-2">
-                <div className="glass-panel p-4 md:p-10 bg-white/95 backdrop-blur-2xl border border-white/60 shadow-[0_35px_60px_-15px_rgba(0,0,0,0.1)] relative overflow-hidden min-h-[600px] flex flex-col rounded-3xl">
+                <div className="glass-panel p-4 md:p-10 relative overflow-hidden min-h-[600px] flex flex-col rounded-3xl shadow-[0_35px_60px_-15px_rgba(0,0,0,0.1)]">
                     <div className="absolute top-0 right-0 p-12 opacity-[0.03] text-[20rem] font-serif pointer-events-none animate-spin-slow select-none text-stone-900">❂</div>
 
                     <div className="flex justify-between items-center mb-10 z-10">
@@ -267,7 +267,7 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
 
             {/* ITEM 3: TRANSITS */}
             <div className="lg:col-span-4 flex flex-col gap-4 order-3">
-                <div className="glass-panel p-8 bg-[#F2F0E9] relative flex flex-col border border-[#E5E2D8] shadow-lg rounded-2xl h-full">
+                <div className="glass-panel p-8 relative flex flex-col shadow-lg rounded-2xl h-full">
                     <div className="absolute top-6 right-6 text-6xl opacity-5 font-serif select-none pointer-events-none">🜃</div>
                     <h2 className="text-2xl font-serif text-[#1a1a1a] mb-2 flex items-center gap-3">
                         <span className="text-[#C55959]">🜂</span>

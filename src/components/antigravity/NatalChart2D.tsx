@@ -107,12 +107,21 @@ export default function NatalChart2D({ date, latitude = 40.4168, longitude = -3.
             if (signIndex !== -1) {
                 const moonLon = (signIndex * 30) + 15; // Set Moon to mid-sign
                 // Find Moon in planets array and update it
-                const moonIdx = finalPlanets.findIndex(p => p.name === 'Moon');
+                const moonIdx = finalPlanets.findIndex(p => p.name === 'Luna');
                 if (moonIdx !== -1) {
                     finalPlanets[moonIdx] = { ...finalPlanets[moonIdx], longitude: moonLon };
                 } else {
                     // Add Moon if missing (unlikely but safe)
-                    finalPlanets.push({ name: 'Moon', symbol: '☾', longitude: moonLon, color: '#C0C0C0', speed: 0 });
+                    finalPlanets.push({
+                        name: 'Luna',
+                        symbol: '☽',
+                        longitude: moonLon,
+                        color: '#C0C0C0',
+                        speed: 0,
+                        isRetrograde: false,
+                        sign: ZODIAC_SIGNS[signIndex].name,
+                        degree: 15
+                    });
                 }
             }
         }
