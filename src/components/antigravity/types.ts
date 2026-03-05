@@ -34,6 +34,18 @@ export interface CharacterProfile {
     deepAnalysis?: any;
 }
 
+export interface ThemeSettings {
+    backgroundColor: string;
+    accentColor: string;
+    textColor: string;
+    bgImage: string;
+    bgOpacity: number;
+    blurAmount: number;
+    parallaxIntensity: number;
+    fontFamily: 'serif' | 'sans';
+    glassOpacity: number;
+}
+
 export interface ScriptAnalyzerState {
     viewMode: ViewMode;
     alchimestrySubView: AlchimestrySubView;
@@ -41,5 +53,5 @@ export interface ScriptAnalyzerState {
     transitDate: Date;
     cosmosViewMode: CosmosViewMode;
     chartTheme: ChartTheme;
-    // ... add more as needed
+    themeSettings: ThemeSettings;
 }

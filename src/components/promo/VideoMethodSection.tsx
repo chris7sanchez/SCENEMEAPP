@@ -8,21 +8,21 @@ const STEPS = [
         id: 1,
         title: "EL ENCUENTRO",
         subtitle: "Descubrimiento",
-        videoSrc: "/videos/monigote.mp4", // Placeholder mapping
+        videoSrc: "",
         description: "Analizamos tu perfil y encontramos tu factor X."
     },
     {
         id: 2,
         title: "LA PREPARACIÓN",
         subtitle: "Training",
-        videoSrc: "/videos/exito-actoral-1.mp4",
+        videoSrc: "",
         description: "Trabajamos las escenas que potencian tu castability."
     },
     {
         id: 3,
         title: "EL RESULTADO",
         subtitle: "Expansión",
-        videoSrc: "/videos/exito-actoral-2.mp4",
+        videoSrc: "",
         description: "Material de industria listo para moverte."
     }
 ];

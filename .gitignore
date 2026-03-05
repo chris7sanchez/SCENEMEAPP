@@ -1,41 +1,49 @@
 # dependencies
-/node_modules
-/.pnp
+node_modules/
+.pnp/
 .pnp.js
 
 # testing
-/coverage
+coverage/
 
-# next.js
-/.next/
-/out/
+# build artifacts
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
 
-# production
-/build
+# local env files
+.env
+.env.local
+.env.*.local
+
+# vercel
+.vercel/
+.vercelignore
 
 # misc
 .DS_Store
+Thumbs.db
 *.pem
-
-# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
-.env
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# Large Backups & Media
+# Media & Backups
+media_backups/
 *.zip
+*.tar.gz
 *.MP4
 *.mp4
 *.MOV
 *.mov
+*.m4a
+*.tif
+*.JPG
+*.jpg
+*.png
+!public/**  # Allow images in public/
+!src/**     # Allow assets in src/ (if any)
+

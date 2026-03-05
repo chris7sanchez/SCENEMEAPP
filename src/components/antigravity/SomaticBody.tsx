@@ -240,7 +240,7 @@ export default function SomaticBody({ points }: SomaticBodyProps) {
                     <div className="flex items-center gap-1"><div className={`w-2 h-2 rounded-full ${isVitruvian ? 'bg-[#991b1b]' : 'bg-[#ef4444]'}`} /> MARTE</div>
                 </div>
                 <div className="text-right">
-                    {isVitruvian ? 'CODEX ASTROLOGICUS' : 'ANTIGRAVITY SYSTEMS v2.4'}
+                    {isVitruvian ? 'CODEX ASTROLOGICUS' : 'ALCHEMISTERY SYSTEMS v2.4'}
                     <br />
                     {isVitruvian ? 'MMXXV' : 'SOMATIC PROTOCOL'}
                 </div>

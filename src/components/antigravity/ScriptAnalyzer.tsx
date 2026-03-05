@@ -12,8 +12,8 @@ import { generateDailyReading } from '@/ai/daily-reading';
 import { DailyReadingOutput, AnalyzeSynastryOutput } from '@/ai/schemas';
 import {
     Loader2, UserPlus, Users, Sparkles, BookOpen, Sun, Atom, Ghost, Book,
-    Upload, Trash2, Save, ChevronDown, Pencil, Plus, Minus, Download, X,
-    BrainCircuit, Activity, Maximize2, Clapperboard, Zap
+    Upload, Trash2, Save, ChevronDown, ChevronLeft, Pencil, Plus, Minus, Download, X,
+    BrainCircuit, Activity, Maximize2, Clapperboard, Zap, Fingerprint
 } from 'lucide-react';
 import ArchetypeLibrary from '@/components/antigravity/ArchetypeLibrary';
 import ElementalDiagram from '@/components/antigravity/ElementalDiagram';
@@ -33,6 +33,7 @@ import InteractiveStars from './InteractiveStars';
 import AlchemicalPortal from './AlchemicalPortal';
 import MiniCalculator from './MiniCalculator';
 import ChartNotesSystem from './ChartNotesSystem';
+import { auth } from '@/lib/auth';
 
 export default function ScriptAnalyzer() {
     // --- STATE ---
@@ -40,6 +41,10 @@ export default function ScriptAnalyzer() {
     const [previousViewMode, setPreviousViewMode] = useState<ViewMode>('COSMOS');
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [alchimestrySubView, setAlchimestrySubView] = useState<AlchimestrySubView>('inicio');
+
+    // AUTH STATE
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userEmail, setUserEmail] = useState('');
 
     const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
         backgroundColor: '#F2F0E9',
@@ -105,6 +110,21 @@ export default function ScriptAnalyzer() {
         }, 100);
     };
 
+    const handleLogin = (email: string) => {
+        setUserEmail(email);
+        setIsLoggedIn(true);
+        localStorage.setItem('antigravity_email', email);
+    };
+
+    const handleLogout = () => {
+        if (confirm("¿Estás seguro de que quieres cerrar sesión? Esto limpiará los datos no guardados locales.")) {
+            setIsLoggedIn(false);
+            setUserEmail('');
+            localStorage.removeItem('antigravity_email');
+            window.location.reload();
+        }
+    };
+
     // UI state
     const [dateParts, setDateParts] = useState({ day: '', month: '', year: '' });
     const [searchQuery, setSearchQuery] = useState('');
@@ -120,6 +140,17 @@ export default function ScriptAnalyzer() {
         const friendsStr = localStorage.getItem('astroFriends');
         const scriptLibStr = localStorage.getItem('scriptLibrary');
         const lastSession = localStorage.getItem('lastSessionData');
+        // CHECK FOR FIREBASE AUTH FIRST
+        auth.getCurrentUser().then(user => {
+            if (user && user.email) {
+                setUserEmail(user.email);
+                setIsLoggedIn(true);
+            } else if (savedEmail) {
+                // Fallback to legacy local email if no Firebase user
+                setUserEmail(savedEmail);
+                setIsLoggedIn(true);
+            }
+        });
 
         const themeStr = localStorage.getItem('themeSettings');
 
@@ -401,7 +432,7 @@ export default function ScriptAnalyzer() {
                         {isAnalyzingSynastry ? <Loader2 className="animate-spin" /> : <Zap size={16} />} {isAnalyzingSynastry ? 'ANALIZANDO...' : 'EJECUTAR MOTOR CUÁNTICO'}
                     </button>
                 ) : (
-                    <div className="text-left space-y-4 bg-black/40 p-6 border border-white/10 rounded-lg animate-fadeIn">
+                    <div className="text-left space-y-4 bg-black/40 p-6 border border-white/10 rounded-none animate-fadeIn">
                         {[synastryResult.phase1_survival_clash, synastryResult.phase2_friction_flow, synastryResult.phase3_integration_bridge].map((phase, i) => (
                             <div key={i} className="space-y-1">
                                 <h4 className="text-[10px] font-bold text-zinc-500 uppercase">{phase.title}</h4>
@@ -441,49 +472,94 @@ export default function ScriptAnalyzer() {
                 toMode={viewMode}
             />
 
-            {/* Mini Calculator */}
-            <MiniCalculator currentDate={currentUser?.date} />
-
             {/* Chart Notes System */}
             <ChartNotesSystem chartId={currentUser?.date || 'default'} />
 
-            <div className="max-w-[95vw] lg:max-w-[90vw] mx-auto p-4 md:p-8 relative z-10 font-sans text-gray-800">
-                {/* HEADER */}
-                <header className="flex justify-center mb-16 relative z-50">
-                    <nav className="p-2 rounded-full inline-flex gap-2 bg-white/70 backdrop-blur-md shadow-2xl border border-white/20">
+            <div className="max-w-[98vw] mx-auto p-4 md:p-8 relative z-10 font-sans text-stone-900 selection:bg-stone-200">
+                {/* --- RESTORED TOP NAVIGATION (PRO) --- */}
+                {/* --- PROFESSIONAL TOP NAVIGATION --- */}
+                <header className="flex flex-col md:flex-row justify-between items-center mb-16 gap-10 bg-white/70 backdrop-blur-2xl p-8 rounded-none border border-[#1a1a1a]/10 shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-[100]">
+                    <div className="flex flex-col items-center md:items-start gap-1">
+                        <div className="flex items-center gap-6">
+                            <button
+                                onClick={() => window.location.href = '/'}
+                                className="p-2 border border-[#1a1a1a]/20 hover:bg-[#1a1a1a] hover:text-white transition-all group"
+                                title="Volver al Inicio"
+                            >
+                                <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                            </button>
+                            <h1 className="text-6xl font-display tracking-[0.15em] text-[#1a1a1a] leading-none">ALCHEMISTERY</h1>
+                        </div>
+                        <p className="text-[10px] tracking-[0.4em] uppercase font-black text-[#C55959]/60 flex items-center gap-4 mt-2">
+                            <span>Alquimia Actoral</span>
+                            <span className="w-8 h-[1px] bg-[#C55959]/20"></span>
+                            <span>v2.8.4</span>
+                        </p>
+                    </div>
+
+                    <nav className="inline-flex gap-2 bg-stone-100 p-1 border border-black/5 overflow-x-auto max-w-full rounded-none">
                         {[
-                            { id: 'COSMOS', icon: Atom, label: 'El Cosmos', sub: 'Mi Estructura', color: 'bg-[#1a1a1a]' },
-                            { id: 'BODY', icon: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6"><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="1" fill="currentColor" /></svg>, label: 'El Cuerpo', sub: 'Actor + Personaje', color: 'bg-[#C55959]' },
-                            { id: 'SPIRIT', icon: Users, label: 'El Espíritu', sub: 'Sinergia', color: 'bg-[#4f46e5]' }
+                            { id: 'COSMOS', icon: Atom, label: 'EL COSMOS' },
+                            { id: 'BODY', icon: Fingerprint, label: 'EL CUERPO' },
+                            { id: 'SPIRIT', icon: Users, label: 'EL ESPÍRITU' },
+                            { id: 'ALCHIMESTRY', icon: () => <span className="text-2xl pt-1">⚂</span>, label: 'ALQUIMIA' }
                         ].map(m => (
-                            <button key={m.id} onClick={() => setViewMode(m.id as ViewMode)} className={`flex flex-col items-center gap-1 p-2 min-w-[120px] transition-all duration-500 ${viewMode === m.id ? 'scale-110' : 'opacity-60'}`}>
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all ${viewMode === m.id ? `${m.color} text-white` : 'bg-white border-black/10 text-gray-400'}`}>
-                                    <m.icon />
+                            <button
+                                key={m.id}
+                                onClick={() => handleViewModeChange(m.id as ViewMode)}
+                                className={`flex items-center gap-4 px-10 py-5 transition-all duration-300 border rounded-none ${viewMode === m.id ? 'bg-black text-white border-black shadow-xl scale-105' : 'bg-transparent text-gray-400 border-transparent hover:text-gray-900 hover:bg-white'}`}
+                            >
+                                <div className="scale-100">
+                                    {typeof m.icon === 'function' ? <m.icon /> : React.createElement(m.icon as any, { size: 22 })}
                                 </div>
-                                <div className="text-center">
-                                    <span className="block text-[10px] uppercase font-bold tracking-widest">{m.label}</span>
-                                    <span className="text-[8px] font-serif italic text-gray-500 hidden md:block">{m.sub}</span>
-                                </div>
+                                <span className="text-xs font-black uppercase tracking-[0.2em]">{m.label}</span>
                             </button>
                         ))}
                     </nav>
-                </header>
 
-                {/* ALCHIMESTRY BUTTON (MEJORADO) */}
-                <div className="flex justify-center mb-8 -mt-12 relative z-[100]">
-                    <button
-                        onClick={() => {
-                            console.log("[Antigravity] Opening Alchimestry...");
-                            setViewMode('ALCHIMESTRY');
-                        }}
-                        className={`group flex flex-col items-center gap-2 transition-all duration-700 ${viewMode === 'ALCHIMESTRY' ? 'scale-110 opacity-100' : 'opacity-60 hover:opacity-100'}`}
-                    >
-                        <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all duration-500 shadow-2xl ${viewMode === 'ALCHIMESTRY' ? 'border-amber-500 bg-amber-600/20' : 'border-[#C5A059]/30 bg-[#050A14] hover:border-amber-500'}`}>
-                            <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(197,160,89,0.5)]">⚗️</span>
-                        </div>
-                        <span className="text-[10px] uppercase font-black tracking-[0.4em] text-[#C5A059] group-hover:text-amber-500 transition-colors">Alchimestry</span>
-                    </button>
-                </div>
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={() => setShowLibrary(true)}
+                            className="flex items-center gap-3 px-8 py-5 border border-black/10 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-black hover:text-white transition-all shadow-sm rounded-none"
+                        >
+                            <BookOpen size={20} /> BIBLIOTHECA
+                        </button>
+
+                        <div className="h-12 w-px bg-black/10 hidden md:block"></div>
+
+                        {isLoggedIn ? (
+                            <div className="flex items-center gap-5 bg-[#C55959]/5 px-8 py-5 border border-[#C55959]/10 shadow-[inner_0_2px_4px_rgba(0,0,0,0.05)] group/user transition-all hover:bg-[#C55959]/10">
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[10px] font-black text-[#C55959]/60 uppercase tracking-[0.3em] leading-none mb-2">Operador Activo</span>
+                                    <span className="text-sm font-serif text-[#1a1a1a] flex items-center gap-3">
+                                        <Fingerprint size={14} className="opacity-40 group-hover/user:animate-pulse" />
+                                        {userEmail.split('@')[0]}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={handleLogout}
+                                    className="p-3 text-[#1a1a1a]/20 hover:text-[#ef4444] transition-all hover:bg-red-50"
+                                    title="Desconectar Sesión"
+                                >
+                                    <Trash2 size={22} />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-end group/auth">
+                                <button
+                                    onClick={() => {
+                                        const email = window.prompt("Introduce tu Email de Operador:");
+                                        if (email) handleLogin(email);
+                                    }}
+                                    className="bg-[#1a1a1a] text-white px-12 py-5 text-[11px] font-black uppercase tracking-[0.4em] shadow-[4px_4px_20px_rgba(0,0,0,0.2)] hover:bg-[#C55959] transition-all rounded-none"
+                                >
+                                    Acceso Operador
+                                </button>
+                                <span className="text-[9px] text-gray-400 uppercase tracking-widest mt-2 opacity-50 font-mono">Session ID Required</span>
+                            </div>
+                        )}
+                    </div>
+                </header>
 
                 <main className="relative">
 
@@ -514,12 +590,13 @@ export default function ScriptAnalyzer() {
                             chartTheme={chartTheme} setChartTheme={setChartTheme}
                             recalculateElements={recalculateElements} getApproxDateForSign={getApproxDateForSign}
                             refineCharacter={refineCharacter}
+                            openLibrary={() => setShowLibrary(true)}
                         />
                     )}
 
                     {viewMode === 'SPIRIT' && (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn pb-12">
-                            <div className="lg:col-span-1 glass-panel p-6 rounded-2xl shadow-xl">
+                            <div className="lg:col-span-1 glass-panel p-6 rounded-none shadow-xl">
                                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Users size={18} /> Mi Red</h3>
                                 <div className="space-y-2 mb-6">
                                     <button onClick={() => setSpiritTargetId('user')} className={`w-full text-left p-3 rounded border transition-all ${spiritTargetId === 'user' ? 'bg-black text-white' : 'bg-white hover:border-black'}`}>
@@ -540,7 +617,7 @@ export default function ScriptAnalyzer() {
                                         </div>
                                     ))}
                                 </div>
-                                <div className="bg-gray-50/50 p-4 rounded-xl border border-black/5">
+                                <div className="bg-gray-50/50 p-4 rounded-none border border-black/5">
                                     <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Añadir Conexión</p>
                                     <input className="input-minimal w-full mb-2 bg-white px-3 py-2 text-xs" placeholder="Nombre" value={newFriend.name} onChange={e => setNewFriend({ ...newFriend, name: e.target.value })} />
                                     <div className="flex gap-2">
@@ -550,7 +627,7 @@ export default function ScriptAnalyzer() {
                                 </div>
                             </div>
 
-                            <div className="lg:col-span-2 glass-panel p-8 rounded-2xl shadow-2xl flex flex-col items-center">
+                            <div className="lg:col-span-2 glass-panel p-8 rounded-none shadow-2xl flex flex-col items-center">
                                 <h2 className="text-2xl font-serif text-[#1a1a1a] mb-8 w-full">Sinergia de Almas</h2>
                                 {currentUser ? (
                                     <div className="w-full max-w-2xl aspect-square relative mb-8">
@@ -572,37 +649,23 @@ export default function ScriptAnalyzer() {
                                         <div className="absolute bottom-4 left-0 right-0 z-30 flex flex-col items-center gap-3">
                                             <div className="flex gap-4">
                                                 {[{ l: 'Base', v: baseOpacity, s: setBaseOpacity }, { l: 'Objetivo', v: chartOpacity, s: setChartOpacity }].map(sl => (
-                                                    <div key={sl.l} className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-black/5 flex items-center gap-2">
+                                                    <div key={sl.l} className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-none border border-black/5 flex items-center gap-2">
                                                         <span className="text-[9px] font-bold uppercase text-gray-400">{sl.l}</span>
                                                         <input type="range" min="0" max="100" value={sl.v} onChange={e => sl.s(parseInt(e.target.value))} className="w-20 h-1 accent-[#C55959]" />
                                                     </div>
                                                 ))}
                                             </div>
-                                            <button onClick={() => setAlignAries(!alignAries)} className={`px-4 py-2 text-[9px] font-bold uppercase rounded-full border transition-all ${alignAries ? 'bg-black text-white' : 'bg-white text-gray-500'}`}>
+                                            <button onClick={() => setAlignAries(!alignAries)} className={`px-4 py-2 text-[9px] font-bold uppercase rounded-none border transition-all ${alignAries ? 'bg-black text-white' : 'bg-white text-gray-500'}`}>
                                                 {alignAries ? '★ Rotación: Aries 0°' : '☆ Rotación: Ascendente'}
                                             </button>
                                         </div>
                                     </div>
                                 ) : <p className="p-20 text-gray-300 uppercase text-xs tracking-widest">Introduce tus datos primero.</p>}
-                                <div className="w-full bg-black/5 rounded-2xl border border-black/5 overflow-hidden">{renderQuantumSynastrySection()}</div>
+                                <div className="w-full bg-black/5 border border-black/5 overflow-hidden">{renderQuantumSynastrySection()}</div>
                             </div>
                         </div>
                     )}
                 </main>
-
-                {/* BOTÓN FLOTANTE: BIBLIOTECA DE ARQUETIPOS */}
-                <div className="fixed bottom-8 right-8 z-[100] flex flex-col gap-4">
-                    <button
-                        onClick={() => setShowLibrary(true)}
-                        className="w-14 h-14 bg-black text-white rounded-full flex items-center justify-center shadow-2xl hover:bg-[#C55959] transition-all group relative border border-white/20"
-                        title="Abrir Biblioteca de Arquetipos"
-                    >
-                        <BookOpen size={24} />
-                        <span className="absolute right-full mr-4 bg-black/90 backdrop-blur-md text-white text-[10px] px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap uppercase tracking-[0.2em] font-black pointer-events-none shadow-2xl border border-white/10">
-                            Biblioteca de Arquetipos
-                        </span>
-                    </button>
-                </div>
 
                 {showLibrary && <ArchetypeLibrary onClose={() => setShowLibrary(false)} />}
 

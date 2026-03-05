@@ -316,45 +316,71 @@ export default function NatalChart2D({ date, latitude = 40.4168, longitude = -3.
                     })
                 )}
 
-                {/* Natal Planets */}
-                {natalPlanets.map((planet, i) => {
-                    const coords = getCoordinates(planet.longitude, radius * 0.75); // Inner ring
+                {/* Natal Planets - ANTI-COLLISION LOGIC */}
+                {(() => {
+                    // Sort planets by longitude to handle clusters
+                    const sortedPlanets = [...natalPlanets].sort((a, b) => a.longitude - b.longitude);
+                    const placements = sortedPlanets.map((planet, i) => {
+                        let radialOffset = 0;
+                        const minAngleDiff = 6; // Degrees to check for collision
 
-                    // Calculate degree in sign (0-29)
-                    const absoluteLon = planet.longitude;
-                    const degreeInSign = Math.floor(absoluteLon % 30);
+                        // Check previous planets for collisions
+                        for (let j = 0; j < i; j++) {
+                            let diff = Math.abs(planet.longitude - sortedPlanets[j].longitude);
+                            if (diff > 180) diff = 360 - diff;
 
-                    return (
-                        <g key={`natal-${planet.name}`}>
-                            <line x1={center} y1={center} x2={coords.x} y2={coords.y} stroke={planet.color} strokeWidth="0.5" opacity="0.4" />
-                            <circle cx={coords.x} cy={coords.y} r={style.planetRadius} fill={style.planetBg} stroke={planet.color} strokeWidth={style.strokeNormal} />
-                            <text
-                                x={coords.x}
-                                y={coords.y}
-                                textAnchor="middle"
-                                dominantBaseline="middle"
-                                fill={theme === 'modern' ? 'white' : 'black'}
-                                fontSize={style.planetFontSize}
-                                fontWeight="bold"
-                                fontFamily={style.font}
-                            >
-                                {planet.symbol}
-                            </text>
-                            {/* Degree Label */}
-                            <text
-                                x={coords.x}
-                                y={coords.y + style.planetRadius + 6}
-                                textAnchor="middle"
-                                fill={style.text}
-                                fontSize="8"
-                                fontFamily="monospace"
-                                opacity="0.8"
-                            >
-                                {degreeInSign}°
-                            </text>
-                        </g>
-                    );
-                })}
+                            if (diff < minAngleDiff) {
+                                // Too close! Shift radially outwards
+                                radialOffset += 24;
+                            }
+                        }
+
+                        const currentRadius = radius * 0.70 - radialOffset;
+                        const coords = getCoordinates(planet.longitude, currentRadius);
+                        const anchorCoords = getCoordinates(planet.longitude, radius * 0.88);
+                        const degreeInSign = Math.floor(planet.longitude % 30);
+
+                        return (
+                            <g key={`natal-${planet.name}`}>
+                                {/* Connection line for clustered planets */}
+                                {radialOffset > 0 && (
+                                    <line
+                                        x1={anchorCoords.x} y1={anchorCoords.y}
+                                        x2={coords.x} y2={coords.y}
+                                        stroke={planet.color} strokeWidth="0.5" strokeDasharray="1,2"
+                                    />
+                                )}
+                                <line x1={center} y1={center} x2={anchorCoords.x} y2={anchorCoords.y} stroke={planet.color} strokeWidth="0.5" opacity="0.4" />
+                                <circle cx={coords.x} cy={coords.y} r={style.planetRadius} fill={style.planetBg} stroke={planet.color} strokeWidth={style.strokeNormal} />
+                                <text
+                                    x={coords.x}
+                                    y={coords.y}
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fill={theme === 'modern' ? 'white' : 'black'}
+                                    fontSize={style.planetFontSize}
+                                    fontWeight="bold"
+                                    fontFamily={style.font}
+                                >
+                                    {planet.symbol}
+                                </text>
+                                {/* Degree Label */}
+                                <text
+                                    x={coords.x}
+                                    y={coords.y + style.planetRadius + 6}
+                                    textAnchor="middle"
+                                    fill={style.text}
+                                    fontSize="8"
+                                    fontFamily="monospace"
+                                    opacity="0.8"
+                                >
+                                    {degreeInSign}°
+                                </text>
+                            </g>
+                        );
+                    });
+                    return placements;
+                })()}
 
                 {/* Transit Planets (Outer) */}
                 {transitPlanets.map((planet, i) => {

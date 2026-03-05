@@ -4,6 +4,8 @@ import { UserData, ChartTheme, CosmosViewMode } from './types';
 import NatalChart2D from './NatalChart2D';
 import CelestialSphere from './CelestialSphere';
 import { ChartZoomWrapper, PlanetaryTrinity } from './shared-components';
+import { calculateAstroBalance } from '@/utils/astrology';
+import { calculateRealPlanets } from '@/utils/astronomy';
 
 interface CosmosViewProps {
     currentUser: UserData | null;
@@ -81,18 +83,18 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                                 />
                                 <button
                                     onClick={() => setShowUserLibrary(!showUserLibrary)}
-                                    className="p-2 hover:bg-[#F9F8F4] rounded-full text-gray-400 hover:text-[#C55959] transition-colors relative"
+                                    className="p-2 hover:bg-[#F9F8F4] rounded-none text-gray-400 hover:text-[#C55959] transition-colors relative"
                                     title="Cargar carta guardada"
                                 >
                                     <Book size={18} />
                                     {userLibrary.length > 0 && (
-                                        <span className="absolute top-0 right-0 w-2 h-2 bg-[#C55959] rounded-full animate-pulse" />
+                                        <span className="absolute top-0 right-0 w-2 h-2 bg-[#C55959] rounded-none animate-pulse" />
                                     )}
                                 </button>
                             </div>
 
                             {showUserLibrary && (
-                                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-black/10 shadow-2xl rounded-lg z-50 max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-black/10 shadow-2xl rounded-none z-50 max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div className="p-2 bg-[#F9F8F4] border-b border-black/5 flex justify-between items-center sticky top-0">
                                         <span className="text-[9px] uppercase font-bold tracking-widest text-gray-500 font-mono">Bibliotheca Anthropos</span>
                                         <button onClick={() => setShowUserLibrary(false)}><X size={12} /></button>
@@ -178,18 +180,14 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
 
             {/* ITEM 2: CHART */}
             <div className="lg:col-span-8 lg:row-span-2 flex flex-col gap-6 order-2">
-                <div className="glass-panel p-4 md:p-10 relative overflow-hidden min-h-[600px] flex flex-col rounded-3xl shadow-[0_35px_60px_-15px_rgba(0,0,0,0.1)]">
+                <div className="glass-panel p-4 md:p-10 relative overflow-hidden min-h-[600px] flex flex-col rounded-none shadow-2xl border border-black/5">
                     <div className="absolute top-0 right-0 p-12 opacity-[0.03] text-[20rem] font-serif pointer-events-none animate-spin-slow select-none text-stone-900">❂</div>
 
                     <div className="flex justify-between items-center mb-10 z-10">
                         <h2 className="text-3xl font-serif text-[#1a1a1a] flex items-center gap-4">
                             <span className="text-[#C55959] animate-pulse">★</span>
-                            <span className="tracking-tight">Mapa del Destino</span>
+                            <span className="tracking-tight uppercase font-black text-xl">Mapa del Destino</span>
                         </h2>
-                        <div className="flex bg-stone-100 p-1 rounded-full border border-stone-200">
-                            <button onClick={() => setCosmosViewMode('RADIAL')} className={`px-4 py-1.5 text-[10px] font-bold uppercase rounded-full transition-all duration-300 ${cosmosViewMode === 'RADIAL' ? 'bg-white text-[#C55959] shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}>Radial</button>
-                            <button onClick={() => setCosmosViewMode('SPHERE')} className={`px-4 py-1.5 text-[10px] font-bold uppercase rounded-full transition-all duration-300 ${cosmosViewMode === 'SPHERE' ? 'bg-white text-[#C55959] shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}>Esfera</button>
-                        </div>
                     </div>
 
                     <div className="flex-1 flex flex-col items-center justify-center relative z-10 w-full mb-8">
@@ -200,26 +198,18 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                                     theme={chartTheme}
                                     onThemeChange={setChartTheme}
                                 >
-                                    {cosmosViewMode === 'RADIAL' ? (
-                                        <NatalChart2D
-                                            date={currentUser.date}
-                                            latitude={currentUser.latitude}
-                                            longitude={currentUser.longitude}
-                                            transitsDate={transitDate.toISOString()}
-                                            showTransits={true}
-                                            theme={chartTheme}
-                                        />
-                                    ) : (
-                                        <CelestialSphere
-                                            date={currentUser.date}
-                                            width={600}
-                                            height={600}
-                                        />
-                                    )}
+                                    <NatalChart2D
+                                        date={currentUser.date}
+                                        latitude={currentUser.latitude}
+                                        longitude={currentUser.longitude}
+                                        transitsDate={transitDate.toISOString()}
+                                        showTransits={true}
+                                        theme={chartTheme}
+                                    />
                                 </ChartZoomWrapper>
                             </div>
                         ) : (
-                            <div className="text-center text-stone-300 p-20 border-2 border-dashed border-stone-100 rounded-3xl bg-stone-50/50">
+                            <div className="text-center text-stone-300 p-20 border-2 border-dashed border-stone-100 rounded-none bg-stone-50/50">
                                 <Atom size={64} className="mx-auto mb-6 opacity-10 animate-spin-slow" />
                                 <h3 className="text-xl font-serif italic text-stone-400 mb-2">"Abyssus abyssum invocat"</h3>
                                 <p className="text-[10px] uppercase tracking-[0.4em] font-bold">Inicia la Gran Obra introduciendo tus datos</p>
@@ -228,10 +218,10 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                     </div>
 
                     <div className="w-full max-w-2xl mx-auto px-4">
-                        <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100 shadow-inner group">
+                        <div className="bg-stone-50 p-6 rounded-none border border-stone-100 shadow-inner group">
                             <div className="flex justify-between items-center mb-4">
                                 <label className="text-[10px] uppercase font-bold text-stone-400 tracking-widest flex items-center gap-2">
-                                    <span className="w-1 h-1 bg-[#C55959] rounded-full"></span>
+                                    <span className="w-1 h-1 bg-[#C55959] rounded-none"></span>
                                     Cronómetro de Tránsitos
                                 </label>
                                 <span className="font-mono text-[10px] text-[#C55959] font-bold bg-[#C55959]/10 px-2 py-0.5 rounded">
@@ -244,7 +234,7 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                                 max="90"
                                 value={Math.floor((transitDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))}
                                 onChange={(e) => { const days = parseInt(e.target.value); const newDate = new Date(); newDate.setDate(newDate.getDate() + days); setTransitDate(newDate); }}
-                                className="w-full accent-[#C55959] h-1.5 bg-stone-200 rounded-lg appearance-none cursor-pointer"
+                                className="w-full accent-[#C55959] h-1.5 bg-stone-200 rounded-none appearance-none cursor-pointer"
                             />
                             <div className="flex justify-between mt-4">
                                 <button onClick={() => setTransitDate(new Date())} className="text-[9px] font-bold uppercase text-stone-400 hover:text-stone-800 transition-colors py-1 px-3 border border-stone-200 rounded hover:border-stone-400">Restaurar Presente</button>
@@ -267,7 +257,7 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
 
             {/* ITEM 3: TRANSITS */}
             <div className="lg:col-span-4 flex flex-col gap-4 order-3">
-                <div className="glass-panel p-8 relative flex flex-col shadow-lg rounded-2xl h-full">
+                <div className="glass-panel p-8 relative flex flex-col shadow-lg rounded-none h-full">
                     <div className="absolute top-6 right-6 text-6xl opacity-5 font-serif select-none pointer-events-none">🜃</div>
                     <h2 className="text-2xl font-serif text-[#1a1a1a] mb-2 flex items-center gap-3">
                         <span className="text-[#C55959]">🜂</span>
@@ -278,11 +268,27 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                     </p>
 
                     {/* AI READING */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar space-y-8 pr-2">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-2">
                         {dailyReading && (
-                            <div className="p-6 bg-white/90 backdrop-blur-sm border-l-4 border-[#C55959] rounded-r-2xl shadow-sm transform hover:-translate-y-1 transition-transform duration-500">
-                                <h3 className="text-base font-serif font-bold text-[#C55959] mb-3 leading-tight uppercase tracking-tight">{dailyReading.headline}</h3>
-                                <p className="text-xs font-serif italic text-gray-700 leading-loose opacity-90 italic">"{dailyReading.reading}"</p>
+                            <div className="space-y-6">
+                                <div className="p-8 bg-white/95 backdrop-blur-md border-l-4 border-[#C55959] rounded-none shadow-xl transform hover:-translate-y-1 transition-all duration-700 relative overflow-hidden group">
+                                    <div className="absolute -top-4 -right-4 text-6xl opacity-[0.03] rotate-12 pointer-events-none group-hover:rotate-45 transition-transform duration-1000">🜁</div>
+                                    <span className="inline-block px-3 py-1 bg-[#C55959]/10 text-[#C55959] text-[8px] font-black uppercase tracking-[0.3em] rounded-none mb-4">{dailyReading.theme || "Transmutación"}</span>
+                                    <h3 className="text-xl font-serif font-black text-[#1a1a1a] mb-4 leading-tight uppercase tracking-tight decoration-[#C55959]/30 underline-offset-8 decoration-2 underline">{dailyReading.headline}</h3>
+                                    <p className="text-sm font-serif italic text-gray-800 leading-relaxed opacity-90 first-letter:text-3xl first-letter:font-black first-letter:mr-1 first-letter:float-left mb-6">
+                                        {dailyReading.reading}
+                                    </p>
+                                    {dailyReading.advice && (
+                                        <div className="mt-6 p-5 bg-black/5 rounded-none border border-black/5 relative shadow-inner italic marker:text-amber-500">
+                                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#C55959] mb-2 flex items-center gap-2">
+                                                <Sun size={12} className="animate-pulse" /> Sabiduría Alquímica
+                                            </p>
+                                            <p className="text-xs text-gray-900 leading-relaxed font-serif">
+                                                "{dailyReading.advice}"
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                         {isReadingLoading && (
@@ -295,14 +301,77 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                             </div>
                         )}
 
+                        {/* ENERGY BALANCE SECTION (Elements, Modalities, Polarities) */}
+                        {currentUser && (
+                            <div className="space-y-10 animate-fadeIn delay-300">
+                                {(() => {
+                                    const astroData = calculateRealPlanets(currentUser.date, currentUser.latitude, currentUser.longitude);
+                                    const data = calculateAstroBalance(astroData.planets);
+
+                                    const Bar = ({ label, value, color, icon }: { label: string, value: number, color: string, icon: string }) => (
+                                        <div className="space-y-2 group">
+                                            <div className="flex justify-between items-end">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-500 group-hover:text-stone-800 transition-colors flex items-center gap-2">
+                                                    <span className="text-sm opacity-50">{icon}</span> {label}
+                                                </span>
+                                                <span className="text-sm font-serif italic text-stone-400 group-hover:text-[#C55959] transition-colors">{value}%</span>
+                                            </div>
+                                            <div className="h-[2px] w-full bg-stone-100 relative overflow-hidden">
+                                                <div
+                                                    className="absolute top-0 left-0 h-full transition-all duration-1000 ease-out"
+                                                    style={{ width: `${value}%`, backgroundColor: color }}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+
+                                    return (
+                                        <>
+                                            {/* Elements Bar */}
+                                            <div className="space-y-6 bg-[#F9F8F4]/50 p-6 border border-black/5 hover:bg-white transition-all">
+                                                <h4 className="text-[9px] font-black uppercase tracking-[0.3em] text-[#C55959] mb-4 flex items-center gap-3">
+                                                    <span className="w-4 h-[1px] bg-[#C55959]/30"></span> Elementos
+                                                </h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                                                    <Bar label="Fuego" value={data.elements.Fuego} color="#FF6B6B" icon="🜂" />
+                                                    <Bar label="Tierra" value={data.elements.Tierra} color="#8E9775" icon="🜃" />
+                                                    <Bar label="Aire" value={data.elements.Aire} color="#6B96B4" icon="🜁" />
+                                                    <Bar label="Agua" value={data.elements.Agua} color="#4A90E2" icon="🜄" />
+                                                </div>
+                                            </div>
+
+                                            {/* Modalities & Polarities Grid */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="bg-[#F9F8F4]/50 p-6 border border-black/5 hover:bg-white transition-all space-y-6">
+                                                    <h4 className="text-[9px] font-black uppercase tracking-[0.3em] text-[#C55959] mb-4 flex items-center gap-3">
+                                                        <span className="w-4 h-[1px] bg-[#C55959]/30"></span> Modalidades
+                                                    </h4>
+                                                    <Bar label="Cardinal" value={data.modalities.Cardinal} color="#1a1a1a" icon="◇" />
+                                                    <Bar label="Fijo" value={data.modalities.Fijo} color="#1a1a1a" icon="□" />
+                                                    <Bar label="Mutable" value={data.modalities.Mutable} color="#1a1a1a" icon="△" />
+                                                </div>
+                                                <div className="bg-[#F9F8F4]/50 p-6 border border-black/5 hover:bg-white transition-all space-y-6">
+                                                    <h4 className="text-[9px] font-black uppercase tracking-[0.3em] text-[#C55959] mb-4 flex items-center gap-3">
+                                                        <span className="w-4 h-[1px] bg-[#C55959]/30"></span> Polaridades
+                                                    </h4>
+                                                    <Bar label="Yang (Masculina)" value={data.polarities.Yang} color="#C55959" icon="☼" />
+                                                    <Bar label="Yin (Femenina)" value={data.polarities.Yin} color="#5B7C99" icon="☽" />
+                                                </div>
+                                            </div>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                        )}
+
                         {/* ASPECTS LIST */}
                         <div className="space-y-3">
-                            <h4 className="text-[9px] font-black uppercase tracking-[0.3em] text-[#5B7C99] flex items-center gap-2 mb-4">
-                                <span className="w-4 h-[1px] bg-[#5B7C99]/30"></span>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-800 flex items-center gap-2 mb-6">
+                                <span className="w-6 h-[2px] bg-[#C55959]"></span>
                                 Conjunciones & Ángulos
                             </h4>
                             {dailyAspects.length > 0 ? dailyAspects.map((aspect, i) => (
-                                <div key={i} className="flex items-start gap-4 p-4 bg-white/40 hover:bg-white/80 transition-colors rounded-xl border border-white/50 group">
+                                <div key={i} className="flex items-start gap-4 p-4 bg-white/40 hover:bg-white/80 transition-colors rounded-none border border-white/50 group">
                                     <div className="text-2xl opacity-40 group-hover:opacity-100 group-hover:scale-110 transition-all text-[#C55959] font-serif">{aspect.symbol || '✧'}</div>
                                     <div className="flex-1">
                                         <div className="text-[9px] font-black uppercase tracking-wider text-stone-800 mb-1">

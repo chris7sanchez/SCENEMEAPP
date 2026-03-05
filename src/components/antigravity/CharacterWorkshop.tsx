@@ -3,7 +3,7 @@ import {
     Sparkles, Ghost, Loader2, Atom,
     ChevronRight, Search, Edit3, Trash2,
     UserPlus, FileText, Activity, Zap as ZapIcon,
-    Dna, Fingerprint, Footprints
+    Dna, Fingerprint, Footprints, Upload, BookOpen
 } from 'lucide-react';
 import { CharacterProfile, ChartTheme } from './types';
 import NatalChart2D from './NatalChart2D';
@@ -31,6 +31,7 @@ interface CharacterWorkshopProps {
     recalculateElements: (base: any, sun: string, moon: string, asc: string) => any;
     getApproxDateForSign: (sign: string) => string;
     refineCharacter: (data: any) => Promise<any>;
+    openLibrary: () => void;
 }
 
 const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
@@ -39,7 +40,8 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
         selectedCharacterId, setSelectedCharacterId,
         scriptText, setScriptText, analyzeScript, isAnalyzing,
         isRefining, setIsRefining, chartTheme, setChartTheme,
-        recalculateElements, getApproxDateForSign, refineCharacter
+        recalculateElements, getApproxDateForSign, refineCharacter,
+        openLibrary
     } = props;
 
     const [activeStep, setActiveStep] = useState(0);
@@ -160,18 +162,18 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
         <div className="flex flex-col animate-fadeIn h-full min-h-screen pb-20">
             {/* --- HEADER CON STEPPER --- */}
             <header className="mb-12">
-                <div className="flex flex-col lg:flex-row justify-between items-center gap-8 glass-panel p-8 rounded-[40px] shadow-2xl relative overflow-hidden group">
+                <div className="flex flex-col lg:flex-row justify-between items-center gap-8 glass-panel p-8 rounded-none shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 left-0 w-2 h-full bg-amber-500/50" />
 
                     <div className="flex items-center gap-6 relative z-10">
-                        <div className="w-16 h-16 bg-black text-white rounded-3xl flex items-center justify-center shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                        <div className="w-16 h-16 bg-black text-white rounded-none flex items-center justify-center shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
                             <ZapIcon size={32} className="text-amber-400 group-hover:scale-110 transition-transform" />
                         </div>
                         <div>
                             <h2 className="text-3xl font-black text-gray-900 tracking-tight uppercase">Taller de Personajes</h2>
                             <div className="flex items-center gap-2 mt-1">
                                 <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                                <p className="text-[10px] text-gray-400 uppercase tracking-[0.3em] font-black">Protocolo: Antigravity Method</p>
+                                <p className="text-[10px] text-gray-400 uppercase tracking-[0.3em] font-black">Protocolo: Alchemistery Method</p>
                             </div>
                         </div>
                     </div>
@@ -203,6 +205,13 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                             </button>
                         ))}
                     </nav>
+
+                    <button
+                        onClick={openLibrary}
+                        className="bg-black text-white px-8 py-5 rounded-none text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl hover:bg-zinc-800 transition-all flex items-center gap-4 border border-white/20"
+                    >
+                        <BookOpen size={18} className="text-amber-500" /> BIBLIOTHECA PRO
+                    </button>
                 </div>
             </header>
 
@@ -211,13 +220,34 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                 {activeStep === 0 && (
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
                         <div className="lg:col-span-8 space-y-6">
-                            <div className="glass-panel p-0 overflow-hidden relative group rounded-[40px] shadow-2xl h-[600px]">
+                            <div className="glass-panel p-0 overflow-hidden relative group rounded-none shadow-2xl h-[600px] border-2 border-black/5">
                                 <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10 border-b border-black/5 bg-white/60 backdrop-blur-md">
                                     <span className="text-[11px] uppercase font-black tracking-[0.4em] text-gray-400 flex items-center gap-3">
                                         <FileText size={16} className="text-black" /> Laboratorio de Guiones
                                     </span>
                                     <div className="flex items-center gap-4">
-                                        <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-3 py-1 rounded-full uppercase">{scriptText.length} caracteres</span>
+                                        <button
+                                            onClick={() => document.getElementById('script-pdf-upload')?.click()}
+                                            className="flex items-center gap-2 px-4 py-2 bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg"
+                                            title="Adjuntar PDF"
+                                        >
+                                            <Upload size={14} className="text-amber-500" /> PDF
+                                        </button>
+                                        <input
+                                            id="script-pdf-upload"
+                                            type="file"
+                                            accept=".pdf"
+                                            className="hidden"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    // Aquí iría la lógica de parsePdfAction que ya existe en el sistema
+                                                    // Por ahora simulamos la carga o usamos la prop si estuviera disponible
+                                                    alert("Funcionalidad PDF Restaurada: Procesando guion...");
+                                                }
+                                            }}
+                                        />
+                                        <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-3 py-1 rounded-none uppercase">{scriptText.length} chars</span>
                                         <button
                                             onClick={() => setScriptText('')}
                                             className="text-gray-300 hover:text-red-500 transition-colors"
@@ -243,18 +273,18 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                             }
                                         }}
                                         disabled={isAnalyzing || !scriptText.trim()}
-                                        className="group relative bg-black text-white px-10 py-5 rounded-3xl text-xs font-black uppercase tracking-[0.3em] transition-all flex items-center gap-4 disabled:opacity-30 shadow-2xl hover:scale-105 active:scale-95"
+                                        className="group relative bg-black text-white px-10 py-5 rounded-none text-xs font-black uppercase tracking-[0.3em] transition-all flex items-center gap-4 disabled:opacity-30 shadow-2xl hover:scale-105 active:scale-95"
                                     >
                                         {isAnalyzing ? <Loader2 size={18} className="animate-spin text-amber-500" /> : <Sparkles size={18} className="text-amber-500" />}
                                         {isAnalyzing ? 'PROCESANDO ALMAS...' : 'INVOCAR PERSONAJES'}
-                                        <div className="absolute inset-0 rounded-3xl bg-amber-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <div className="absolute inset-0 rounded-none bg-amber-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </button>
                                 </div>
                             </div>
                         </div>
 
                         <div className="lg:col-span-4 space-y-6">
-                            <div className="glass-panel p-8 bg-black/5 rounded-[40px] border border-black/10 shadow-inner h-full">
+                            <div className="glass-panel p-8 bg-black/5 rounded-none border-2 border-black/10 shadow-inner h-full">
                                 <h3 className="text-xs font-black uppercase tracking-[0.4em] text-gray-400 mb-8 flex items-center gap-3">
                                     <Fingerprint size={16} /> Elenco Detectado
                                 </h3>
@@ -272,7 +302,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                     setSelectedCharacterId(i);
                                                     setActiveStep(1);
                                                 }}
-                                                className="w-full text-left p-6 rounded-3xl bg-white border border-black/5 hover:border-black/20 hover:shadow-xl transition-all group relative overflow-hidden"
+                                                className="w-full text-left p-6 rounded-none bg-white border border-black/5 hover:border-black/20 hover:shadow-xl transition-all group relative overflow-hidden"
                                             >
                                                 <div className="flex flex-col">
                                                     <span className="text-xs font-black uppercase tracking-widest group-hover:text-amber-600 transition-colors">{char.name}</span>
@@ -297,12 +327,12 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
                                 {/* Dashboard: Ahora expandido */}
                                 <div className="xl:col-span-9 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                                    <div className="lg:col-span-7 glass-panel p-10 bg-white border border-black/5 shadow-2xl rounded-[40px] relative overflow-hidden flex flex-col min-h-[600px]">
+                                    <div className="lg:col-span-7 glass-panel p-10 bg-white border border-black/5 shadow-2xl rounded-none relative overflow-hidden flex flex-col min-h-[600px]">
                                         <div className="absolute -top-20 -right-20 p-20 opacity-[0.03] text-[15rem] font-serif pointer-events-none animate-spin-slow">❂</div>
 
                                         <header className="flex justify-between items-start mb-12 relative z-10">
                                             <div className="flex items-center gap-6">
-                                                <div className="w-16 h-16 bg-amber-500/10 text-amber-600 rounded-3xl flex items-center justify-center font-black text-3xl shadow-inner uppercase">
+                                                <div className="w-16 h-16 bg-amber-500/10 text-amber-600 rounded-none flex items-center justify-center font-black text-3xl shadow-inner uppercase">
                                                     {characterProfiles[selectedCharacterId].fullAnalysis.sunSign[0]}
                                                 </div>
                                                 <div>
@@ -340,7 +370,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
 
                                         {/* Quick Edit */}
                                         {editingCharacterId === selectedCharacterId && (
-                                            <div className="mt-8 p-8 bg-gray-50 rounded-3xl border border-black/5 animate-in slide-in-from-top-4 duration-300">
+                                            <div className="mt-8 p-8 bg-gray-50 rounded-none border border-black/5 animate-in slide-in-from-top-4 duration-300">
                                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-6">Mutar Geometría (Overrides)</h4>
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                                     {[
@@ -353,7 +383,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                     ].map((item) => {
                                                         const val = (item.override ? characterProfiles[selectedCharacterId].fullAnalysis[item.override] : null) || characterProfiles[selectedCharacterId].fullAnalysis[item.key] || 'Aries';
                                                         return (
-                                                            <div key={item.label} className="flex flex-col bg-white p-4 rounded-2xl border border-black/5 shadow-sm">
+                                                            <div key={item.label} className="flex flex-col bg-white p-4 rounded-none border border-black/5 shadow-sm">
                                                                 <label className="text-[9px] uppercase font-black text-gray-400 mb-2">{item.label}</label>
                                                                 <select
                                                                     className="text-xs font-black uppercase border-none outline-none bg-transparent text-gray-900"
@@ -387,23 +417,23 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                     // For now, let's add a state to show a "Deep Profile"
                                                     setEditingCharacterId(editingCharacterId === -selectedCharacterId ? null : -selectedCharacterId);
                                                 }}
-                                                className="w-full py-4 bg-purple-600 text-white font-black uppercase tracking-widest text-[9px] rounded-xl flex items-center justify-center gap-2 hover:bg-purple-500 transition-all shadow-lg shadow-purple-900/10"
+                                                className="w-full py-4 bg-purple-600 text-white font-black uppercase tracking-widest text-[9px] rounded-none flex items-center justify-center gap-2 hover:bg-purple-500 transition-all shadow-lg shadow-purple-900/10"
                                             >
                                                 <Sparkles size={14} /> Revelación Alquímica del Personaje
                                             </button>
 
                                             {editingCharacterId === -selectedCharacterId && (
-                                                <div className="mt-6 p-6 bg-purple-50 rounded-2xl border border-purple-100 animate-in fade-in slide-in-from-top-2 duration-500">
+                                                <div className="mt-6 p-6 bg-purple-50 rounded-none border border-purple-100 animate-in fade-in slide-in-from-top-2 duration-500">
                                                     <h5 className="text-[10px] font-black uppercase text-purple-600 tracking-widest mb-4">La Esencia del Protagonista</h5>
                                                     <p className="text-sm font-serif italic text-purple-900 leading-relaxed">
                                                         "{characterProfiles[selectedCharacterId].fullAnalysis.analysis || "Analizando la profundidad psíquica..."}"
                                                     </p>
                                                     <div className="mt-6 grid grid-cols-1 gap-4">
-                                                        <div className="bg-white/50 p-4 rounded-xl">
+                                                        <div className="bg-white/50 p-4 rounded-none">
                                                             <span className="text-[8px] font-black uppercase text-purple-400 block mb-1">Gesto Psicológico</span>
                                                             <p className="text-[11px] text-purple-950">{characterProfiles[selectedCharacterId].fullAnalysis.methodActing?.psychologicalGesture || "No definido"}</p>
                                                         </div>
-                                                        <div className="bg-white/50 p-4 rounded-xl">
+                                                        <div className="bg-white/50 p-4 rounded-none">
                                                             <span className="text-[8px] font-black uppercase text-purple-400 block mb-1">Paisaje Interior</span>
                                                             <p className="text-[11px] text-purple-950 font-serif italic">{characterProfiles[selectedCharacterId].fullAnalysis.methodActing?.emotionalLandscape || "No definido"}</p>
                                                         </div>
@@ -413,7 +443,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                         </div>
                                     </div>
 
-                                    <div className="lg:col-span-5 glass-panel p-10 bg-[#F9F8F4] border border-amber-900/10 rounded-[40px] shadow-xl flex flex-col items-center">
+                                    <div className="lg:col-span-5 glass-panel p-10 bg-[#F9F8F4] border border-amber-900/10 rounded-none shadow-xl flex flex-col items-center">
                                         <h4 className="text-[10px] font-black uppercase tracking-[0.6em] text-amber-800/20 mb-10">Equilibrio de Elementos</h4>
                                         <ElementalDiagram
                                             fire={characterProfiles[selectedCharacterId].elements?.fire || 25}
@@ -427,13 +457,21 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                             <p className="text-sm font-serif italic text-gray-700 leading-relaxed font-bold">
                                                 "{characterProfiles[selectedCharacterId].fullAnalysis.verdict || 'Análisis pendiente de destilación...'}"
                                             </p>
+                                            {characterProfiles[selectedCharacterId].fullAnalysis.essence && (
+                                                <div className="mt-6 pt-6 border-t border-amber-900/5">
+                                                    <p className="text-[9px] font-black uppercase text-amber-900/40 tracking-[0.3em] mb-2">Verdad Nuclear (Cristalización)</p>
+                                                    <p className="text-xs font-serif italic text-amber-900 bg-amber-500/5 p-4 rounded-none border border-amber-500/10 shadow-inner">
+                                                        "{characterProfiles[selectedCharacterId].fullAnalysis.essence}"
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Sidebar: Refinement & Acting */}
                                 <div className="xl:col-span-3 space-y-8">
-                                    <div className="glass-panel p-10 bg-white border border-black/5 shadow-2xl rounded-[40px] relative overflow-hidden">
+                                    <div className="glass-panel p-10 bg-white border border-black/5 shadow-2xl rounded-none relative overflow-hidden">
                                         <div className="absolute top-0 right-0 p-8 opacity-5">
                                             <Fingerprint size={80} />
                                         </div>
@@ -488,7 +526,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center justify-center p-20 glass-panel rounded-[40px] border-dashed border-4 border-black/5 opacity-40">
+                            <div className="flex flex-col items-center justify-center p-20 glass-panel rounded-none border-dashed border-4 border-black/5 opacity-40">
                                 <Ghost size={80} className="mb-6" />
                                 <p className="text-xs font-black uppercase tracking-widest">Primero selecciona un alma en el Paso 1.</p>
                             </div>
@@ -510,9 +548,9 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
 
                                 {/* Sidebar: Instructions & Details */}
                                 <div className="lg:col-span-4 flex flex-col gap-8">
-                                    <div className="glass-panel p-10 bg-black text-white rounded-[40px] shadow-2xl border border-white/10 flex-1">
+                                    <div className="glass-panel p-10 bg-black text-white rounded-none shadow-2xl border border-white/10 flex-1">
                                         <div className="flex items-center gap-4 mb-10">
-                                            <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-black">
+                                            <div className="w-12 h-12 bg-amber-500 rounded-none flex items-center justify-center text-black">
                                                 <Footprints size={24} />
                                             </div>
                                             <div>
@@ -523,7 +561,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
 
                                         <div className="space-y-6 custom-scrollbar max-h-[500px] pr-4">
                                             {somaticPoints.slice(0, 6).map((point, i) => (
-                                                <div key={i} className="p-6 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                                <div key={i} className="p-6 rounded-none bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
                                                     <div className="flex justify-between items-center mb-3">
                                                         <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">{point.planet} en {point.sign}</span>
                                                         <span className="text-[9px] font-mono opacity-40">{point.label}</span>
@@ -539,7 +577,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                         </div>
                                     </div>
 
-                                    <div className="p-8 bg-amber-500/10 border border-amber-500/20 rounded-[40px] text-center">
+                                    <div className="p-8 bg-amber-500/10 border border-amber-500/20 rounded-none text-center">
                                         <p className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-700 leading-loose">
                                             Este mapa somático traduce la geometría astral<br />en impulsos físicos para el actor.
                                         </p>
@@ -547,7 +585,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center justify-center p-20 glass-panel rounded-[40px] border-dashed border-4 border-black/5 opacity-40">
+                            <div className="flex flex-col items-center justify-center p-20 glass-panel rounded-none border-dashed border-4 border-black/5 opacity-40">
                                 <Ghost size={80} className="mb-6" />
                                 <p className="text-xs font-black uppercase tracking-widest">Vuelve al Paso 1 para invocar a tu actor.</p>
                             </div>

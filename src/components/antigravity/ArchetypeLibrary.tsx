@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
 import { assimilateKnowledge } from '@/ai/assimilate-knowledge';
 import { parsePdfAction } from '@/ai/parse-pdf';
-import { Loader2, Plus, Book, Upload, FileText, BookOpen } from 'lucide-react';
+import { Loader2, Plus, Book, Upload, FileText, BookOpen, X, Sun, BrainCircuit, Sparkles } from 'lucide-react';
 
 export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
     const [filter, setFilter] = useState('');
@@ -166,6 +166,8 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
         }
     };
 
+    const [activeTab, setActiveTab] = useState<'explorar' | 'asimilar'>('explorar');
+
     // Helper to get custom knowledge for a sign
     const getCustomForSign = (signName: string) => {
         return customKnowledge.filter(k => k.target.toLowerCase() === signName.toLowerCase() || k.target.toLowerCase().includes(signName.toLowerCase()));
@@ -176,108 +178,62 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-200">
 
                 {/* Header */}
-                {/* Header */}
-                <div className="bg-[#1a1a1a] text-white p-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="bg-[#0A0A0A] text-white p-8 border-b border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-gradient-to-br from-[#C55959] to-[#8B3D3D] rounded-2xl flex items-center justify-center shadow-[0_10px_30px_-5px_rgba(197,89,89,0.5)]">
+                            <Book size={32} />
+                        </div>
                         <div>
-                            <h2 className="text-2xl font-serif font-bold text-[#C55959]">Biblioteca de Arquetipos</h2>
-                            <p className="text-xs text-gray-400 uppercase tracking-widest mt-1">Base de Conocimiento Astrológico</p>
+                            <h2 className="text-3xl font-serif font-black tracking-tight text-white uppercase">Bibliotheca Pro</h2>
+                            <p className="text-[10px] text-[#C55959] font-black uppercase tracking-[0.4em] mt-2">Arquetipos y Correspondencias Alquímicas</p>
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
-                        {/* Scan Folder Button */}
+                    <div className="flex items-center gap-4 bg-white/5 p-1 rounded-full border border-white/10">
                         <button
-                            onClick={handleScanFolder}
-                            disabled={isScanning}
-                            className="bg-[#5B7C99] text-white border border-[#5B7C99] px-4 py-2 rounded text-[10px] uppercase font-bold tracking-wider hover:bg-white hover:text-[#5B7C99] transition-colors flex items-center gap-2 shadow-lg"
-                            title="Escanear carpeta knowledge-base"
+                            onClick={() => setActiveTab('explorar')}
+                            className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'explorar' ? 'bg-white text-black shadow-xl' : 'text-gray-400 hover:text-white'}`}
                         >
-                            {isScanning ? <Loader2 className="animate-spin" size={14} /> : <BookOpen size={14} />}
-                            <span>Escanear Carpeta</span>
+                            Explorar
                         </button>
-
-                        {/* Upload PDF Button */}
                         <button
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={isUploading}
-                            className="bg-[#C55959] text-white border border-[#C55959] px-4 py-2 rounded text-[10px] uppercase font-bold tracking-wider hover:bg-white hover:text-[#C55959] transition-colors flex items-center gap-2 shadow-lg"
+                            onClick={() => setActiveTab('asimilar')}
+                            className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'asimilar' ? 'bg-white text-black shadow-xl' : 'text-gray-400 hover:text-white'}`}
                         >
-                            {isUploading ? <Loader2 className="animate-spin" size={14} /> : <Upload size={14} />}
-                            <span>{isUploading ? 'Leyendo...' : 'Subir PDF'}</span>
+                            Asimilar Conocimiento
                         </button>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileUpload}
-                            accept="application/pdf"
-                            className="hidden"
-                        />
-
-                        <button
-                            onClick={() => setShowAdd(!showAdd)}
-                            className={`px-4 py-2 rounded text-[10px] uppercase font-bold tracking-wider transition-colors flex items-center gap-2 border ${showAdd ? 'bg-white text-black border-white' : 'bg-transparent text-white border-white/30 hover:bg-white/10'}`}
-                        >
-                            <Plus size={14} /> <span>Manual</span>
-                        </button>
-
-                        {/* HISTORY CONTROLS */}
-                        <div className="flex items-center gap-1 bg-white/5 p-1 rounded-lg border border-white/10">
-                            {/* UNDO */}
-                            <button
-                                onClick={handleUndo}
-                                disabled={history.length === 0}
-                                className="px-3 py-1.5 rounded text-[10px] uppercase font-bold tracking-wider transition-colors flex items-center gap-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/50 hover:bg-yellow-500 hover:text-black disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Deshacer última importación"
-                            >
-                                <span className="text-sm">↺</span>
-                            </button>
-
-                            {/* DELETE LAST */}
-                            <button
-                                onClick={handleDeleteLastBatch}
-                                disabled={customKnowledge.length === 0}
-                                className="px-3 py-1.5 rounded text-[10px] uppercase font-bold tracking-wider transition-colors flex items-center gap-2 text-orange-400 hover:bg-orange-500/20 hover:text-orange-200 disabled:opacity-30"
-                                title="Borrar último registro añadido (Manual)"
-                            >
-                                <span>Borrar Último</span>
-                            </button>
-
-                            {/* PANIC */}
-                            <button
-                                onClick={handleClearAll}
-                                className="px-3 py-1.5 rounded text-[10px] transition-colors text-red-500/50 hover:text-red-500 hover:bg-red-500/10"
-                                title="BORRADO TOTAL"
-                            >
-                                🗑
-                            </button>
-                        </div>
-
-                        <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors text-2xl ml-2">×</button>
                     </div>
+
+                    <button onClick={onClose} className="p-2 text-gray-500 hover:text-white transition-colors absolute top-6 right-6">
+                        <X size={24} />
+                    </button>
                 </div>
 
                 {/* Assimilation Panel (Manual Text) */}
-                {showAdd && (
-                    <div className="bg-[#2a2a2a] p-6 text-white border-b border-[#C55959] animate-slideDown">
-                        <h3 className="font-serif text-lg mb-2 flex items-center gap-2"><Book size={18} /> Asimilación Manual</h3>
-                        <p className="text-xs text-gray-400 mb-4 max-w-2xl">
-                            Escribe o pega notas sueltas aquí. Para libros completos, usa los botones de arriba (Subir PDF o Escanear Carpeta).
-                        </p>
-                        <div className="flex gap-4">
-                            <textarea
-                                className="flex-1 bg-black/30 border border-white/10 rounded p-4 text-sm font-mono focus:border-[#C55959] outline-none h-32 resize-none"
-                                placeholder="Escribe aquí tu conocimiento..."
-                                value={knowledgeInput}
-                                onChange={(e) => setKnowledgeInput(e.target.value)}
-                            />
-                            <div className="flex flex-col gap-2 justify-end w-48">
+                {activeTab === 'asimilar' && (
+                    <div className="bg-[#1a1a1a] p-10 text-white border-b border-[#C55959]/30 animate-in fade-in zoom-in duration-500">
+                        <div className="max-w-4xl mx-auto">
+                            <h3 className="font-serif text-2xl font-black mb-4 flex items-center gap-3">
+                                <BrainCircuit size={28} className="text-[#C55959]" />
+                                Destilación de Conocimiento
+                            </h3>
+                            <p className="text-xs text-gray-400 mb-8 leading-relaxed uppercase tracking-widest">
+                                Introduce fragmentos de textos antiguos, manuales de psicología o técnicas de actuación. La IA asimilará el contenido y lo integrará en los arquetipos correspondientes.
+                            </p>
+                            <div className="flex flex-col gap-6">
+                                <textarea
+                                    className="w-full bg-black/50 border border-white/10 rounded-2xl p-8 text-sm font-mono focus:border-[#C55959] outline-none h-64 resize-none transition-all shadow-inner"
+                                    placeholder="Pega aquí el texto a transmutar..."
+                                    value={knowledgeInput}
+                                    onChange={(e) => setKnowledgeInput(e.target.value)}
+                                />
                                 <button
                                     onClick={handleAssimilate}
-                                    disabled={isAssimilating}
-                                    className="bg-white text-black px-4 py-3 rounded font-bold uppercase tracking-widest text-xs hover:bg-[#C55959] hover:text-white transition-colors disabled:opacity-50 h-full flex items-center justify-center gap-2"
+                                    disabled={isAssimilating || !knowledgeInput.trim()}
+                                    className="w-full bg-white text-black py-6 rounded-2xl font-black uppercase tracking-[0.4em] text-xs hover:bg-[#C55959] hover:text-white transition-all disabled:opacity-20 shadow-2xl flex items-center justify-center gap-4"
                                 >
-                                    {isAssimilating ? <Loader2 className="animate-spin" /> : <><BookOpen size={16} /> ASIMILAR</>}
+                                    {isAssimilating ? <Loader2 className="animate-spin" /> : <Sparkles size={18} />}
+                                    {isAssimilating ? 'TRANSMUTANDO...' : 'ASIMILAR EN LA MEMORIA VIVA'}
                                 </button>
                             </div>
                         </div>
@@ -286,88 +242,94 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
 
 
                 {/* Content */}
-                <div className="flex-1 overflow-auto p-8 bg-[#F9F8F4]">
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {signs.map(([sign, data]) => (
-                            <div key={sign} className="bg-white rounded-xl shadow-sm border border-black/5 overflow-hidden hover:shadow-md transition-shadow">
-                                <div className="bg-gray-50 border-b border-black/5 p-4 flex justify-between items-center">
-                                    <h3 className="font-bold text-lg font-serif text-[#C55959]">{sign}</h3>
-                                    <span className="text-[10px] bg-white border border-gray-200 px-2 py-1 rounded-full uppercase tracking-wider text-gray-500">
-                                        {data.keywords[1]}
-                                    </span>
-                                </div>
-
-                                <div className="p-4 space-y-4 text-xs">
-
-                                    <div>
-                                        <div className="uppercase font-bold tracking-widest text-gray-400 mb-1 flex items-center gap-1">
-                                            <span className="text-yellow-500 text-sm">☉</span> Sol (Esencia)
-                                        </div>
-                                        <p className="font-serif text-gray-700 leading-relaxed italic">{data.sun}</p>
+                <div className="flex-1 overflow-auto p-12 bg-[#F9F8F4] custom-scrollbar">
+                    {activeTab === 'explorar' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            {signs.map(([sign, data]) => (
+                                <div key={sign} className="bg-white rounded-[32px] shadow-xl border border-black/5 overflow-hidden hover:shadow-2xl transition-all group/card flex flex-col">
+                                    <div className="bg-black text-white p-6 flex justify-between items-center group-hover/card:bg-[#C55959] transition-colors duration-500">
+                                        <h3 className="font-serif font-black text-xl uppercase tracking-tighter">{sign}</h3>
+                                        <span className="text-[9px] font-black uppercase tracking-widest opacity-50">{data.keywords[1]}</span>
                                     </div>
 
-                                    <div>
-                                        <div className="uppercase font-bold tracking-widest text-gray-400 mb-1 flex items-center gap-1">
-                                            <span className="text-gray-400 text-sm">☽</span> Luna (Emoción)
-                                        </div>
-                                        <p className="font-serif text-gray-700 leading-relaxed italic">{data.moon}</p>
-                                    </div>
+                                    <div className="p-8 space-y-6 text-xs flex-1">
+                                        <div className="space-y-4">
+                                            <div className="p-4 bg-gray-50 rounded-2xl border border-black/5">
+                                                <div className="uppercase font-black tracking-widest text-[#C55959] text-[8px] mb-2 flex items-center gap-2">
+                                                    <Sun size={10} /> Esencia Consciente
+                                                </div>
+                                                <p className="font-serif text-gray-800 leading-relaxed italic text-[11px]">{data.sun}</p>
+                                            </div>
 
-                                    <div>
-                                        <div className="uppercase font-bold tracking-widest text-gray-400 mb-1 flex items-center gap-1">
-                                            <span className="text-black text-sm">↑</span> Ascendente (Máscara)
-                                        </div>
-                                        <p className="font-serif text-gray-700 leading-relaxed italic">{data.ascendant}</p>
-                                    </div>
+                                            <div className="p-4 bg-gray-50 rounded-2xl border border-black/5">
+                                                <div className="uppercase font-black tracking-widest text-gray-400 text-[8px] mb-2 flex items-center gap-2">
+                                                    <span>☽</span> Herida y Refugio
+                                                </div>
+                                                <p className="font-serif text-gray-800 leading-relaxed italic text-[11px]">{data.moon}</p>
+                                            </div>
 
-                                    <div className="pt-2 border-t border-dashed border-gray-200 grid grid-cols-2 gap-2">
-                                        <div className="bg-green-50 p-2 rounded">
-                                            <span className="block text-[8px] uppercase font-bold text-green-700 mb-1">Luz (Virtud)</span>
-                                            <p className="text-gray-600 leading-tight">{data.light}</p>
+                                            <div className="p-4 bg-gray-50 rounded-2xl border border-black/5">
+                                                <div className="uppercase font-black tracking-widest text-gray-400 text-[8px] mb-2 flex items-center gap-2">
+                                                    <span>↑</span> Vehículo de Acción
+                                                </div>
+                                                <p className="font-serif text-gray-800 leading-relaxed italic text-[11px]">{data.ascendant}</p>
+                                            </div>
                                         </div>
-                                        <div className="bg-red-50 p-2 rounded">
-                                            <span className="block text-[8px] uppercase font-bold text-red-700 mb-1">Sombra (Defecto)</span>
-                                            <p className="text-gray-600 leading-tight">{data.shadow}</p>
-                                        </div>
-                                    </div>
 
-                                    {/* Custom Knowledge Render */}
-                                    {getCustomForSign(sign).length > 0 && (
-                                        <div className="pt-2 border-t border-dashed border-purple-200 mt-2">
-                                            <span className="block text-[8px] uppercase font-bold text-purple-700 mb-1">Sabiduría Adicional</span>
-                                            <div className="space-y-2">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-green-50/50 p-4 rounded-2xl border border-green-100">
+                                                <span className="block text-[8px] font-black uppercase text-green-700 tracking-widest mb-2">Virtud</span>
+                                                <p className="text-gray-600 leading-tight text-[10px]">{data.light}</p>
+                                            </div>
+                                            <div className="bg-red-50/50 p-4 rounded-2xl border border-red-100">
+                                                <span className="block text-[8px] font-black uppercase text-red-700 tracking-widest mb-2">Sombra</span>
+                                                <p className="text-gray-600 leading-tight text-[10px]">{data.shadow}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Custom Knowledge Render */}
+                                        {getCustomForSign(sign).length > 0 && (
+                                            <div className="pt-6 border-t border-black/5 mt-4 space-y-3">
+                                                <span className="block text-[8px] font-black uppercase text-purple-600 tracking-[0.3em] mb-4">Gnosis Adicional</span>
                                                 {getCustomForSign(sign).map((k, i) => (
-                                                    <div key={i} className="bg-purple-50 p-2 rounded text-[10px] border border-purple-100">
-                                                        <div className="flex justify-between items-start mb-1">
-                                                            <span className="font-bold text-purple-900 uppercase tracking-wider">{k.category}</span>
+                                                    <div key={i} className="bg-purple-50/50 p-4 rounded-2xl border border-purple-100 relative group/item">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <span className="text-[7px] font-black uppercase tracking-widest text-purple-400">{k.category}</span>
                                                             <button
                                                                 onClick={() => {
-                                                                    if (confirm('¿Olvidar este conocimiento?')) {
-                                                                        const updated = customKnowledge.filter((_, idx) => _ !== k); // Note: simple filter by ref might fail if reloaded, but let's try
-                                                                        // Better: filter by content match since we don't have IDs
+                                                                    if (confirm('¿Olvidar este registro?')) {
                                                                         const realUpdated = customKnowledge.filter(item => item.value !== k.value || item.category !== k.category || item.target !== k.target);
                                                                         saveToApi(realUpdated);
                                                                     }
                                                                 }}
-                                                                className="text-purple-300 hover:text-purple-700"
+                                                                className="opacity-0 group-hover/item:opacity-100 text-purple-300 hover:text-purple-600"
                                                             >
                                                                 ×
                                                             </button>
                                                         </div>
-                                                        <div className="font-bold text-purple-800 mb-1">{k.value}</div>
-                                                        <div className="text-purple-600 italic leading-tight opacity-80">{k.description}</div>
+                                                        <div className="font-black text-purple-900 text-[10px] uppercase mb-1">{k.value}</div>
+                                                        <p className="text-[10px] text-purple-700 italic font-serif leading-relaxed opacity-80">{k.description}</p>
                                                     </div>
                                                 ))}
                                             </div>
-                                        </div>
-                                    )}
-
+                                        )}
+                                    </div>
                                 </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center p-20 text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="w-24 h-24 bg-black text-white rounded-full flex items-center justify-center">
+                                <Plus size={48} />
                             </div>
-                        ))}
-                    </div>
-
+                            <div>
+                                <h3 className="text-2xl font-serif font-black uppercase tracking-tight">El Laboratorio está listo</h3>
+                                <p className="text-gray-400 mt-2 max-w-sm mx-auto text-xs uppercase tracking-widest leading-loose">
+                                    Selecciona una fuente de conocimiento arriba para expandir la inteligencia de ALCHEMISTERY.
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* FOOTER: LAST UPDATE */}

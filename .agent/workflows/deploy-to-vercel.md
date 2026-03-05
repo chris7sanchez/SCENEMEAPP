@@ -20,7 +20,7 @@ description: Deploy the Antigravity application to Vercel
    npx vercel
    ```
    Follow the interactive prompts:
-   - Set up and deploy? [Y]
+   - Set up and deploy? [Y]y
    - Which scope? [Select your team/user]
    - Link to existing project? [N] (or Y if updating)
    - Project name? [antigravity]
