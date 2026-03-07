@@ -7,12 +7,11 @@ import { googleAI, gemini15Flash } from '@genkit-ai/googleai';
 // ============================================
 
 // Initialize Genkit with the Google AI plugin.
-// Using Gemini Flash for:
-// - Universal availability and high quota
-// - Excellent structured output adherence
 // - Fast response times for real-time readings
+const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY || '';
+
 export const ai = genkit({
-    plugins: [googleAI()],
+    plugins: apiKey ? [googleAI({ apiKey })] : [],
     model: gemini15Flash,
 });
 
