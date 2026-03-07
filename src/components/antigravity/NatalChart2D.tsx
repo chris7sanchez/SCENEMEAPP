@@ -21,6 +21,8 @@ interface NatalChartProps {
     date?: string;
     latitude?: number;
     longitude?: number;
+    timezone?: number;
+    isDST?: boolean;
     transitsDate?: string;
     knownAscendant?: string; // NEW Override
     knownMoon?: string; // NEW Override for Characters
@@ -82,12 +84,12 @@ const THEMES = {
     }
 };
 
-export default function NatalChart2D({ date, latitude = 40.4168, longitude = -3.7038, transitsDate, knownAscendant, knownMoon, customPlanets, transparent = false, forceAriesZero = false, theme = 'classic' }: NatalChartProps) {
+export default function NatalChart2D({ date, latitude = 40.4168, longitude = -3.7038, timezone = 0, isDST = false, transitsDate, knownAscendant, knownMoon, customPlanets, transparent = false, forceAriesZero = false, theme = 'classic' }: NatalChartProps) {
     const style = THEMES[theme] || THEMES.classic;
     const { natalPlanets, ascendant, houses, chartRotation } = useMemo(() => {
         if (!date) return { natalPlanets: [], ascendant: 0, houses: [], chartRotation: 0 };
 
-        const data = calculateRealPlanets(date, latitude, longitude);
+        const data = calculateRealPlanets(date, latitude, longitude, 'porphyry', timezone, isDST);
 
         let finalAscendant = data.ascendant;
         let finalPlanets = [...data.planets];

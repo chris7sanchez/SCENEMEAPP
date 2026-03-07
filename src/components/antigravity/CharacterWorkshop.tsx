@@ -404,6 +404,41 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                         )
                                                     })}
                                                 </div>
+
+                                                <div className="mt-6 border-t border-black/5 pt-6">
+                                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-4">Fecha de Encarnación Exacta (UTC)</h4>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="flex flex-col bg-white p-4 rounded-none border border-black/5 shadow-sm">
+                                                            <label className="text-[9px] uppercase font-black text-gray-400 mb-2">Día de Nacimiento</label>
+                                                            <input 
+                                                                type="date" 
+                                                                className="text-xs font-black uppercase border-none outline-none bg-transparent text-gray-900 w-full"
+                                                                value={characterProfiles[selectedCharacterId].birthData.date.split('T')[0] || ''}
+                                                                onChange={(e) => {
+                                                                    const updated = [...characterProfiles];
+                                                                    const parts = updated[selectedCharacterId].birthData.date.split('T');
+                                                                    updated[selectedCharacterId].birthData.date = `${e.target.value}T${parts[1] || '12:00:00Z'}`;
+                                                                    setCharacterProfiles(updated);
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div className="flex flex-col bg-white p-4 rounded-none border border-black/5 shadow-sm">
+                                                            <label className="text-[9px] uppercase font-black text-gray-400 mb-2">Hora (UTC)</label>
+                                                            <input 
+                                                                type="time" 
+                                                                className="text-xs font-black uppercase border-none outline-none bg-transparent text-gray-900 w-full"
+                                                                value={characterProfiles[selectedCharacterId].birthData.date.split('T')[1]?.substring(0,5) || '12:00'}
+                                                                onChange={(e) => {
+                                                                    const updated = [...characterProfiles];
+                                                                    const parts = updated[selectedCharacterId].birthData.date.split('T');
+                                                                    updated[selectedCharacterId].birthData.date = `${parts[0]}T${e.target.value}:00Z`;
+                                                                    setCharacterProfiles(updated);
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                             </div>
                                         )}
 

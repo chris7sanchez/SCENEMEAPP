@@ -1,0 +1,138 @@
+:root {
+    --astro-bg: #1a1c2c;
+    --astro-text: #ffffff;
+    --astro-accent: #3b82f6;
+    --astro-card-bg: #0d0f1a;
+    --astro-glass: rgba(13, 15, 26, 0.6);
+    --astro-border: rgba(255, 255, 255, 0.1);
+    --astro-font: 'Inter', system-ui, sans-serif;
+    
+    /* Light Theme (Parchment) */
+    --astrolab-light-bg: #f8f4e9;
+    --astrolab-parchment: #fdfaf3;
+    --astrolab-ink: #2d2926;
+    --astrolab-gold: #c5a367;
+    --astrolab-border-soft: #e5dfd0;
+}
+
+.astrolab-container {
+    font-family: var(--astro-font);
+}
+
+/* Light Mode Styles */
+.astrolab-light {
+    background-color: var(--astrolab-light-bg);
+    color: var(--astrolab-ink);
+}
+
+.parchment-card {
+    background-color: var(--astrolab-parchment);
+    border: 1px solid var(--astrolab-border-soft);
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.astrolab-ink-text {
+    color: var(--astrolab-ink);
+}
+
+.astrolab-gold-text {
+    color: var(--astrolab-gold);
+}
+
+/* Grid & Layout */
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+.search-bar-rounded {
+    background-color: #eee9db;
+    border-radius: 9999px;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    width: 100%;
+}
+
+/* Dark Mode (Simulator) */
+.astrolab-dark {
+    background-color: var(--astro-bg);
+    color: var(--astro-text);
+}
+
+.astrolab-header {
+    border-bottom: 1px solid var(--astro-border);
+}
+
+.astrolab-orbital-view {
+    position: relative;
+    height: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.astrolab-radial-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(29, 78, 216, 0.15), transparent);
+}
+
+.astrolab-character-card {
+    width: 13rem;
+    height: 18rem;
+    background-color: var(--astro-card-bg);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+}
+
+.astrolab-slot {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+    border: 2px solid;
+}
+
+.astrolab-slot-blue {
+    background-color: rgba(30, 58, 138, 0.5);
+    border-color: #60a5fa;
+    color: #60a5fa;
+}
+
+.astrolab-slot-orange {
+    background-color: rgba(124, 45, 18, 0.5);
+    border-color: #f97316;
+}
+
+.astrolab-slot-green {
+    background-color: rgba(20, 83, 45, 0.5);
+    border-color: #22c55e;
+}
+
+.astrolab-mono {
+    font-family: 'Roboto Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+}
+
+.char-info-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, black, transparent);
+    padding: 1rem;
+    text-align: center;
+}

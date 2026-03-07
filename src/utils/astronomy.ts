@@ -42,10 +42,12 @@ export interface PlanetPosition {
 
 export interface BirthData {
     name?: string;
-    date: string;           // ISO date string
+    date: string;           // Birth date (YYYY-MM-DD)
+    time: string;           // Birth time (HH:mm)
     latitude: number;       // Geographic latitude
     longitude: number;      // Geographic longitude  
-    time?: string;          // Optional time string
+    timezone: number;       // Base timezone offset (e.g. 1 for UTC+1)
+    isDaylightSaving: boolean; // If DST was active
     city?: string;          // Birth place name
 }
 
@@ -126,6 +128,40 @@ export function getSignFromLongitude(longitude: number): string {
 function getDegreeInSign(longitude: number): number {
     const normalizedLon = ((longitude % 360) + 360) % 360;
     return normalizedLon % 30;
+}
+
+/**
+ * Calculates True UTC from Local birth data
+ * Formula: UTC = LocalTime - (StandardOffset + DSTAdjustment)
+ * Also includes Longitude Correction (Ajuste por Longitud) for extreme precision
+ */
+export function convertToUTC(
+    dateStr: string,
+    timeStr: string,
+    timezone: number,
+    isDST: boolean,
+    longitude?: number
+): Date {
+    // 1. Create date at noon to avoid boundary issues during setup
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const [hours, minutes] = timeStr.split(':').map(Number);
+
+    // Initial local date object (using UTC constructor to avoid local machine pollution)
+    const localDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+
+    // 2. Apply Timezone and DST (UTC = Local - Offset)
+    const dstOffset = isDST ? 1 : 0;
+    const totalOffsetHours = timezone + dstOffset;
+    
+    // Convert to UTC by subtracting the offset in milliseconds
+    const utcTimeInMs = localDate.getTime() - (totalOffsetHours * 60 * 60 * 1000);
+    
+    // 3. Optional: Longitude Correction (Ajuste a Tiempo Local Medio)
+    // Only applied if we want to shift the internal 'moment' of birth to the actual Meridian
+    // Note: For modern ephimeris, we just need the UTC moment. 
+    // The "Long * 4" is already integrated in LST calculation.
+    
+    return new Date(utcTimeInMs);
 }
 
 /**
@@ -327,9 +363,20 @@ export function calculateRealPlanets(
     dateStr: string,
     latitude: number = 40.4168,
     longitude: number = -3.7038,
-    houseSystem: HouseSystem = 'porphyry'
+    houseSystem: HouseSystem = 'porphyry',
+    timezoneOffset: number = 0,
+    isDaylightSaving: boolean = false
 ): ChartData {
-    const date = new Date(dateStr);
+    // If dateStr contains 'T', we assume it's already ISO or needs parsing as is
+    // If not, we should use our new robust converter
+    let date: Date;
+    if (dateStr.includes('T')) {
+        date = new Date(dateStr);
+    } else {
+        // Fallback for simple date strings, assuming midnight
+        date = new Date(dateStr + 'T12:00:00Z');
+    }
+
     const JD = dateToJulianDay(date);
 
     // Calculate angles

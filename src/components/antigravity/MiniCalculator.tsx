@@ -15,24 +15,33 @@ const MiniCalculator: React.FC<MiniCalculatorProps> = ({ currentDate }) => {
     const [activeTab, setActiveTab] = useState<CalculatorTab>('timezone');
 
     // Timezone converter state
-    const [localTime, setLocalTime] = useState(new Date().toISOString().slice(0, 16));
-    const [utcTime, setUtcTime] = useState('');
+    const [localDate, setLocalDate] = useState(new Date().toISOString().slice(0, 10));
+    const [localTime, setLocalTime] = useState('12:00');
+    const [tzOffset, setTzOffset] = useState(1);
+    const [isDST, setIsDST] = useState(false);
+    const [utcResult, setUtcResult] = useState('');
+
+    const calculateUTC = () => {
+        const [year, month, day] = localDate.split('-').map(Number);
+        const [hours, minutes] = localTime.split(':').map(Number);
+        
+        // UTC = Local - (TZ + DST)
+        // We use UTC constructor to avoid JS local time interference
+        const date = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+        const totalOffset = tzOffset + (isDST ? 1 : 0);
+        
+        const utcTime = new Date(date.getTime() - (totalOffset * 60 * 60 * 1000));
+        setUtcResult(utcTime.toISOString().replace('T', ' ').slice(0, 19) + ' UTC');
+    };
+
+    // Auto-calculate
+    React.useEffect(() => {
+        calculateUTC();
+    }, [localDate, localTime, tzOffset, isDST]);
 
     // Aspect search state
     const [aspectSearchDate, setAspectSearchDate] = useState(currentDate || new Date().toISOString());
     const [foundAspects, setFoundAspects] = useState<any[]>([]);
-
-    const handleTimezoneConversion = (input: string, type: 'local' | 'utc') => {
-        if (type === 'local') {
-            setLocalTime(input);
-            const date = new Date(input);
-            setUtcTime(date.toISOString().slice(0, 16));
-        } else {
-            setUtcTime(input);
-            const date = new Date(input + 'Z');
-            setLocalTime(date.toISOString().slice(0, 16).replace('Z', ''));
-        }
-    };
 
     const searchAspects = () => {
         try {
@@ -104,40 +113,67 @@ const MiniCalculator: React.FC<MiniCalculatorProps> = ({ currentDate }) => {
                         {/* Content */}
                         <div className="p-6 max-h-[400px] overflow-y-auto">
                             {activeTab === 'timezone' && (
-                                <div className="space-y-6">
-                                    <div>
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2 block">
-                                            Hora Local
-                                        </label>
-                                        <input
-                                            type="datetime-local"
-                                            value={localTime}
-                                            onChange={(e) => handleTimezoneConversion(e.target.value, 'local')}
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        />
-                                    </div>
-
-                                    <div className="flex items-center justify-center">
-                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                                            <span className="text-indigo-600 text-xs">⇅</span>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2 block">
+                                                Fecha
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={localDate}
+                                                onChange={(e) => setLocalDate(e.target.value)}
+                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-mono focus:ring-2 focus:ring-indigo-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2 block">
+                                                Hora Local
+                                            </label>
+                                            <input
+                                                type="time"
+                                                value={localTime}
+                                                onChange={(e) => setLocalTime(e.target.value)}
+                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-mono focus:ring-2 focus:ring-indigo-500"
+                                            />
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2 block">
-                                            Hora UTC
-                                        </label>
-                                        <input
-                                            type="datetime-local"
-                                            value={utcTime}
-                                            onChange={(e) => handleTimezoneConversion(e.target.value, 'utc')}
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2 block">
+                                                Huso (Offset)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={tzOffset}
+                                                onChange={(e) => setTzOffset(Number(e.target.value))}
+                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-mono focus:ring-2 focus:ring-indigo-500"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-2 block">
+                                                Verano (DST)
+                                            </label>
+                                            <button 
+                                                onClick={() => setIsDST(!isDST)}
+                                                className={`flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all border ${isDST ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-gray-50 text-gray-400 border-gray-200'}`}
+                                            >
+                                                {isDST ? 'Activo (+1h)' : 'Inactivo'}
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <div className="bg-indigo-50 p-4 rounded-xl">
-                                        <p className="text-[9px] text-indigo-900 leading-relaxed font-medium">
-                                            💡 Modifica cualquier campo para ver la conversión instantánea entre zonas horarias.
+                                    <div className="bg-gradient-to-br from-indigo-900 to-purple-900 p-5 rounded-2xl shadow-inner-xl mt-4">
+                                        <label className="text-[8px] font-black uppercase tracking-[0.2em] text-indigo-300 mb-2 block">
+                                            Resultado Final (UTC/GMT)
+                                        </label>
+                                        <div className="text-xl font-mono font-bold text-white tracking-tight">
+                                            {utcResult}
+                                        </div>
+                                        <p className="text-[9px] text-indigo-200/60 mt-3 leading-relaxed">
+                                            Fórmula Aplicada: <br/>
+                                            <span className="text-indigo-100 italic">UTC = Local - ({tzOffset} + {isDST ? '1' : '0'})</span>
                                         </p>
                                     </div>
                                 </div>
