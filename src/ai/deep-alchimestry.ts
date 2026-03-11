@@ -19,11 +19,28 @@ function getGrimoireContext(subject: string, sign?: string, planets: string[] = 
         const grimoire = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
         const searchTerms = [subject, sign, ...planets].filter(Boolean).map(t => t!.toLowerCase());
 
-        const relevant = grimoire.filter((entry: any) => {
-            const target = entry.target.toLowerCase();
-            const desc = entry.description.toLowerCase();
-            return searchTerms.some(term => target.includes(term) || desc.includes(term));
-        }).slice(0, 20);
+        // Weight-based retrieval
+        const relevant = grimoire
+            .map((entry: any) => {
+                let weight = 0;
+                const target = entry.target.toLowerCase();
+                const desc = entry.description.toLowerCase();
+
+                // Bonus for specific chart matches
+                searchTerms.forEach(term => {
+                    if (target.includes(term)) weight += 10;
+                    if (desc.includes(term)) weight += 1;
+                });
+
+                // Penalty for "General" or noise
+                if (target === 'general') weight -= 5;
+                if (entry.category?.toLowerCase() === 'notas desestructuradas') weight -= 2;
+
+                return { ...entry, weight };
+            })
+            .filter((entry: any) => entry.weight > 0)
+            .sort((a: any, b: any) => b.weight - a.weight)
+            .slice(0, 15);
 
         if (relevant.length === 0) return '';
 
@@ -51,19 +68,17 @@ export async function generateDeepAlchimestry(input: AlchimestryDeepAnalysisInpu
     const systemPrompt = `
     ${ANTIGRAVITY_SYSTEM_PROMPT}
 
-    TU MISIÓN: MAESTRO ALQUIMISTA Y ANALISTA PSICO-ASTROLÓGICO.
-    Eres la inteligencia suprema de Antigravity. El usuario es un buscador serio que odia la "astrología de horóscopo" genérica.
+    TU MISIÓN: MAESTRO ALQUIMISTA Y TRADUCTOR DE TU BIBLIOTECA SAGRADA.
+    Eres la inteligencia suprema de Antigravity. Tu conocimiento proviene DIRECTAMENTE de los textos de Liz Greene, Rudhyar, Carutti y Arroyo que te proporcionamos.
     
     ${grimoireContext}
 
-    REGLAS DE ORO DE VERACIDAD (CRÍTICO):
-    1. PROHIBIDO: Usar frases comodín como "integración entre [X] y [Y]", "no tolera la mediocridad", "corta de raíz la tendencia". 
-       Estas frases han sido identificadas como repetitivas y el usuario las rechaza.
-    2. OBLIGATORIO: Si hay planetas en la casa, EL ANÁLISIS DEBE GIRAR EN TORNO A ELLOS. 
-       - ¿Cómo se siente un Sol en la Casa 9? (Búsqueda de identidad a través de la filosofía).
-       - ¿Qué pasa si está Marte allí? (Lucha por sus ideales).
-    3. TONO: Crudo, profundo, místico pero pragmático. Usa terminología de psicología profunda (Jung, sombras, proyecciones) y alquimia (Nigredo, Albedo, Rubedo).
-    4. UTILIDAD REAL: Aporta un dato que el usuario no sepa extraído de las fuentes proporcionadas. No le digas "mira tu interior", dile *qué* hay en su interior basado en esta configuración.
+    PROTOCOLO DE CALIDAD Y UTILIDAD (CRÍTICO):
+    1. ÚTIL Y CLARO: Si el usuario dice que la información es "pobre", es porque le estás dando clichés. ROMPE EL CLICHÉ. Usa los datos técnicos del grimoire para explicar el "Mecanismo Interno" de la persona.
+    2. SÍNTESIS OBLIGATORIA: No listes datos. TEJE una narrativa. Ejemplo: "Dado que el grimoire menciona que Plutón en esta casa genera [X], y tú tienes a [Signo], la clave es [Acción específica]".
+    3. CITAR FUENTES (ESTILO): Puedes usar frases como "La visión de Greene sugiere...", "Según la tradición de Rudhyar...", para dar peso y credibilidad.
+    4. PROHIBIDO: Frases como "un viaje de autodescubrimiento", "balancear energías", "tendencia a...". Sé quirúrgico.
+    5. TERMINOLOGÍA: Usa Nigredo (caos/sombra), Albedo (claridad/purificación), Rubedo (realización/fuego).
     `;
 
     const planetContext = planets && planets.length > 0 
@@ -111,9 +126,9 @@ export async function generateDeepAlchimestry(input: AlchimestryDeepAnalysisInpu
     };
 
     try {
-        const response = await safeGenerate(
+    const response = await safeGenerate(
             () => ai.generate({
-                model: 'googleai/gemini-1.5-flash',
+                model: 'googleai/gemini-flash-latest',
                 system: systemPrompt,
                 prompt: userPrompt,
                 output: { schema: AlchimestryDeepAnalysisOutputSchema }

@@ -20,43 +20,34 @@ export async function assimilateKnowledge(input: AssimilateKnowledgeInput): Prom
     const { content } = input;
 
     const systemPrompt = `
-    ROL: Analista Senior de Datos Astrológicos y Sistematizador.
-    TAREA: Convertir texto crudo (PDFs, notas) en entradas de base de datos estructuradas y lógicas.
-    IDIOMA: SIEMPRE EN ESPAÑOL. Traduce si la fuente está en inglés.
+    ROL: Maestro Exégeta de Astrología Psicológica y Evolutiva.
+    TAREA: Extraer la "médula" y el conocimiento profundo de textos de autores como Liz Greene, Carutti o Rudhyar.
+    IDIOMA: Español.
     
-    REQUISITO CRÍTICO: "La información debe ser concreta, concisa, fácil de asimilar y lógica."
+    REQUISITO CRÍTICO: "MENOS ES MÁS EN CANTIDAD, PERO MÁS ES MEJOR EN PROFUNDIDAD."
     
     INSTRUCCIONES:
-    1. LEE el texto analíticamente. Ignora la paja. Busca DATOS DUROS (reglas, correspondencias, definiciones).
+    1. ANALIZA el texto buscando revelaciones sobre la SOMBRA, el PROPÓSITO EVOLUTIVO y la DINÁMICA PSÍQUICA.
     
-    2. CATEGORIZA sin piedad:
-       ❌ MAL: Category="Sobre Aries", Value="Es energético"
-       ✅ BIEN: Category="Palabra Clave Arquetipo", Value="Guerrero", Description="Representa la energía de iniciación pura."
+    2. CALIDAD DE LA SALIDA:
+       - Target: Debe ser el planeta, signo o casa específico (ej: "Luna en Escorpio", "Casa 8", "Saturno").
+       - Value: Un título o concepto clave que defina la revelación (ej: "La herida de la orfandad psíquica").
+       - Description: Un párrafo denso, rico y místico-psicológico. Captura la VOZ del autor. No resumas, destila la esencia.
     
-    3. MAPEO DE TARGETS:
-       - Asigna cada dato a un nodo específico: 'Aries', 'Sol', 'Casa 1', 'Mercurio', etc.
-       - Normaliza nombres: "Taurus" → "Tauro", "Scorpio" → "Escorpio"
+    3. FILTRO DE RUIDO: Ignora bibliografías, prefacios, agradecimientos o contenido puramente descriptivo.
     
-    4. FORMATO DE SALIDA:
-       - Value: Cadenas cortas y contundentes (1-5 palabras)
-       - Description: Una oración clara explicando el "Por qué" o "Cómo". Sin poesía.
-    
-    5. SUMMARY:
-       - Debe leerse como un changelog ejecutivo
-       - Ejemplo: "Extraídos 5 rasgos clave para Escorpio y actualizado mapeo de Venus."
-
-    CATEGORÍAS VÁLIDAS:
-    - Psychology, Archetype, Health, Career, Relationship, Shadow, Evolution, 
-    - Planetary Rulership, House Meaning, Aspect Interpretation
+    4. MAPEO DE TARGETS:
+       - Sé muy específico. "Sol en Casa 12" es mejor que "Sol".
+       - Si el texto habla de una configuración específica, ese es el Target.
     `;
 
     const userPrompt = `
-    FRAGMENTO DE CONOCIMIENTO NUEVO:
+    FRAGMENTO DE MANUSCRITO SAGRADO:
     """
     ${content.substring(0, 20000)}
     """
     
-    EXTRAE DATOS AHORA. ENFÓCATE EN LÓGICA Y CLARIDAD.
+    EXTRAE LA ESENCIA AHORA. SÉ PROFUNDO, NO SUPERFICIAL. En español.
     `;
 
     // Fallback using deterministic parser
@@ -64,6 +55,7 @@ export async function assimilateKnowledge(input: AssimilateKnowledgeInput): Prom
 
     return await safeGenerate(
         () => ai.generate({
+            model: 'googleai/gemini-flash-latest',
             system: systemPrompt,
             prompt: userPrompt,
             output: { schema: AssimilateKnowledgeOutputSchema }
