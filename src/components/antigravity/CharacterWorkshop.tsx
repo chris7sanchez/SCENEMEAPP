@@ -13,6 +13,8 @@ import SomaticBody from '@/components/antigravity/SomaticBody';
 import { ChartZoomWrapper } from './shared-components';
 import { findPossibleBirthDates, calculateRealPlanets } from '@/utils/astronomy';
 import { getSomaticAnalysis } from '@/utils/somatic-mapping';
+import { parsePdfAction } from '@/ai/parse-pdf';
+import { generateDeepAlchimestry } from '@/ai/deep-alchimestry';
 import { cn } from "@/lib/utils";
 
 interface CharacterWorkshopProps {
@@ -48,6 +50,10 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
     const [editingCharacterId, setEditingCharacterId] = useState<number | null>(null);
     const [isSearchingDates, setIsSearchingDates] = useState(false);
     const [foundDates, setFoundDates] = useState<Date[]>([]);
+    const [targetAge, setTargetAge] = useState<number>(24);
+    const [isPdfProcessing, setIsPdfProcessing] = useState(false);
+    const [isGeneratingDeepProfile, setIsGeneratingDeepProfile] = useState(false);
+    const [deepAlchemicalReveal, setDeepAlchemicalReveal] = useState<any>(null);
 
     const STEPS = [
         { id: 0, label: 'EL GUIONISTA', sub: 'Ingesta de Guion', icon: FileText },
@@ -73,6 +79,35 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
 
         return getSomaticAnalysis(finalPlanets);
     }, [selectedCharacterId, characterProfiles]);
+
+    const findBirthDatesByAge = () => {
+        if (selectedCharacterId === null) return;
+        const char = characterProfiles[selectedCharacterId];
+        const sun = char.fullAnalysis.sunSign;
+        const moon = char.fullAnalysis.knownMoon || char.fullAnalysis.moonSign || 'Aries';
+        const asc = char.fullAnalysis.knownAscendant || char.fullAnalysis.ascendant || 'Aries';
+
+        setIsSearchingDates(true);
+        setFoundDates([]);
+
+        setTimeout(() => {
+            try {
+                const currentYear = new Date().getFullYear();
+                const year1 = currentYear - targetAge;
+                const year2 = year1 - 1; // Para cubrir desplazamientos de fecha
+
+                const matches1 = findPossibleBirthDates(year1, sun, moon, asc);
+                const matches2 = findPossibleBirthDates(year2, sun, moon, asc);
+                
+                const allMatches = [...matches1, ...matches2].sort((a, b) => b.getTime() - a.getTime());
+                setFoundDates(allMatches);
+            } catch (e) {
+                console.error("Error searching dates:", e);
+            } finally {
+                setIsSearchingDates(false);
+            }
+        }, 500);
+    };
 
     const handleRefinement = async () => {
         if (selectedCharacterId === null) return;
@@ -228,10 +263,12 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                     <div className="flex items-center gap-4">
                                         <button
                                             onClick={() => document.getElementById('script-pdf-upload')?.click()}
-                                            className="flex items-center gap-2 px-4 py-2 bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg"
+                                            className="flex items-center gap-2 px-4 py-2 bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg disabled:opacity-50"
                                             title="Adjuntar PDF"
+                                            disabled={isPdfProcessing}
                                         >
-                                            <Upload size={14} className="text-amber-500" /> PDF
+                                            {isPdfProcessing ? <Loader2 size={14} className="animate-spin text-amber-500" /> : <Upload size={14} className="text-amber-500" />}
+                                            {isPdfProcessing ? 'PROCESANDO...' : 'PDF'}
                                         </button>
                                         <input
                                             id="script-pdf-upload"
@@ -241,9 +278,25 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                             onChange={async (e) => {
                                                 const file = e.target.files?.[0];
                                                 if (file) {
-                                                    // Aquí iría la lógica de parsePdfAction que ya existe en el sistema
-                                                    // Por ahora simulamos la carga o usamos la prop si estuviera disponible
-                                                    alert("Funcionalidad PDF Restaurada: Procesando guion...");
+                                                    setIsPdfProcessing(true);
+                                                    try {
+                                                        const formData = new FormData();
+                                                        formData.append('file', file);
+                                                        const result = await parsePdfAction(formData);
+                                                        
+                                                        if (result.error) {
+                                                            alert(`Error: ${result.error}`);
+                                                        } else if (result.text) {
+                                                            setScriptText(result.text);
+                                                        }
+                                                    } catch (error) {
+                                                        console.error("Error parsing PDF:", error);
+                                                        alert("Ocurrió un error al procesar el PDF.");
+                                                    } finally {
+                                                        setIsPdfProcessing(false);
+                                                        // Reset input
+                                                        e.target.value = '';
+                                                    }
                                                 }
                                             }}
                                         />
@@ -285,9 +338,20 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
 
                         <div className="lg:col-span-4 space-y-6">
                             <div className="glass-panel p-8 bg-black/5 rounded-none border-2 border-black/10 shadow-inner h-full">
-                                <h3 className="text-xs font-black uppercase tracking-[0.4em] text-gray-400 mb-8 flex items-center gap-3">
-                                    <Fingerprint size={16} /> Elenco Detectado
-                                </h3>
+                                <div className="flex justify-between items-center mb-8">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-gray-400 flex items-center gap-3">
+                                        <Fingerprint size={16} /> Elenco Detectado
+                                    </h3>
+                                    {characterProfiles.length > 0 && (
+                                        <button
+                                            onClick={() => setCharacterProfiles([])}
+                                            className="text-gray-400 hover:text-red-500 transition-colors"
+                                            title="Limpiar elenco"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
+                                </div>
                                 {characterProfiles.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center h-[400px] text-center space-y-4 opacity-30">
                                         <Ghost size={64} />
@@ -296,22 +360,34 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                 ) : (
                                     <div className="space-y-4">
                                         {characterProfiles.map((char, i) => (
-                                            <button
-                                                key={char.id}
-                                                onClick={() => {
-                                                    setSelectedCharacterId(i);
-                                                    setActiveStep(1);
-                                                }}
-                                                className="w-full text-left p-6 rounded-none bg-white border border-black/5 hover:border-black/20 hover:shadow-xl transition-all group relative overflow-hidden"
-                                            >
-                                                <div className="flex flex-col">
-                                                    <span className="text-xs font-black uppercase tracking-widest group-hover:text-amber-600 transition-colors">{char.name}</span>
-                                                    <span className="text-[9px] text-gray-400 uppercase font-bold mt-1">{char.fullAnalysis.archetype}</span>
-                                                </div>
-                                                <div className="absolute top-1/2 -right-4 -translate-y-1/2 opacity-0 group-hover:opacity-100 group-hover:right-6 transition-all">
+                                            <div key={char.id} className="relative group w-full">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedCharacterId(i);
+                                                        setActiveStep(1);
+                                                    }}
+                                                    className="w-full text-left p-6 pr-16 rounded-none bg-white border border-black/5 hover:border-black/20 hover:shadow-xl transition-all"
+                                                >
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-black uppercase tracking-widest group-hover:text-amber-600 transition-colors">{char.name}</span>
+                                                        <span className="text-[9px] text-gray-400 uppercase font-bold mt-1">{char.fullAnalysis.archetype}</span>
+                                                    </div>
+                                                </button>
+                                                
+                                                <div className="absolute top-1/2 right-4 -translate-y-1/2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setCharacterProfiles(prev => prev.filter((_, idx) => idx !== i));
+                                                        }}
+                                                        className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                                                        title="Eliminar personaje"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
                                                     <ChevronRight size={20} className="text-amber-600" />
                                                 </div>
-                                            </button>
+                                            </div>
                                         ))}
                                     </div>
                                 )}
@@ -406,10 +482,63 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                 </div>
 
                                                 <div className="mt-6 border-t border-black/5 pt-6">
-                                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-4">Fecha de Encarnación Exacta (UTC)</h4>
+                                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-[#C55959] mb-4 flex items-center gap-2">
+                                                        <Search size={14} /> Buscador de Encarnación por Edad
+                                                    </h4>
+                                                    <div className="bg-white p-6 border border-black/5 space-y-6">
+                                                        <div className="flex items-end gap-4">
+                                                            <div className="flex-1">
+                                                                <label className="text-[9px] uppercase font-black text-gray-400 mb-2 block">Edad del Personaje</label>
+                                                                <input 
+                                                                    type="number" 
+                                                                    className="w-full text-lg font-black bg-gray-50 border-none p-3 focus:ring-1 ring-amber-500 outline-none"
+                                                                    value={targetAge}
+                                                                    onChange={(e) => setTargetAge(parseInt(e.target.value) || 0)}
+                                                                />
+                                                            </div>
+                                                            <button 
+                                                                onClick={findBirthDatesByAge}
+                                                                disabled={isSearchingDates}
+                                                                className="bg-black text-white px-6 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-30 transition-all"
+                                                            >
+                                                                {isSearchingDates ? <Loader2 size={14} className="animate-spin" /> : 'Calcular Ventanas'}
+                                                            </button>
+                                                        </div>
+
+                                                        {foundDates.length > 0 && (
+                                                            <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-500">
+                                                                <p className="text-[9px] uppercase font-bold text-gray-400">Fechas compatibles encontradas:</p>
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                    {foundDates.map((date, idx) => (
+                                                                        <button
+                                                                            key={idx}
+                                                                            onClick={() => {
+                                                                                const updated = [...characterProfiles];
+                                                                                updated[selectedCharacterId].birthData.date = date.toISOString();
+                                                                                setCharacterProfiles(updated);
+                                                                                setFoundDates([]);
+                                                                            }}
+                                                                            className="p-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-left transition-all group"
+                                                                        >
+                                                                            <p className="text-[11px] font-black text-amber-900">
+                                                                                {date.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                                                            </p>
+                                                                            <p className="text-[9px] font-mono text-amber-700/60 mt-1 uppercase">
+                                                                                {date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} UTC
+                                                                            </p>
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-6 border-t border-black/5 pt-6">
+                                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-800/40 mb-4">Ajuste Manual Fino</h4>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="flex flex-col bg-white p-4 rounded-none border border-black/5 shadow-sm">
-                                                            <label className="text-[9px] uppercase font-black text-gray-400 mb-2">Día de Nacimiento</label>
+                                                            <label className="text-[9px] uppercase font-black text-gray-400 mb-2">Día de Nacimiento (UTC)</label>
                                                             <input 
                                                                 type="date" 
                                                                 className="text-xs font-black uppercase border-none outline-none bg-transparent text-gray-900 w-full"
@@ -447,22 +576,62 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                             <button
                                                 onClick={async () => {
                                                     const char = characterProfiles[selectedCharacterId];
-                                                    // We use the already imported generateDeepAlchimestry if we had it, 
-                                                    // but character workshop might need its own local logic or a prompt to ScriptAnalyzer
-                                                    // For now, let's add a state to show a "Deep Profile"
+                                                    if (!deepAlchemicalReveal && !isGeneratingDeepProfile) {
+                                                        setIsGeneratingDeepProfile(true);
+                                                        try {
+                                                            const res = await generateDeepAlchimestry({
+                                                                userName: char.name,
+                                                                birthData: char.birthData.date,
+                                                                subject: "Perfil Psicológico Profundo",
+                                                                sign: char.fullAnalysis.sunSign,
+                                                                context: `Análisis de personaje para guion. Arquetipo: ${char.fullAnalysis.adjective}. Veredicto inicial: ${char.fullAnalysis.verdict}`
+                                                            });
+                                                            setDeepAlchemicalReveal(res);
+                                                        } catch (e) {
+                                                            console.error(e);
+                                                        } finally {
+                                                            setIsGeneratingDeepProfile(false);
+                                                        }
+                                                    }
                                                     setEditingCharacterId(editingCharacterId === -selectedCharacterId ? null : -selectedCharacterId);
                                                 }}
-                                                className="w-full py-4 bg-purple-600 text-white font-black uppercase tracking-widest text-[9px] rounded-none flex items-center justify-center gap-2 hover:bg-purple-500 transition-all shadow-lg shadow-purple-900/10"
+                                                disabled={isGeneratingDeepProfile}
+                                                className="w-full py-4 bg-purple-600 text-white font-black uppercase tracking-widest text-[9px] rounded-none flex items-center justify-center gap-2 hover:bg-purple-500 transition-all shadow-lg shadow-purple-900/10 disabled:opacity-50"
                                             >
-                                                <Sparkles size={14} /> Revelación Alquímica del Personaje
+                                                {isGeneratingDeepProfile ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                                                {isGeneratingDeepProfile ? 'Destilando Esencia...' : 'Revelación Alquímica del Personaje'}
                                             </button>
 
                                             {editingCharacterId === -selectedCharacterId && (
                                                 <div className="mt-6 p-6 bg-purple-50 rounded-none border border-purple-100 animate-in fade-in slide-in-from-top-2 duration-500">
                                                     <h5 className="text-[10px] font-black uppercase text-purple-600 tracking-widest mb-4">La Esencia del Protagonista</h5>
-                                                    <p className="text-sm font-serif italic text-purple-900 leading-relaxed">
-                                                        "{characterProfiles[selectedCharacterId].fullAnalysis.analysis || "Analizando la profundidad psíquica..."}"
-                                                    </p>
+                                                    
+                                                    {deepAlchemicalReveal ? (
+                                                        <div className="space-y-6">
+                                                            <div className="p-6 bg-white border border-purple-100 rounded-none shadow-sm">
+                                                                <span className="text-[8px] font-black uppercase text-purple-400 block mb-2 tracking-[0.2em]">Meditación del Arquetipo</span>
+                                                                <p className="text-sm font-serif italic text-purple-900 leading-relaxed">
+                                                                    "{deepAlchemicalReveal.meditation}"
+                                                                </p>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                <div className="bg-white/80 p-5 border border-purple-50">
+                                                                    <span className="text-[8px] font-black uppercase text-purple-400 block mb-2">Sabiduría Práctica (Actor)</span>
+                                                                    <p className="text-[11px] text-purple-950 leading-relaxed">{deepAlchemicalReveal.practicalWisdom}</p>
+                                                                </div>
+                                                                <div className="bg-purple-900 text-purple-50 p-5 flex flex-col justify-center items-center text-center">
+                                                                    <span className="text-[8px] font-black uppercase text-purple-300/50 block mb-2">Clave Alquímica</span>
+                                                                    <p className="text-xs font-black tracking-widest uppercase">{deepAlchemicalReveal.alchemicalKey}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-sm font-serif italic text-purple-900 leading-relaxed">
+                                                            "{characterProfiles[selectedCharacterId].fullAnalysis.analysis || "Analizando la profundidad psíquica..."}"
+                                                        </p>
+                                                    )}
+
                                                     <div className="mt-6 grid grid-cols-1 gap-4">
                                                         <div className="bg-white/50 p-4 rounded-none">
                                                             <span className="text-[8px] font-black uppercase text-purple-400 block mb-1">Gesto Psicológico</span>

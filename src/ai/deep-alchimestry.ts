@@ -9,35 +9,43 @@ import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
  * Generates a deep, archetypal meditation for Alchimestry view.
  */
 export async function generateDeepAlchimestry(input: AlchimestryDeepAnalysisInput): Promise<AlchimestryDeepAnalysisOutput> {
-    const { userName, subject, sign, context } = input;
+    const { userName, subject, sign, planets, context } = input;
 
     const systemPrompt = `
     ${ANTIGRAVITY_SYSTEM_PROMPT}
 
-    TU MISIÓN: MAESTRO ALQUIMISTA Y ORÁCULO
-    Eres la inteligencia suprema de Antigravity. Tu conocimiento de la psique humana y la astrología evolutiva es absoluto.
+    TU MISIÓN: MAESTRO ALQUIMISTA Y ANALISTA PSICO-ASTROLÓGICO.
+    Eres la inteligencia suprema de Antigravity. El usuario es un buscador serio que odia la "astrología de horóscopo" genérica.
     
-    FILTRO ANTI-BULLSHIT (REGLAS DE ORO):
-    1. PROHIBIDO usar consejos genéricos tipo "contempla cómo reaccionas", "dedica tiempo a observar", "el primer paso es la observación". El usuario odia esto.
-    2. OBLIGATORIO ser específico, místico, técnico y profundo.
-    3. Si el sujeto es un planeta, habla de su función psíquica pura.
-    4. Si el sujeto es un Escenario (Casa), habla del campo de batalla existencial que representa (Ej: Casa 10 = El Mundo Externo, Casa 2 = Valores y Substancia).
-    5. Usa terminología alquímica (Calcifatio, Sublimatio, Solutio) para describir el proceso de integración.
-    6. Habla directamente a la SOMBRA del signo mencionado.
+    REGLAS DE ORO DE VERACIDAD (CRÍTICO):
+    1. PROHIBIDO: Usar frases comodín como "integración entre [X] y [Y]", "no tolera la mediocridad", "corta de raíz la tendencia". 
+       Estas frases han sido identificadas como repetitivas y el usuario las rechaza.
+    2. OBLIGATORIO: Si hay planetas en la casa, EL ANÁLISIS DEBE GIRAR EN TORNO A ELLOS. 
+       - ¿Cómo se siente un Sol en la Casa 9? (Búsqueda de identidad a través de la filosofía).
+       - ¿Qué pasa si está Marte allí? (Lucha por sus ideales).
+    3. TONO: Crudo, profundo, místico pero pragmático. Usa terminología de psicología profunda (Jung, sombras, proyecciones) y alquimia (Nigredo, Albedo, Rubedo).
+    4. UTILIDAD REAL: Aporta un dato que el usuario no sepa. No le digas "mira tu interior", dile *qué* hay en su interior basado en esta configuración.
     `;
+
+    const planetContext = planets && planets.length > 0 
+        ? `PLANETAS PRESENTES EN ESTE ESCENARIO: ${planets.map(p => `${p} (${input.sign})`).join(', ')}. 
+           IMPORTANTE: Analiza la interrelación entre estos planetas. No los analices por separado. ¿Cómo conversan entre ellos en este escenario?`
+        : 'Escenario latente (sin planetas natales). Analiza el signo regente como la energía pura del escenario y su potencial evolutivo.';
 
     const userPrompt = `
     ALQUIMISTA: ${userName}
-    OBJECTIVO: ${subject} ${sign ? `posicionado en la frecuencia de ${sign}` : ''}
-    ESTADO EVOLUTIVO: ${context || 'Septenio Actual'}
+    OBJECTIVO: ${subject} (${sign})
+    PUNTO VITAL: ${context || 'Septenio Actual'}
+    ${planetContext}
     
-    Genera una destilación profunda. 
-    NO SEAS GENÉRICO. No hables de "desafíos" sin especificar cuáles.
-    Si es un escenario, integra el área de vida con el signo.
-    Responde estrictamente en JSON (meditation, practicalWisdom, alchemicalKey).
+    TAREA: Genera una destilación única que aporte UTILIDAD REAL.
+    - En "meditation": Evita generalidades. Habla de la arquitectura psíquica específica.
+    - En "practicalWisdom": Una acción concreta basada en la configuración de planetas + signo.
+    - En "alchemicalKey": Un mantra místico y poderoso.
+    Responde estrictamente en JSON.
     `;
 
-    // High-Value Data-Driven Fallbacks (The "No-Bullshit" Backup)
+    // High-Value Data-Driven Fallbacks (More specific than before)
     const houseContexts: Record<string, string> = {
         '1': 'la identidad y la proyección del ego',
         '2': 'la generación de recursos y la valoración propia',
@@ -58,13 +66,9 @@ export async function generateDeepAlchimestry(input: AlchimestryDeepAnalysisInpu
     const archetype = sign ? ZODIAC_ARCHETYPES[sign] : null;
 
     const fallback: AlchimestryDeepAnalysisOutput = {
-        meditation: archetype
-            ? `Tu ${subject} exige una integración entre ${houseMeaning} y la fuerza de ${archetype.keywords?.[0] || 'evolución'}. El alma en ${sign} no tolera la mediocridad: busca manifestar su ${archetype.light?.split('.')[0] || 'potencial sagrado'} a través de la acción consciente.`
-            : `El estudio de ${subject} en tu arquitectura revela un punto de tensión en ${houseMeaning}. Esta energía no es un obstáculo, sino un catalizador que exige que dejes de ser espectador de tu propia sombra.`,
-        practicalWisdom: archetype?.shadow
-            ? `Corta de raíz la tendencia de ${sign} hacia ${archetype.shadow.split('.')[0].toLowerCase()}. Para dominar este escenario, debes encarnar la cualidad de ${archetype.keywords?.[1] || 'maestría'} sin pedir permiso al entorno.`
-            : `Deja de esperar señales. El dominio de ${subject} requiere que asumas la autoridad total sobre ${houseMeaning}. La pasividad es el veneno de esta posición.`,
-        alchemicalKey: sign ? `${subject} en ${sign}: La Gran Obra` : "VITRIOL"
+        meditation: `El Escenario ${houseId} en ${sign} indica que tu proceso de ${houseMeaning} está fuertemente influenciado por la frecuencia ${sign}. ${planets && planets.length > 0 ? `La presencia de ${planets.join(' y ')} en este sector de tu vida crea un campo de fuerza único que exige una manifestación consciente de tu potencial.` : 'Al estar latente de planetas natales, este escenario actúa como un campo de experiencia pura donde debes aprender a navegar sin brújula interna previa.'}`,
+        practicalWisdom: `Para este ${subject}, el trabajo de transmutación consiste en observar cómo equilibras la energía de ${sign} con ${planets && planets.length > 0 ? `los impulsos de ${planets.join(', ')}` : 'las demandas del entorno'}. Menos análisis teórico y más acción alineada.`,
+        alchemicalKey: `${sign} ${houseId}: Transmutación Consciente`
     };
 
     try {
@@ -81,6 +85,7 @@ export async function generateDeepAlchimestry(input: AlchimestryDeepAnalysisInpu
         return response;
     } catch (e) {
         console.error(`[Alchimestry] Critical error for ${subject}:`, e);
+        console.warn(`[Alchimestry] Falling back to static template for ${subject}. Check AI configuration.`);
         return fallback;
     }
 }

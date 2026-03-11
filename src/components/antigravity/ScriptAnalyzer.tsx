@@ -18,7 +18,6 @@ import {
 import ArchetypeLibrary from '@/components/antigravity/ArchetypeLibrary';
 import ElementalDiagram from '@/components/antigravity/ElementalDiagram';
 import CelestialSphere from '@/components/antigravity/CelestialSphere';
-import { parsePdfAction } from '@/ai/parse-pdf';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import SomaticBody from '@/components/antigravity/SomaticBody';
@@ -140,6 +139,7 @@ export default function ScriptAnalyzer() {
         const friendsStr = localStorage.getItem('astroFriends');
         const scriptLibStr = localStorage.getItem('scriptLibrary');
         const lastSession = localStorage.getItem('lastSessionData');
+        const savedEmail = localStorage.getItem('antigravity_email');
         // CHECK FOR FIREBASE AUTH FIRST
         auth.getCurrentUser().then(user => {
             if (user && user.email) {
@@ -313,7 +313,18 @@ export default function ScriptAnalyzer() {
 
             const newProfiles = [...characterProfiles];
             for (const name of charsToAnalyze) {
-                const analysis: any = await analyzeCharacter({ scriptSegment: script.substring(0, 20000), characterName: name, customKnowledge: [] });
+                // Determine other characters in the scene for relational context
+                const otherCharacters = names.filter(n => n !== name);
+
+                // KEY FIX: extract ONLY this character's lines, not the whole script
+                const characterSpecificText = extractCharacterLines(script, name);
+
+                const analysis: any = await analyzeCharacter({ 
+                    scriptSegment: characterSpecificText.substring(0, 6000), 
+                    characterName: name, 
+                    otherCharacters: otherCharacters,
+                    customKnowledge: [] 
+                });
                 const approxDate = getApproxDateForSign(analysis.sunSign);
                 const profile: CharacterProfile = {
                     id: name, name: name,
@@ -351,7 +362,64 @@ export default function ScriptAnalyzer() {
         return Array.from(names);
     };
 
+    // Extracts ONLY the lines belonging to one character.
+    // Each character gets a unique input to the AI → unique astrological output.
+    const extractCharacterLines = (text: string, characterName: string): string => {
+        const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
+        const lines = text.split('\n');
+        const result: string[] = [];
+        const charTarget = normalize(characterName);
+        
+        // Regex for precise matching after normalization
+        const charCue = new RegExp(`^\\s*${charTarget}(\\s*\\(.*\\))?\\s*$`);
+        const dialogPrefix = new RegExp(`^\\s*${charTarget}\\s*:\\s*(.*)`, 'i');
+        
+        let capturing = false;
+
+        for (const line of lines) {
+            const trimmed = line.trim();
+            const normalizedLine = normalize(trimmed);
+
+            // Match "NAME: Dialogue"
+            const dialogMatch = trimmed.match(dialogPrefix);
+            if (dialogMatch) {
+                result.push(`[DIÁLOGO] ${dialogMatch[1]}`);
+                continue;
+            }
+
+            // Match "NAME" header
+            if (charCue.test(normalizedLine)) {
+                capturing = true;
+                result.push(`[${charTarget}]`);
+                continue;
+            }
+
+            // If we find another character cue (ALL CAPS), stop capturing
+            const isAnyCue = /^[A-ZÁÉÍÓÚÑ\s]{2,25}(\s*\(.*\))?$/.test(trimmed) 
+                            && trimmed.length > 0 
+                            && !/^(INT\.|EXT\.|EST\.|FADE|CUT)/i.test(trimmed);
+            
+            if (isAnyCue && capturing && !charCue.test(normalizedLine)) {
+                capturing = false;
+            }
+
+            if (capturing && trimmed.length > 0 && !isAnyCue) {
+                result.push(trimmed);
+            }
+        }
+
+        if (result.length >= 2) {
+            const output = `ANÁLISIS EXCLUSIVO PARA ${charTarget}. IGNORAR OTROS PERSONAJES. LÍNEAS:\n` + result.join('\n');
+            console.log(`[EXTRACT] ${characterName}: ${result.length} líneas encontradas.`);
+            return output;
+        }
+        
+        console.warn(`[EXTRACT] No se encontraron líneas exclusivas para ${characterName}, enviando contexto completo.`);
+        return `PERSONAJE OBJETIVO: ${charTarget}. ANALIZA SOLO SUS LÍNEAS EN ESTE GUION:\n${text}`;
+    };
+
     const getApproxDateForSign = (sign: string) => {
+
         const map: Record<string, string> = {
             'Aries': '2000-03-25T12:00:00Z', 'Tauro': '2000-04-25T12:00:00Z', 'Géminis': '2000-05-25T12:00:00Z',
             'Cáncer': '2000-06-25T12:00:00Z', 'Leo': '2000-07-25T12:00:00Z', 'Virgo': '2000-08-25T12:00:00Z',
@@ -478,7 +546,7 @@ export default function ScriptAnalyzer() {
             <div className="max-w-[98vw] mx-auto p-4 md:p-8 relative z-10 font-sans text-stone-900 selection:bg-stone-200">
                 {/* --- RESTORED TOP NAVIGATION (PRO) --- */}
                 {/* --- PROFESSIONAL TOP NAVIGATION --- */}
-                <header className="flex flex-col md:flex-row justify-between items-center mb-16 gap-10 bg-white/70 backdrop-blur-2xl p-8 rounded-none border border-[#1a1a1a]/10 shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-[100]">
+                <header className="flex flex-col lg:flex-row justify-between items-center mb-16 gap-10 bg-white/70 backdrop-blur-2xl p-6 md:p-8 rounded-none border border-[#1a1a1a]/10 shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-[100] w-full overflow-hidden">
                     <div className="flex flex-col items-center md:items-start gap-1">
                         <div className="flex items-center gap-6">
                             <button
@@ -488,16 +556,16 @@ export default function ScriptAnalyzer() {
                             >
                                 <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
                             </button>
-                            <h1 className="text-6xl font-display tracking-[0.15em] text-[#1a1a1a] leading-none">ALCHEMISTERY</h1>
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display tracking-[0.15em] text-[#1a1a1a] leading-none">ALCHEMISTERY</h1>
                         </div>
                         <p className="text-[10px] tracking-[0.4em] uppercase font-black text-[#C55959]/60 flex items-center gap-4 mt-2">
                             <span>Alquimia Actoral</span>
                             <span className="w-8 h-[1px] bg-[#C55959]/20"></span>
-                            <span>v2.8.4</span>
+                            <span>v3.15.0</span>
                         </p>
                     </div>
 
-                    <nav className="inline-flex gap-2 bg-stone-100 p-1 border border-black/5 overflow-x-auto max-w-full rounded-none">
+                    <nav className="flex w-full lg:w-auto min-w-0 gap-2 bg-stone-100 p-1 border border-black/5 overflow-x-auto rounded-none scrollbar-hide">
                         {[
                             { id: 'COSMOS', icon: Atom, label: 'EL COSMOS' },
                             { id: 'BODY', icon: Fingerprint, label: 'EL CUERPO' },
@@ -507,7 +575,7 @@ export default function ScriptAnalyzer() {
                             <button
                                 key={m.id}
                                 onClick={() => handleViewModeChange(m.id as ViewMode)}
-                                className={`flex items-center gap-4 px-10 py-5 transition-all duration-300 border rounded-none ${viewMode === m.id ? 'bg-black text-white border-black shadow-xl scale-105' : 'bg-transparent text-gray-400 border-transparent hover:text-gray-900 hover:bg-white'}`}
+                                className={`flex-shrink-0 flex items-center gap-4 px-6 py-4 md:px-10 md:py-5 transition-all duration-300 border rounded-none ${viewMode === m.id ? 'bg-black text-white border-black shadow-xl scale-105' : 'bg-transparent text-gray-400 border-transparent hover:text-gray-900 hover:bg-white'}`}
                             >
                                 <div className="scale-100">
                                     {typeof m.icon === 'function' ? <m.icon /> : React.createElement(m.icon as any, { size: 22 })}

@@ -189,24 +189,25 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 bg-white/5 p-1 rounded-full border border-white/10">
-                        <button
-                            onClick={() => setActiveTab('explorar')}
-                            className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'explorar' ? 'bg-white text-black shadow-xl' : 'text-gray-400 hover:text-white'}`}
-                        >
-                            Explorar
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('asimilar')}
-                            className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'asimilar' ? 'bg-white text-black shadow-xl' : 'text-gray-400 hover:text-white'}`}
-                        >
-                            Asimilar Conocimiento
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 bg-white/5 p-1 rounded-full border border-white/10 hidden md:flex">
+                            <button
+                                onClick={() => setActiveTab('explorar')}
+                                className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'explorar' ? 'bg-white text-black shadow-xl' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                Explorar
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('asimilar')}
+                                className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'asimilar' ? 'bg-white text-black shadow-xl' : 'text-gray-400 hover:text-white'}`}
+                            >
+                                Asimilar Conocimiento
+                            </button>
+                        </div>
+                        <button onClick={onClose} className="ml-2 px-6 py-3 bg-[#C55959]/20 text-[#C55959] border border-[#C55959]/30 rounded-full hover:bg-[#C55959] hover:text-white transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg">
+                            <X size={14} /> Cerrar
                         </button>
                     </div>
-
-                    <button onClick={onClose} className="p-2 text-gray-500 hover:text-white transition-colors absolute top-6 right-6">
-                        <X size={24} />
-                    </button>
                 </div>
 
                 {/* Assimilation Panel (Manual Text) */}
@@ -235,6 +236,38 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
                                     {isAssimilating ? <Loader2 className="animate-spin" /> : <Sparkles size={18} />}
                                     {isAssimilating ? 'TRANSMUTANDO...' : 'ASIMILAR EN LA MEMORIA VIVA'}
                                 </button>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isUploading}
+                                        className="bg-white/10 text-white border border-white/20 py-4 rounded-xl font-bold uppercase tracking-widest text-[9px] hover:bg-white/20 transition-all flex items-center justify-center gap-3"
+                                    >
+                                        {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                                        {isUploading ? 'LEYENDO...' : 'SUBIR PDF'}
+                                    </button>
+                                    <input 
+                                        type="file" 
+                                        ref={fileInputRef} 
+                                        className="hidden" 
+                                        accept=".pdf" 
+                                        onChange={handleFileUpload} 
+                                    />
+                                    <button
+                                        onClick={handleScanFolder}
+                                        disabled={isScanning}
+                                        className="bg-white/10 text-white border border-white/20 py-4 rounded-xl font-bold uppercase tracking-widest text-[9px] hover:bg-white/20 transition-all flex items-center justify-center gap-3"
+                                    >
+                                        {isScanning ? <Loader2 size={16} className="animate-spin" /> : <BookOpen size={16} />}
+                                        {isScanning ? 'ESCANEANDO...' : 'ESCANEAR CARPETA'}
+                                    </button>
+                                </div>
+                                
+                                <div className="grid grid-cols-3 gap-2 mt-4">
+                                    <button onClick={handleUndo} className="text-[8px] uppercase font-bold text-gray-500 hover:text-white transition-colors">Deshacer</button>
+                                    <button onClick={handleDeleteLastBatch} className="text-[8px] uppercase font-bold text-gray-500 hover:text-red-400 transition-colors">Eliminar Último</button>
+                                    <button onClick={handleClearAll} className="text-[8px] uppercase font-bold text-red-900/40 hover:text-red-500 transition-colors">Purgar Todo</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -287,32 +320,7 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
                                             </div>
                                         </div>
 
-                                        {/* Custom Knowledge Render */}
-                                        {getCustomForSign(sign).length > 0 && (
-                                            <div className="pt-6 border-t border-black/5 mt-4 space-y-3">
-                                                <span className="block text-[8px] font-black uppercase text-purple-600 tracking-[0.3em] mb-4">Gnosis Adicional</span>
-                                                {getCustomForSign(sign).map((k, i) => (
-                                                    <div key={i} className="bg-purple-50/50 p-4 rounded-2xl border border-purple-100 relative group/item">
-                                                        <div className="flex justify-between items-start mb-2">
-                                                            <span className="text-[7px] font-black uppercase tracking-widest text-purple-400">{k.category}</span>
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (confirm('¿Olvidar este registro?')) {
-                                                                        const realUpdated = customKnowledge.filter(item => item.value !== k.value || item.category !== k.category || item.target !== k.target);
-                                                                        saveToApi(realUpdated);
-                                                                    }
-                                                                }}
-                                                                className="opacity-0 group-hover/item:opacity-100 text-purple-300 hover:text-purple-600"
-                                                            >
-                                                                ×
-                                                            </button>
-                                                        </div>
-                                                        <div className="font-black text-purple-900 text-[10px] uppercase mb-1">{k.value}</div>
-                                                        <p className="text-[10px] text-purple-700 italic font-serif leading-relaxed opacity-80">{k.description}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                        {/* Gnosis Adicional eliminada por petición de UX */}
                                     </div>
                                 </div>
                             ))}

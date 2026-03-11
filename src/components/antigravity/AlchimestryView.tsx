@@ -1,11 +1,12 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { X, ChevronRight, Zap, Sparkles, Eye, Shield, Moon, Sun as SunIcon, Clock, MapPin, Info, ArrowRight, Loader2 } from 'lucide-react';
+import { X, ChevronRight, Zap, Sparkles, Eye, Shield, Moon, Sun as SunIcon, Clock, MapPin, Info, ArrowRight, Loader2, Workflow } from 'lucide-react';
 import { ViewMode, AlchimestrySubView, UserData } from './types';
 import { calculateRealPlanets, getSignFromLongitude } from '@/utils/astronomy';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
 import { generateDeepAlchimestry } from '@/ai/deep-alchimestry';
 import { AlchimestryDeepAnalysisOutput } from '@/ai/schemas';
+import AlchemicalTransmutator from './AlchemicalTransmutator';
 
 interface AlchimestryViewProps {
     currentUser: UserData | null;
@@ -92,14 +93,17 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
                             <h1 className="text-2xl font-black tracking-[0.3em] text-amber-500 uppercase leading-none drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]">Alchimestry</h1>
                             <span className="bg-amber-900/30 text-amber-500 text-[8px] px-2 py-0.5 rounded-full border border-amber-500/20 uppercase font-black">{currentUser.name || "Alquimista"}</span>
                         </div>
-                        <span className="text-[9px] text-amber-500/50 font-bold tracking-[0.5em] uppercase mt-1 italic">
-                            Speculum: {septInfo.age} años • Septenio {septInfo.current} ({septInfo.start}-{septInfo.end})
-                        </span>
+                        <div className="flex items-center gap-3">
+                            <span className="text-[9px] text-amber-500/50 font-bold tracking-[0.5em] uppercase mt-1 italic">
+                                Speculum: {septInfo.age} años • Septenio {septInfo.current} ({septInfo.start}-{septInfo.end})
+                            </span>
+                            <span className="text-[7px] text-amber-500/30 font-black uppercase tracking-[0.2em] border border-amber-500/10 px-2 py-0.5 rounded-sm">v3.15.0</span>
+                        </div>
                     </div>
                 </div>
 
                 <nav className="flex flex-wrap justify-center gap-1 md:gap-4 bg-black/40 p-1.5 rounded-full border border-amber-900/20 backdrop-blur-md">
-                    {(['inicio', 'identidad', 'ciclos', 'transformacion', 'casas'] as AlchimestrySubView[]).map((tab) => (
+                    {(['inicio', 'identidad', 'ciclos', 'transformacion', 'casas', 'transmutador'] as AlchimestrySubView[]).map((tab) => (
                         <button
                             key={tab}
                             onClick={() => { setSubView(tab); setSelectedDetail(null); }}
@@ -166,8 +170,29 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
                                 <span className="text-amber-500/50 text-[10px] font-black uppercase tracking-[0.5em] mb-2 block">Arquitectura Personal</span>
                                 <h2 className="text-4xl font-black text-white tracking-tight uppercase">Trinidad Planetaria</h2>
                             </div>
-                            <div className="text-[10px] font-bold text-stone-600 uppercase tracking-widest bg-white/5 px-4 py-2 rounded-lg border border-white/5">
-                                Ascendente: <span className="text-amber-500">{astroData?.ascendant.sign || "???"}</span>
+                            <div className="flex flex-col items-end gap-3">
+                                <div className="text-[10px] font-bold text-stone-600 uppercase tracking-widest bg-white/5 px-4 py-2 rounded-lg border border-white/5">
+                                    Ascendente: <span className="text-amber-500">{astroData?.ascendant.sign || "???"}</span>
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        if (!currentUser || !astroData) return;
+                                        setIsGenerating(true);
+                                        const res = await generateDeepAlchimestry({
+                                            userName: currentUser.name || "Alquimista",
+                                            birthData: currentUser.date,
+                                            subject: "Síntesis de Identidad",
+                                            sign: astroData.ascendant.sign,
+                                            context: `Analiza la combinación de Sol en ${astroData.planets['Sol']?.sign}, Mercurio en ${astroData.planets['Mercurio']?.sign} y Venus en ${astroData.planets['Venus']?.sign}.`
+                                        });
+                                        setDeepReading(res);
+                                        setSelectedDetail({ type: 'planet', id: 'Sol' }); // Show result in drawer
+                                        setIsGenerating(false);
+                                    }}
+                                    className="flex items-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[9px] font-black uppercase tracking-[0.2em] px-4 py-2 border border-amber-500/20 transition-all"
+                                >
+                                    <Sparkles size={12} /> Análisis Holístico
+                                </button>
                             </div>
                         </div>
 
@@ -273,8 +298,31 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
                 {/* --- SECCIÓN 4: TRANSFORMACIÓN --- */}
                 {subView === 'transformacion' && (
                     <div className="animate-in fade-in slide-in-from-bottom-10 duration-1000">
-                        <h2 className="text-4xl font-black text-white mb-2 uppercase tracking-tight">Alquimia de la Sombra</h2>
-                        <p className="text-stone-500 mb-12 font-serif italic text-lg max-w-2xl">Transmutación del dolor en propósito y estructura.</p>
+                        <div className="flex justify-between items-end mb-12">
+                            <div>
+                                <h2 className="text-4xl font-black text-white mb-2 uppercase tracking-tight">Alquimia de la Sombra</h2>
+                                <p className="text-stone-500 font-serif italic text-lg max-w-2xl">Transmutación del dolor en propósito y estructura.</p>
+                            </div>
+                            <button
+                                onClick={async () => {
+                                    if (!currentUser || !astroData) return;
+                                    setIsGenerating(true);
+                                    const res = await generateDeepAlchimestry({
+                                        userName: currentUser.name || "Alquimista",
+                                        birthData: currentUser.date,
+                                        subject: "Análisis de Transformación",
+                                        sign: astroData.planets['Saturno']?.sign,
+                                        context: `Analiza la relación entre Saturno en ${astroData.planets['Saturno']?.sign} y Plutón en ${astroData.planets['Plutón']?.sign}. Los señores del tiempo y la transmutación profunda.`
+                                    });
+                                    setDeepReading(res);
+                                    setSelectedDetail({ type: 'planet', id: 'Plutón' });
+                                    setIsGenerating(false);
+                                }}
+                                className="flex items-center gap-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-[10px] font-black uppercase tracking-[0.2em] px-6 py-3 border border-purple-500/20 transition-all rounded-full"
+                            >
+                                <Moon size={14} /> Síntesis de Sombras
+                            </button>
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <div className="bg-black/40 p-12 rounded-3xl border border-purple-900/30 relative group overflow-hidden hover:border-purple-500/50 transition-colors">
@@ -336,6 +384,25 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
                                 <h2 className="text-4xl font-black text-white tracking-tight uppercase">El Teatro Circular</h2>
                                 <p className="text-stone-500 mt-2 font-serif italic text-lg max-w-2xl">Los escenarios donde tus planetas ejecutan su obra maestra.</p>
                             </div>
+                            <button
+                                onClick={async () => {
+                                    if (!currentUser || !astroData) return;
+                                    setIsGenerating(true);
+                                    const res = await generateDeepAlchimestry({
+                                        userName: currentUser.name || "Alquimista",
+                                        birthData: currentUser.date,
+                                        subject: "Destilación de Escenarios Global",
+                                        sign: astroData.ascendant.sign,
+                                        context: `Analiza la distribución de planetas en las casas. El usuario tiene planetas en las casas: ${Object.keys(astroData.planetsInHouses).join(', ')}.`
+                                    });
+                                    setDeepReading(res);
+                                    setSelectedDetail({ type: 'house', id: 1 });
+                                    setIsGenerating(false);
+                                }}
+                                className="flex items-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[10px] font-black uppercase tracking-[0.2em] px-6 py-3 border border-amber-500/20 transition-all rounded-full"
+                            >
+                                <Zap size={14} /> Destilación Global
+                            </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -378,6 +445,17 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
                                 );
                             })}
                         </div>
+                    </div>
+                )}
+
+                {/* --- SECCIÓN 6: TRANSMUTADOR --- */}
+                {subView === 'transmutador' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-10 duration-1000">
+                        <div className="mb-12">
+                            <h2 className="text-4xl font-black text-white mb-2 uppercase tracking-tight">Laboratorio de Transmutación</h2>
+                            <p className="text-stone-500 font-serif italic text-lg max-w-2xl">Sintoniza la frecuencia de vibración de tu personaje para la escena.</p>
+                        </div>
+                        <AlchemicalTransmutator />
                     </div>
                 )}
             </main>
@@ -441,6 +519,7 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
                                                             birthData: currentUser.date,
                                                             subject: selectedDetail.id.toString(),
                                                             sign: sign,
+                                                            planets: selectedDetail.type === 'house' ? (astroData?.planetsInHouses[selectedDetail.id as number] || []) : [selectedDetail.id as string],
                                                             context: `El usuario está en el septenio ${septInfo.current}.`
                                                         });
                                                         setDeepReading(res);
@@ -555,6 +634,7 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
                                                             birthData: currentUser.date,
                                                             subject: `Escenario ${selectedDetail.id}`,
                                                             sign: sign,
+                                                            planets: astroData?.planetsInHouses[Number(selectedDetail.id)] || [],
                                                             context: `Analizando el Escenario ${selectedDetail.id} (Casa Astrológica) en el signo de ${sign}. Septenio ${septInfo.current}.`
                                                         });
                                                         setDeepReading(res);

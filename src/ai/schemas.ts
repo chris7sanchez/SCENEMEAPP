@@ -41,6 +41,7 @@ export type GenerateVideoScriptOutput = z.infer<typeof GenerateVideoScriptOutput
 export const AnalyzeCharacterInputSchema = z.object({
     scriptSegment: z.string().describe('The segment of the script or dialogue to analyze. Include all relevant character actions and dialogue.'),
     characterName: z.string().describe('The exact name of the character to analyze within the text.'),
+    otherCharacters: z.array(z.string()).optional().describe('Names of other characters in the scene to provide relational context and force differentiation.'),
     customKnowledge: z.array(z.object({
         target: z.string().describe('The astrological sign or concept this knowledge relates to.'),
         category: z.string().describe('The category of knowledge (e.g., "Psychology", "Archetype").'),
@@ -62,20 +63,20 @@ export const AnalyzeCharacterOutputSchema = z.object({
         water: z.number().min(0).max(100).describe('REQUIRED. Percentage of Water element (0-100). Water = emotion, intuition, sensitivity.'),
     }).describe('REQUIRED. The elemental balance of the character. All four must sum to 100.'),
     archetype: z.string().describe('REQUIRED. The Jungian or literary archetype (e.g., "The Rebel", "The Caregiver", "The Trickster", "The Shadow").'),
-    essence: z.string().describe('REQUIRED. "Cristalización de Esencia" - A powerful, one-sentence alchemical aphorism that captures the character\'s core contradiction and psychological truth.'),
-    analysis: z.string().describe('REQUIRED. A 2-3 sentence explanation of why these astrological placements perfectly capture this character\'s psychology and behavior.'),
+    essence: z.string().describe('REQUIRED. "Cristalización de Esencia" - A powerful, one-sentence alchemical aphorism (under 15 words) capturing the character\'s core truth.'),
+    analysis: z.string().describe('REQUIRED. A SINGLE BRIEF SENTENCE explaining why these astrological placements perfectly capture this character. MAX 20 words.'),
     threePillars: z.object({
-        sunReasoning: z.string().describe('REQUIRED. Answer to: "¿Cómo soy en esencia?" - What drives their ego, identity, and life purpose?'),
-        moonReasoning: z.string().describe('REQUIRED. Answer to: "¿Cómo siento y cómo son mis emociones?" - How do they process feelings and find emotional security?'),
-        ascendantReasoning: z.string().describe('REQUIRED. Answer to: "¿Cómo me modifica la vida?" - What mask do they wear? How do others first perceive them?'),
-    }).describe('REQUIRED. The detailed reasoning for the Big Three placements based on specific psychological questions.'),
+        sunReasoning: z.string().describe('REQUIRED. 1 SHORT SENTENCE (max 15 words). What drives their ego?'),
+        moonReasoning: z.string().describe('REQUIRED. 1 SHORT SENTENCE (max 15 words). How do they process feelings?'),
+        ascendantReasoning: z.string().describe('REQUIRED. 1 SHORT SENTENCE (max 15 words). What mask do they wear?'),
+    }).describe('REQUIRED. Quick reasoning for the Big Three.'),
     methodActing: z.object({
-        psychologicalGesture: z.string().describe('REQUIRED. A specific physical movement or posture that captures the character\'s inner essence (Chekhov technique). Example: "A clenched fist slowly opening".'),
-        voiceQuality: z.string().describe('REQUIRED. Description of the voice including tempo (fast/slow), pitch (high/low), texture (rough/smooth), and rhythm (staccato/legato).'),
-        animalTotem: z.string().describe('REQUIRED. An animal that represents the character\'s movement quality, instincts, and behavioral patterns. Example: "A hawk - patient, precise, suddenly explosive".'),
-        physicalCenter: z.string().describe('REQUIRED. Where the character leads their movement from. Options: Head (intellectual), Heart/Chest (emotional), Solar Plexus (power), Pelvis (sensual/instinctual), Feet (grounded).'),
-        emotionalLandscape: z.string().describe('REQUIRED. A vivid metaphor for their internal emotional world. Example: "A volcano with a frozen surface", "An endless ocean at night".'),
-    }).describe('REQUIRED. Deep method acting keys for actor embodiment based on Stanislavski, Chekhov, and Meisner techniques.'),
+        psychologicalGesture: z.string().describe('REQUIRED. A physical gesture. 1 brief sentence. Example: "A clenched fist slowly opening".'),
+        voiceQuality: z.string().describe('REQUIRED. 1 brief sentence describing voice tempo, pitch, and texture.'),
+        animalTotem: z.string().describe('REQUIRED. An animal and its vibe. Example: "A patient, explosive hawk".'),
+        physicalCenter: z.string().describe('REQUIRED. E.g., Head, Heart, Solar Plexus, Pelvis, or Feet. 2-3 words ONLY.'),
+        emotionalLandscape: z.string().describe('REQUIRED. 1 brief metaphor. E.g., "A volcano with a frozen surface".'),
+    }).describe('REQUIRED. Deep method acting keys (VERY BRIEF).'),
 });
 
 export type AnalyzeCharacterOutput = z.infer<typeof AnalyzeCharacterOutputSchema>;
@@ -219,6 +220,7 @@ export const AlchimestryDeepAnalysisInputSchema = z.object({
     birthData: z.string().describe('The birth date and time in ISO format.'),
     subject: z.string().describe('The specific planet or house being analyzed (e.g., "Sol", "Luna", "Casa 1").'),
     sign: z.string().optional().describe('The zodiac sign associated with the subject in your chart.'),
+    planets: z.array(z.string()).optional().describe('List of planets located in this specific house/scenario.'),
     context: z.string().optional().describe('Additional context about your chart or current life situation.'),
 });
 

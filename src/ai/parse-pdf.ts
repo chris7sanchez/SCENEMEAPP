@@ -50,7 +50,7 @@ export async function parsePdfBuffer(buffer: Buffer): Promise<string> {
                                 // Same line
                                 currentY = block.y;
                                 // Add separator (simulating column)
-                                lineText += (lineText ? " | " : "") + block.text;
+                                lineText += (lineText ? " " : "") + block.text;
                             } else {
                                 // New line
                                 fullText += lineText + "\n";

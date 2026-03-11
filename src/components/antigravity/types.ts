@@ -2,7 +2,7 @@ import { AnalyzeSynastryOutput } from '@/ai/schemas';
 
 export type ViewMode = 'COSMOS' | 'BODY' | 'SPIRIT' | 'ALCHIMESTRY';
 
-export type AlchimestrySubView = 'inicio' | 'identidad' | 'ciclos' | 'transformacion' | 'casas';
+export type AlchimestrySubView = 'inicio' | 'identidad' | 'ciclos' | 'transformacion' | 'casas' | 'transmutador';
 
 export interface UserData {
     name?: string;

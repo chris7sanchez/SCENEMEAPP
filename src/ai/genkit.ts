@@ -88,6 +88,11 @@ export async function safeGenerate<T>(
         return result.output;
     } catch (error) {
         console.error(`[Antigravity AI] ${context || 'Generation'} failed:`, error);
+        if (typeof fallback === 'object' && fallback !== null && 'archetype' in fallback && 'analysis' in fallback) {
+            (fallback as any).archetype = "ERROR DE CONEXIÓN AI";
+            (fallback as any).analysis = `El sistema ha activado el perfil de emergencia porque falló la conexión con la IA. Mensaje interno: ${(error as Error).message}`;
+            (fallback as any).essence = `Fallo en: ${context}`;
+        }
         return fallback;
     }
 }
