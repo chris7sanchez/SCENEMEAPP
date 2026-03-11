@@ -4,75 +4,52 @@ import PDFParser from 'pdf2json';
 
 export async function parsePdfBuffer(buffer: Buffer): Promise<string> {
     return new Promise((resolve, reject) => {
-        // Context null, 1 (true) enables raw text parsing representing the text content
         const pdfParser = new PDFParser(null, true);
 
         pdfParser.on("pdfParser_dataError", (errData: any) => {
             console.error(errData.parserError);
-            reject(new Error('Error parsing PDF structure'));
+            reject(new Error('Error parsing PDF content'));
         });
 
         pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
             try {
-                // Custom Logic to reconstruct tables/layout
                 let fullText = "";
-
-                // Iterate pages
-                if (pdfData && pdfData.formImage && pdfData.formImage.Pages) {
-                    pdfData.formImage.Pages.forEach((page: any) => {
-                        // Extract all text blocks
+                if (pdfData && pdfData.Pages) {
+                    pdfData.Pages.forEach((page: any) => {
                         const textBlocks: any[] = [];
-
                         if (page.Texts) {
                             page.Texts.forEach((t: any) => {
-                                const y = t.y;
-                                const x = t.x;
-                                // Decode text (pdf2json returns URL-encoded text)
-                                const text = decodeURIComponent(t.R[0].T);
-                                textBlocks.push({ x, y, text });
+                                let text = t.R[0].T;
+                                try {
+                                    text = decodeURIComponent(text);
+                                } catch (e) {
+                                    // Fallback for malformed URIs
+                                    text = text.replace(/%([0-9A-F]{2})/g, (match: string, p1: string) => 
+                                        String.fromCharCode(parseInt(p1, 16))
+                                    );
+                                }
+                                textBlocks.push({ x: t.x, y: t.y, text });
                             });
                         }
 
-                        // Sort by Y (rows), then X (columns)
-                        textBlocks.sort((a, b) => {
-                            if (Math.abs(a.y - b.y) < 0.8) { // Same line tolerance (increased)
-                                return a.x - b.x;
+                        // Sort and reconstruct
+                        textBlocks.sort((a, b) => a.y !== b.y ? a.y - b.y : a.x - b.x);
+                        
+                        let lastY = -1;
+                        textBlocks.forEach(block => {
+                            if (lastY !== -1 && Math.abs(block.y - lastY) > 0.5) {
+                                fullText += "\n";
                             }
-                            return a.y - b.y;
+                            fullText += block.text + " ";
+                            lastY = block.y;
                         });
-
-                        // Group into lines to form a "Table-like" structure
-                        let currentY = -1;
-                        let lineText = "";
-
-                        textBlocks.forEach((block) => {
-                            if (currentY === -1 || Math.abs(block.y - currentY) < 0.8) {
-                                // Same line
-                                currentY = block.y;
-                                // Add separator (simulating column)
-                                lineText += (lineText ? " " : "") + block.text;
-                            } else {
-                                // New line
-                                fullText += lineText + "\n";
-                                currentY = block.y;
-                                lineText = block.text;
-                            }
-                        });
-                        // Flush last line
-                        fullText += lineText + "\n\n";
+                        fullText += "\n\n";
                     });
                 }
-
-                if (!fullText.trim()) {
-                    // Fallback to raw text if custom parsing failed to find content
-                    fullText = pdfParser.getRawTextContent();
-                }
-
                 resolve(fullText);
             } catch (e) {
-                console.error(e);
-                // Fallback
-                resolve(pdfParser.getRawTextContent());
+                console.error("Reconstruction Error:", e);
+                resolve("");
             }
         });
 

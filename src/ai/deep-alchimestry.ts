@@ -5,11 +5,48 @@ import { AlchimestryDeepAnalysisInput, AlchimestryDeepAnalysisOutput, Alchimestr
 import { ANTIGRAVITY_SYSTEM_PROMPT } from './system-prompt';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
 
+import fs from 'fs';
+import path from 'path';
+
+/**
+ * Retrieves relevant knowledge snippets from the master grimoire.
+ */
+function getGrimoireContext(subject: string, sign?: string, planets: string[] = []): string {
+    try {
+        const filePath = path.join(process.cwd(), 'src/ai/knowledge/master-grimoire.json');
+        if (!fs.existsSync(filePath)) return '';
+
+        const grimoire = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        const searchTerms = [subject, sign, ...planets].filter(Boolean).map(t => t!.toLowerCase());
+
+        const relevant = grimoire.filter((entry: any) => {
+            const target = entry.target.toLowerCase();
+            const desc = entry.description.toLowerCase();
+            return searchTerms.some(term => target.includes(term) || desc.includes(term));
+        }).slice(0, 20);
+
+        if (relevant.length === 0) return '';
+
+        return `
+        CONOCIMIENTO EXTRAÍDO DE TU BIBLIOTECA (FUENTES: Liz Greene, Dane Rudhyar, Stephen Arroyo, etc.):
+        ${relevant.map((r: any) => `- [${r.target}] ${r.value}: ${r.description}`).join('\n')}
+        
+        INSTRUCCIÓN: Utiliza estos datos técnicos para profundizar en el análisis. NO los ignores. 
+        Si el grimoire menciona una sombra o un desafío específico para esta posición, inclúyelo.
+        `;
+    } catch (e) {
+        console.error("Error reading grimoire:", e);
+        return '';
+    }
+}
+
 /**
  * Generates a deep, archetypal meditation for Alchimestry view.
  */
 export async function generateDeepAlchimestry(input: AlchimestryDeepAnalysisInput): Promise<AlchimestryDeepAnalysisOutput> {
     const { userName, subject, sign, planets, context } = input;
+
+    const grimoireContext = getGrimoireContext(subject, sign, planets);
 
     const systemPrompt = `
     ${ANTIGRAVITY_SYSTEM_PROMPT}
@@ -17,6 +54,8 @@ export async function generateDeepAlchimestry(input: AlchimestryDeepAnalysisInpu
     TU MISIÓN: MAESTRO ALQUIMISTA Y ANALISTA PSICO-ASTROLÓGICO.
     Eres la inteligencia suprema de Antigravity. El usuario es un buscador serio que odia la "astrología de horóscopo" genérica.
     
+    ${grimoireContext}
+
     REGLAS DE ORO DE VERACIDAD (CRÍTICO):
     1. PROHIBIDO: Usar frases comodín como "integración entre [X] y [Y]", "no tolera la mediocridad", "corta de raíz la tendencia". 
        Estas frases han sido identificadas como repetitivas y el usuario las rechaza.
@@ -24,7 +63,7 @@ export async function generateDeepAlchimestry(input: AlchimestryDeepAnalysisInpu
        - ¿Cómo se siente un Sol en la Casa 9? (Búsqueda de identidad a través de la filosofía).
        - ¿Qué pasa si está Marte allí? (Lucha por sus ideales).
     3. TONO: Crudo, profundo, místico pero pragmático. Usa terminología de psicología profunda (Jung, sombras, proyecciones) y alquimia (Nigredo, Albedo, Rubedo).
-    4. UTILIDAD REAL: Aporta un dato que el usuario no sepa. No le digas "mira tu interior", dile *qué* hay en su interior basado en esta configuración.
+    4. UTILIDAD REAL: Aporta un dato que el usuario no sepa extraído de las fuentes proporcionadas. No le digas "mira tu interior", dile *qué* hay en su interior basado en esta configuración.
     `;
 
     const planetContext = planets && planets.length > 0 
@@ -38,7 +77,7 @@ export async function generateDeepAlchimestry(input: AlchimestryDeepAnalysisInpu
     PUNTO VITAL: ${context || 'Septenio Actual'}
     ${planetContext}
     
-    TAREA: Genera una destilación única que aporte UTILIDAD REAL.
+    TAREA: Genera una destilación única que aporte UTILIDAD REAL basándote en la sabiduría del grimoire.
     - En "meditation": Evita generalidades. Habla de la arquitectura psíquica específica.
     - En "practicalWisdom": Una acción concreta basada en la configuración de planetas + signo.
     - En "alchemicalKey": Un mantra místico y poderoso.
