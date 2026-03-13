@@ -97,7 +97,7 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
                             <span className="text-[9px] text-amber-500/50 font-bold tracking-[0.5em] uppercase mt-1 italic">
                                 Speculum: {septInfo.age} años • Septenio {septInfo.current} ({septInfo.start}-{septInfo.end})
                             </span>
-                            <span className="text-[7px] text-amber-500/30 font-black uppercase tracking-[0.2em] border border-amber-500/10 px-2 py-0.5 rounded-sm">v4.0.0</span>
+                            <span className="text-[7px] text-amber-500/30 font-black uppercase tracking-[0.2em] border border-amber-500/10 px-2 py-0.5 rounded-sm">v4.0.1</span>
                         </div>
                     </div>
                 </div>
