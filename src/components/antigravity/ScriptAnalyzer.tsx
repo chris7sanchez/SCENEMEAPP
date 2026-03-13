@@ -518,8 +518,8 @@ export default function ScriptAnalyzer() {
                     <div className="text-left space-y-4 bg-black/40 p-6 border border-white/10 rounded-none animate-fadeIn">
                         {[synastryResult.phase1_survival_clash, synastryResult.phase2_friction_flow, synastryResult.phase3_integration_bridge].map((phase, i) => (
                             <div key={i} className="space-y-1">
-                                <h4 className="text-[10px] font-bold text-zinc-500 uppercase">{phase.title}</h4>
-                                <p className="text-sm text-zinc-300 font-serif italic border-l-2 border-zinc-700 pl-3">{phase.description}</p>
+                                <h4 className="text-[10px] font-bold text-zinc-500 uppercase">{phase?.title}</h4>
+                                <p className="text-sm text-zinc-300 font-serif italic border-l-2 border-zinc-700 pl-3">{phase?.description}</p>
                             </div>
                         ))}
                     </div>
@@ -563,6 +563,8 @@ export default function ScriptAnalyzer() {
                 />
             ) : (
                 <div className="max-w-[98vw] mx-auto p-4 md:p-8 relative z-10 font-sans text-stone-900 selection:bg-stone-200">
+                    <ChartNotesSystem chartId={currentUser?.date || 'default'} />
+                    
                     <header className="flex flex-col lg:flex-row justify-between items-center mb-16 gap-10 bg-white/70 backdrop-blur-2xl p-6 md:p-8 rounded-none border border-[#1a1a1a]/10 shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-[100] w-full overflow-hidden">
                         <div className="flex flex-col items-center md:items-start gap-1">
                             <div className="flex items-center gap-6">
@@ -817,11 +819,10 @@ export default function ScriptAnalyzer() {
                         </div>
                     )}
                 </main>
-
-                {showLibrary && <ArchetypeLibrary onClose={() => setShowLibrary(false)} />}
             </div>
-            )}
-            {showLibrary && <ArchetypeLibrary onClose={() => setShowLibrary(false)} />}
-        </div>
+        )}
+
+        {showLibrary && <ArchetypeLibrary onClose={() => setShowLibrary(false)} />}
+    </div>
     );
 }
