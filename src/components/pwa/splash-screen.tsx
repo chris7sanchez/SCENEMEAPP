@@ -6,26 +6,28 @@ export function SplashScreen() {
     const [isVisible, setIsVisible] = useState(true);
     const [isFading, setIsFading] = useState(false);
 
-    useEffect(() => {
-        // Double check: if not standalone, hide immediately (redundant to CSS but safe)
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    const [videoReady, setVideoReady] = useState(false);
 
-        if (!isStandalone) {
-            // Habilitar para pruebas en navegador si el usuario lo pide
-            // Por ahora lo dejamos activo para que pueda verificar el nuevo logo
-            // return; 
+    useEffect(() => {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+        
+        // Si ya está listo el video o han pasado mas de 6 segundos de seguridad
+        if (videoReady) {
+            const timer1 = setTimeout(() => setIsFading(true), 4000); 
+            const timer2 = setTimeout(() => setIsVisible(false), 5000);
+            return () => {
+                clearTimeout(timer1);
+                clearTimeout(timer2);
+            };
         }
 
-        // Logic for PWA consumers and browser preview
-        // Aumentamos los tiempos para asegurar que el video tenga tiempo de cargar y reproducirse
-        const timer1 = setTimeout(() => setIsFading(true), 4500); // Inicia desvanecimiento a los 4.5s
-        const timer2 = setTimeout(() => setIsVisible(false), 5500); // Se elimina por completo a los 5.5s
+        // Timer de seguridad por si el video no carga nunca
+        const safetyTimer = setTimeout(() => {
+            if (!videoReady) setIsFading(true);
+        }, 6000);
 
-        return () => {
-            clearTimeout(timer1);
-            clearTimeout(timer2);
-        };
-    }, []);
+        return () => clearTimeout(safetyTimer);
+    }, [videoReady]);
 
     if (!isVisible) return null;
 
@@ -40,6 +42,7 @@ export function SplashScreen() {
                     muted
                     playsInline
                     className="w-full h-full object-contain"
+                    onCanPlayThrough={() => setVideoReady(true)}
                     onEnded={() => setIsFading(true)}
                 >
                     <source src="/videos/logo-animation.mp4" type="video/mp4" />
