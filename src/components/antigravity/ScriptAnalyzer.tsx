@@ -582,7 +582,7 @@ export default function ScriptAnalyzer() {
                             <p className="text-[10px] tracking-[0.4em] uppercase font-black text-[#C55959]/60 flex items-center gap-4 mt-2">
                                 <span>Alquimia Actoral</span>
                                 <span className="w-8 h-[1px] bg-[#C55959]/20"></span>
-                                <span>v4.0.1</span>
+                                <span>v4.0.2</span>
                             </p>
                         </div>
 

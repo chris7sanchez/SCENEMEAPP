@@ -11,9 +11,9 @@ export function SplashScreen() {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
         if (!isStandalone) {
-            // Let CSS handle initial hide, but cleanup JS state
-            setIsVisible(false);
-            return;
+            // Habilitar para pruebas en navegador si el usuario lo pide
+            // Por ahora lo dejamos activo para que pueda verificar el nuevo logo
+            // return; 
         }
 
         // Logic for PWA consumers
