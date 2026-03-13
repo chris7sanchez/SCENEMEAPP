@@ -91,6 +91,7 @@ export default function ScriptAnalyzer() {
     // Spirit / Network State
     const [friends, setFriends] = useState<any[]>([]);
     const [newFriend, setNewFriend] = useState({ name: '', date: '', time: '12:00' });
+    const [selectionPriority, setSelectionPriority] = useState<'source' | 'target'>('target');
     const [spiritSourceId, setSpiritSourceId] = useState<string>('user');
     const [spiritTargetId, setSpiritTargetId] = useState<string>('');
     const [chartOpacity, setChartOpacity] = useState<number>(60);
@@ -453,25 +454,39 @@ export default function ScriptAnalyzer() {
         setNewFriend({ name: '', date: '', time: '12:00' });
     };
 
-    const handleAnalyzeSynastry = async (userDate: string, targetDate: string, tName: string) => {
+    const handleAnalyzeSynastry = async (sDate: string, sName: string, tDate: string, tName: string) => {
         setIsAnalyzingSynastry(true); setSynastryResult(null);
         try {
-            const res = await analyzeSynastry({ userBirthDate: userDate, targetBirthDate: targetDate, targetName: tName });
+            const res = await analyzeSynastry({ 
+                sourceBirthDate: sDate, 
+                sourceName: sName, 
+                targetBirthDate: tDate, 
+                targetName: tName 
+            });
             setSynastryResult(res);
         } catch (e) { } finally { setIsAnalyzingSynastry(false); }
     };
 
     const renderQuantumSynastrySection = () => {
-        if (!currentUser || !spiritTargetId) return null;
-        let tName = "Objetivo"; let tDate = "";
-        if (spiritTargetId.startsWith('char-')) {
-            const char = characterProfiles[parseInt(spiritTargetId.split('-')[1])];
-            if (char) { tName = char.name; tDate = char.birthData.date; }
-        } else if (spiritTargetId !== 'user') {
-            const f = friends.find(fr => fr.id === spiritTargetId);
-            if (f) { tName = f.name; tDate = f.birthData.date; }
-        }
-        if (!tDate) return <div className="p-8 text-center text-zinc-500 text-xs italic">Selecciona un objetivo.</div>;
+        if (!currentUser) return null;
+        
+        const getIdentity = (id: string) => {
+            if (id === 'user') return { name: currentUser.name || "Yo", date: currentUser.date };
+            if (id.startsWith('char-')) {
+                const char = characterProfiles[parseInt(id.split('-')[1])];
+                return char ? { name: char.name, date: char.birthData.date } : null;
+            }
+            const f = friends.find(fr => fr.id === id);
+            return f ? { name: f.name, date: f.birthData.date } : null;
+        };
+
+        const source = getIdentity(spiritSourceId);
+        const target = getIdentity(spiritTargetId);
+
+        if (!source || !target) return <div className="p-8 text-center text-zinc-500 text-xs italic">Selecciona una Base y un Objetivo.</div>;
+        
+        const { date: sDate, name: sName } = source;
+        const { date: tDate, name: tName } = target;
 
         const getDom = (d: string) => {
             const p = calculateRealPlanets(d);
@@ -484,20 +499,20 @@ export default function ScriptAnalyzer() {
             return { counts, dominant: Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b) };
         };
 
-        const uDom = getDom(currentUser.date); const tDomData = getDom(tDate);
+        const sDom = getDom(sDate); const tDomData = getDom(tDate);
         const map: any = { "Fuego-Fuego": "LA LLAMA ETERNA", "Fuego-Tierra": "TIERRA QUEMADA", "Fuego-Aire": "INCENDIO FUGAZ", "Fuego-Agua": "VAPOR EMOCIONAL", "Tierra-Tierra": "LA MONTAÑA", "Tierra-Aire": "TORMENTA DE ARENA", "Tierra-Agua": "BARRO FÉRTIL", "Aire-Aire": "EL HURACÁN", "Aire-Agua": "TSUNAMI", "Agua-Agua": "OCÉANO PROFUNDO" };
-        let key = `${uDom.dominant}-${tDomData.dominant}`; if (!map[key]) key = `${tDomData.dominant}-${uDom.dominant}`;
+        let key = `${sDom.dominant}-${tDomData.dominant}`; if (!map[key]) key = `${tDomData.dominant}-${sDom.dominant}`;
         const title = map[key] || "MISTERIO CÓSMICO";
 
         return (
             <div className="p-6 font-mono text-center">
                 <div className="mb-6 border-b border-white/10 pb-4">
                     <h2 className="text-2xl font-black text-white tracking-widest">{title}</h2>
-                    <p className="text-xs text-zinc-400 italic font-serif">Alquimia entre {uDom.dominant} y {tDomData.dominant}</p>
+                    <p className="text-xs text-zinc-400 italic font-serif">Alquimia entre {sName} ({sDom.dominant}) y {tName} ({tDomData.dominant})</p>
                 </div>
                 {!synastryResult ? (
-                    <button onClick={() => handleAnalyzeSynastry(currentUser.date, tDate, tName)} disabled={isAnalyzingSynastry} className="px-6 py-3 bg-zinc-900 border border-zinc-700 text-white text-xs font-bold uppercase tracking-widest w-full flex items-center justify-center gap-2">
-                        {isAnalyzingSynastry ? <Loader2 className="animate-spin" /> : <Zap size={16} />} {isAnalyzingSynastry ? 'ANALIZANDO...' : 'EJECUTAR MOTOR CUÁNTICO'}
+                    <button onClick={() => handleAnalyzeSynastry(sDate, sName, tDate, tName)} disabled={isAnalyzingSynastry} className="px-6 py-3 bg-zinc-900 border border-zinc-700 text-white text-xs font-bold uppercase tracking-widest w-full flex items-center justify-center gap-2">
+                        {isAnalyzingSynastry ? <Loader2 className="animate-spin" /> : <Sparkles size={16} />} {isAnalyzingSynastry ? 'ANALIZANDO...' : 'SINCRO DE ALMAS PROFUNDA'}
                     </button>
                 ) : (
                     <div className="text-left space-y-4 bg-black/40 p-6 border border-white/10 rounded-none animate-fadeIn">
@@ -540,30 +555,32 @@ export default function ScriptAnalyzer() {
                 toMode={viewMode}
             />
 
-            {/* Chart Notes System */}
-            <ChartNotesSystem chartId={currentUser?.date || 'default'} />
-
-            <div className="max-w-[98vw] mx-auto p-4 md:p-8 relative z-10 font-sans text-stone-900 selection:bg-stone-200">
-                {/* --- RESTORED TOP NAVIGATION (PRO) --- */}
-                {/* --- PROFESSIONAL TOP NAVIGATION --- */}
-                <header className="flex flex-col lg:flex-row justify-between items-center mb-16 gap-10 bg-white/70 backdrop-blur-2xl p-6 md:p-8 rounded-none border border-[#1a1a1a]/10 shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-[100] w-full overflow-hidden">
-                    <div className="flex flex-col items-center md:items-start gap-1">
-                        <div className="flex items-center gap-6">
-                            <button
-                                onClick={() => window.location.href = '/'}
-                                className="p-2 border border-[#1a1a1a]/20 hover:bg-[#1a1a1a] hover:text-white transition-all group"
-                                title="Volver al Inicio"
-                            >
-                                <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                            </button>
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display tracking-[0.15em] text-[#1a1a1a] leading-none">ALCHEMISTERY</h1>
+            {/* Content Logic */}
+            {viewMode === 'ALCHIMESTRY' ? (
+                <AlchimestryView
+                    currentUser={currentUser || { name: '', date: new Date().toISOString(), latitude: 0, longitude: 0, city: '' }}
+                    setViewMode={setViewMode}
+                />
+            ) : (
+                <div className="max-w-[98vw] mx-auto p-4 md:p-8 relative z-10 font-sans text-stone-900 selection:bg-stone-200">
+                    <header className="flex flex-col lg:flex-row justify-between items-center mb-16 gap-10 bg-white/70 backdrop-blur-2xl p-6 md:p-8 rounded-none border border-[#1a1a1a]/10 shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-[100] w-full overflow-hidden">
+                        <div className="flex flex-col items-center md:items-start gap-1">
+                            <div className="flex items-center gap-6">
+                                <button
+                                    onClick={() => window.location.href = '/'}
+                                    className="p-2 border border-[#1a1a1a]/20 hover:bg-[#1a1a1a] hover:text-white transition-all group"
+                                    title="Volver al Inicio"
+                                >
+                                    <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                                </button>
+                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-display tracking-[0.15em] text-[#1a1a1a] leading-none">ALCHEMISTERY</h1>
+                            </div>
+                            <p className="text-[10px] tracking-[0.4em] uppercase font-black text-[#C55959]/60 flex items-center gap-4 mt-2">
+                                <span>Alquimia Actoral</span>
+                                <span className="w-8 h-[1px] bg-[#C55959]/20"></span>
+                                <span>v4.0.0</span>
+                            </p>
                         </div>
-                        <p className="text-[10px] tracking-[0.4em] uppercase font-black text-[#C55959]/60 flex items-center gap-4 mt-2">
-                            <span>Alquimia Actoral</span>
-                            <span className="w-8 h-[1px] bg-[#C55959]/20"></span>
-                            <span>v3.15.0</span>
-                        </p>
-                    </div>
 
                     <nav className="flex w-full lg:w-auto min-w-0 gap-2 bg-stone-100 p-1 border border-black/5 overflow-x-auto rounded-none scrollbar-hide">
                         {[
@@ -666,20 +683,67 @@ export default function ScriptAnalyzer() {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn pb-12">
                             <div className="lg:col-span-1 glass-panel p-6 rounded-none shadow-xl">
                                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Users size={18} /> Mi Red</h3>
-                                <div className="space-y-2 mb-6">
-                                    <button onClick={() => setSpiritTargetId('user')} className={`w-full text-left p-3 rounded border transition-all ${spiritTargetId === 'user' ? 'bg-black text-white' : 'bg-white hover:border-black'}`}>
-                                        <span className="text-xs font-bold uppercase">Yo Mismo</span>
+                                 <div className="flex gap-1 mb-4 p-1 bg-gray-100 rounded-lg">
+                                    <button 
+                                        onClick={() => setSelectionPriority('source')} 
+                                        className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-md transition-all ${selectionPriority === 'source' ? 'bg-black text-white shadow-md' : 'text-gray-400'}`}
+                                    >
+                                        1. Base (☉)
                                     </button>
-                                    {characterProfiles.map((char, i) => (
-                                        <button key={i} onClick={() => setSpiritTargetId('char-' + i)} className={`w-full text-left p-3 rounded border transition-all ${spiritTargetId === 'char-' + i ? 'bg-[#C55959] text-white' : 'bg-white hover:border-[#C55959]'}`}>
-                                            <span className="text-xs font-bold uppercase block">{char.name}</span>
-                                            <span className="text-[9px] opacity-70">Personaje</span>
-                                        </button>
-                                    ))}
+                                    <button 
+                                        onClick={() => setSelectionPriority('target')} 
+                                        className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-md transition-all ${selectionPriority === 'target' ? 'bg-[#5B7C99] text-white shadow-md' : 'text-gray-400'}`}
+                                    >
+                                        2. Objetivo (☾)
+                                    </button>
+                                </div>
+                                <div className="space-y-2 mb-6">
+                                    <button 
+                                        onClick={() => selectionPriority === 'source' ? setSpiritSourceId('user') : setSpiritTargetId('user')} 
+                                        className={`w-full text-left p-3 rounded border transition-all ${spiritSourceId === 'user' && selectionPriority === 'source' ? 'ring-2 ring-black' : ''} ${spiritTargetId === 'user' && selectionPriority === 'target' ? 'ring-2 ring-[#5B7C99]' : ''} ${(spiritSourceId === 'user' || spiritTargetId === 'user') ? 'bg-black/5' : 'bg-white'} hover:border-black`}
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xs font-bold uppercase">Yo Mismo</span>
+                                            <div className="flex gap-1">
+                                                {spiritSourceId === 'user' && <span className="w-4 h-4 rounded-full bg-black text-white text-[8px] flex items-center justify-center">☉</span>}
+                                                {spiritTargetId === 'user' && <span className="w-4 h-4 rounded-full bg-[#5B7C99] text-white text-[8px] flex items-center justify-center">☾</span>}
+                                            </div>
+                                        </div>
+                                    </button>
+                                    {characterProfiles.map((char, i) => {
+                                        const id = 'char-' + i;
+                                        return (
+                                            <button 
+                                                key={i} 
+                                                onClick={() => selectionPriority === 'source' ? setSpiritSourceId(id) : setSpiritTargetId(id)} 
+                                                className={`w-full text-left p-3 rounded border transition-all ${spiritSourceId === id && selectionPriority === 'source' ? 'ring-2 ring-black' : ''} ${spiritTargetId === id && selectionPriority === 'target' ? 'ring-2 ring-[#5B7C99]' : ''} ${(spiritSourceId === id || spiritTargetId === id) ? 'bg-[#C55959]/10' : 'bg-white'} hover:border-[#C55959]`}
+                                            >
+                                                <div className="flex justify-between items-center">
+                                                    <div>
+                                                        <span className="text-xs font-bold uppercase block">{char.name}</span>
+                                                        <span className="text-[9px] opacity-70">Personaje</span>
+                                                    </div>
+                                                    <div className="flex gap-1">
+                                                        {spiritSourceId === id && <span className="w-4 h-4 rounded-full bg-black text-white text-[8px] flex items-center justify-center">☉</span>}
+                                                        {spiritTargetId === id && <span className="w-4 h-4 rounded-full bg-[#5B7C99] text-white text-[8px] flex items-center justify-center">☾</span>}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
                                     {friends.map(f => (
                                         <div key={f.id} className="relative group">
-                                            <button onClick={() => setSpiritTargetId(f.id)} className={`w-full text-left p-3 rounded border transition-all ${spiritTargetId === f.id ? 'bg-[#5B7C99] text-white' : 'bg-white hover:border-[#5B7C99]'}`}>
-                                                <span className="text-xs font-bold uppercase block">{f.name}</span>
+                                            <button 
+                                                onClick={() => selectionPriority === 'source' ? setSpiritSourceId(f.id) : setSpiritTargetId(f.id)} 
+                                                className={`w-full text-left p-3 rounded border transition-all ${spiritSourceId === f.id && selectionPriority === 'source' ? 'ring-2 ring-black' : ''} ${spiritTargetId === f.id && selectionPriority === 'target' ? 'ring-2 ring-[#5B7C99]' : ''} ${(spiritSourceId === f.id || spiritTargetId === f.id) ? 'bg-[#5B7C99]/10' : 'bg-white'} hover:border-[#5B7C99]`}
+                                            >
+                                                <div className="flex justify-between items-center pr-6">
+                                                    <span className="text-xs font-bold uppercase block">{f.name}</span>
+                                                    <div className="flex gap-1">
+                                                        {spiritSourceId === f.id && <span className="w-4 h-4 rounded-full bg-black text-white text-[8px] flex items-center justify-center">☉</span>}
+                                                        {spiritTargetId === f.id && <span className="w-4 h-4 rounded-full bg-[#5B7C99] text-white text-[8px] flex items-center justify-center">☾</span>}
+                                                    </div>
+                                                </div>
                                             </button>
                                             <button onClick={() => setFriends(friends.filter(fr => fr.id !== f.id))} className="absolute right-2 top-3 opacity-0 group-hover:opacity-100 transition-all text-red-500"><Trash2 size={14} /></button>
                                         </div>
@@ -690,6 +754,7 @@ export default function ScriptAnalyzer() {
                                     <input className="input-minimal w-full mb-2 bg-white px-3 py-2 text-xs" placeholder="Nombre" value={newFriend.name} onChange={e => setNewFriend({ ...newFriend, name: e.target.value })} />
                                     <div className="flex gap-2">
                                         <input type="date" className="input-minimal flex-1 bg-white text-[10px]" value={newFriend.date} onChange={e => setNewFriend({ ...newFriend, date: e.target.value })} />
+                                        <input type="time" className="input-minimal w-20 bg-white text-[10px]" value={newFriend.time} onChange={e => setNewFriend({ ...newFriend, time: e.target.value })} />
                                         <button onClick={handleAddFriend} className="bg-[#5B7C99] text-white rounded px-4"><UserPlus size={16} /></button>
                                     </div>
                                 </div>
@@ -701,15 +766,33 @@ export default function ScriptAnalyzer() {
                                     <div className="w-full max-w-2xl aspect-square relative mb-8">
                                         <ChartZoomWrapper title="Vínculo Cuántico" theme={chartTheme} onThemeChange={setChartTheme}>
                                             <div className="relative w-full h-full">
-                                                <div className="absolute inset-0 z-10" style={{ opacity: baseOpacity / 100 }}>
-                                                    <NatalChart2D date={currentUser.date} latitude={currentUser.latitude} longitude={currentUser.longitude} theme={chartTheme} forceAriesZero={alignAries} />
-                                                </div>
                                                 {(() => {
-                                                    let tDate = spiritTargetId.startsWith('char-') ? characterProfiles[parseInt(spiritTargetId.split('-')[1])]?.birthData.date : friends.find(f => f.id === spiritTargetId)?.birthData.date;
-                                                    return tDate && (
-                                                        <div className="absolute inset-0 z-20 mix-blend-multiply" style={{ opacity: chartOpacity / 100, filter: 'hue-rotate(180deg)' }}>
-                                                            <NatalChart2D date={tDate} latitude={40} longitude={-3} theme={chartTheme} forceAriesZero={alignAries} />
-                                                        </div>
+                                                    const getIdentity = (id: string) => {
+                                                        if (id === 'user') return { name: currentUser?.name || "Yo", date: currentUser?.date || new Date().toISOString(), lat: currentUser?.latitude || 40, lon: currentUser?.longitude || -3 };
+                                                        if (id.startsWith('char-')) {
+                                                            const char = characterProfiles[parseInt(id.split('-')[1])];
+                                                            return char ? { name: char.name, date: char.birthData.date, lat: 40, lon: -3 } : null;
+                                                        }
+                                                        const f = friends.find(fr => fr.id === id);
+                                                        return f ? { name: f.name, date: f.birthData.date, lat: 40, lon: -3 } : null;
+                                                    };
+
+                                                    const source = getIdentity(spiritSourceId);
+                                                    const target = getIdentity(spiritTargetId);
+
+                                                    return (
+                                                        <>
+                                                            {source && (
+                                                                <div className="absolute inset-0 z-10" style={{ opacity: baseOpacity / 100 }}>
+                                                                    <NatalChart2D date={source.date} latitude={source.lat} longitude={source.lon} theme={chartTheme} forceAriesZero={alignAries} />
+                                                                </div>
+                                                            )}
+                                                            {target && (
+                                                                <div className="absolute inset-0 z-20 mix-blend-multiply" style={{ opacity: chartOpacity / 100, filter: 'hue-rotate(180deg)' }}>
+                                                                    <NatalChart2D date={target.date} latitude={target.lat} longitude={target.lon} theme={chartTheme} forceAriesZero={alignAries} />
+                                                                </div>
+                                                            )}
+                                                        </>
                                                     );
                                                 })()}
                                             </div>
@@ -736,15 +819,9 @@ export default function ScriptAnalyzer() {
                 </main>
 
                 {showLibrary && <ArchetypeLibrary onClose={() => setShowLibrary(false)} />}
-
-                {/* ALCHIMESTRY VIEW (TOP LEVEL) */}
-                {viewMode === 'ALCHIMESTRY' && (
-                    <AlchimestryView
-                        currentUser={currentUser || { name: '', date: new Date().toISOString(), latitude: 0, longitude: 0, city: '' }}
-                        setViewMode={setViewMode}
-                    />
-                )}
             </div>
+            )}
+            {showLibrary && <ArchetypeLibrary onClose={() => setShowLibrary(false)} />}
         </div>
     );
 }

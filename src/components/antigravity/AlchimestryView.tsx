@@ -77,7 +77,7 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
     if (!currentUser) return null;
 
     return (
-        <div className="fixed inset-0 z-[1000] bg-[#05070a] text-stone-300 font-serif overflow-y-auto w-full h-full animate-in fade-in duration-700 selection:bg-amber-500/30 pb-20">
+        <div className="relative min-h-screen bg-[#05070a] text-stone-300 font-serif w-full animate-in fade-in duration-700 selection:bg-amber-500/30 pb-20">
             {/* Background */}
             <div className="fixed inset-0 pointer-events-none opacity-20"
                 style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #1e293b 0%, transparent 70%), url("https://www.transparenttextures.com/patterns/stardust.png")' }} />
@@ -97,7 +97,7 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
                             <span className="text-[9px] text-amber-500/50 font-bold tracking-[0.5em] uppercase mt-1 italic">
                                 Speculum: {septInfo.age} años • Septenio {septInfo.current} ({septInfo.start}-{septInfo.end})
                             </span>
-                            <span className="text-[7px] text-amber-500/30 font-black uppercase tracking-[0.2em] border border-amber-500/10 px-2 py-0.5 rounded-sm">v3.15.0</span>
+                            <span className="text-[7px] text-amber-500/30 font-black uppercase tracking-[0.2em] border border-amber-500/10 px-2 py-0.5 rounded-sm">v4.0.0</span>
                         </div>
                     </div>
                 </div>

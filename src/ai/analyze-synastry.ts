@@ -1,96 +1,114 @@
 'use server';
 
-import { AnalyzeSynastryInput, AnalyzeSynastryOutput } from './schemas';
-import { getSignFromLongitude } from '@/utils/astronomy';
-import { calculateRobustChart } from '@/utils/astronomy-robust';
+import { ai, safeGenerate } from './genkit';
+import { AnalyzeSynastryInput, AnalyzeSynastryOutput, AnalyzeSynastryOutputSchema } from './schemas';
+import { getSignFromLongitude, calculateRealPlanets } from '@/utils/astronomy';
+import { QUANTUM_SYNASTRY_PROMPT } from './system-prompt';
 
 export async function analyzeSynastry(input: AnalyzeSynastryInput): Promise<AnalyzeSynastryOutput> {
-    const { userBirthDate, targetBirthDate, targetName } = input;
+    const { sourceBirthDate, sourceName, targetBirthDate, targetName } = input;
 
-    // 1. GENERATE RICH ASTRONOMICAL DATA (ROBUST ENGINE)
+    // 1. GENERATE RICH ASTRONOMICAL DATA
     const getData = (dateStr: string, name: string) => {
-        const d = new Date(dateStr);
-        const chart = calculateRobustChart(d, 40.4168, -3.7038);
-
+        const chart = calculateRealPlanets(dateStr);
         const p = (n: string) => chart.planets.find(x => x.name === n);
         const sun = p('Sol');
         const moon = p('Luna');
-        const ascSign = getSignFromLongitude(chart.ascendant);
+        const mercury = p('Mercurio');
+        const venus = p('Venus');
+        const mars = p('Marte');
+        const saturn = p('Saturno');
+        const pluto = p('Plutón');
 
-        const counts = { Fuego: 0, Tierra: 0, Aire: 0, Agua: 0 };
-        chart.planets.forEach(pl => {
-            const s = getSignFromLongitude(pl.longitude);
-            const elMap: Record<string, string> = {
-                'Aries': 'Fuego', 'Leo': 'Fuego', 'Sagitario': 'Fuego',
-                'Tauro': 'Tierra', 'Virgo': 'Tierra', 'Capricornio': 'Tierra',
-                'Géminis': 'Aire', 'Libra': 'Aire', 'Acuario': 'Aire',
-                'Cáncer': 'Agua', 'Escorpio': 'Agua', 'Piscis': 'Agua'
-            };
-            const el = elMap[s] || 'Fuego';
-            counts[el as keyof typeof counts]++;
-        });
-        const dom = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+        const ascSign = getSignFromLongitude(chart.ascendant);
 
         return {
             name,
             sunSign: getSignFromLongitude(sun?.longitude || 0),
             moonSign: getSignFromLongitude(moon?.longitude || 0),
-            ascSign,
-            domElem: dom
+            mercurySign: getSignFromLongitude(mercury?.longitude || 0),
+            venusSign: getSignFromLongitude(venus?.longitude || 0),
+            marsSign: getSignFromLongitude(mars?.longitude || 0),
+            saturnSign: getSignFromLongitude(saturn?.longitude || 0),
+            plutoSign: getSignFromLongitude(pluto?.longitude || 0),
+            ascSign
         };
     };
 
-    const c1 = getData(userBirthDate, "Usuario");
+    const c1 = getData(sourceBirthDate, sourceName);
     const c2 = getData(targetBirthDate, targetName);
 
-    // 2. DETERMINISTIC ANALYSIS ALGORITHM (NO EXTERNAL AI)
-    // We construct the response based on Elemental Alchemy to ensure it works 100%.
+    const userPrompt = `
+    PERSONA A (BASE): ${c1.name}
+    PLACA SOLAR: ${c1.sunSign}
+    PLACA LUNAR: ${c1.moonSign}
+    ASCENDENTE: ${c1.ascSign}
+    MERCURIO: ${c1.mercurySign}
+    VENUS: ${c1.venusSign}
+    MARTE: ${c1.marsSign}
+    SATURNO: ${c1.saturnSign}
+    PLUTÓN: ${c1.plutoSign}
 
-    const elements = {
-        "Fuego": { keywords: "Voluntad, Pasión, Impulso", shadow: "Ira, Impaciencia" },
-        "Tierra": { keywords: "Estabilidad, Realidad, Cuerpo", shadow: "Rigidez, Materialismo" },
-        "Aire": { keywords: "Mente, Comunicación, Visión", shadow: "Disociación, Frialdad" },
-        "Agua": { keywords: "Emoción, Fusión, Memoria", shadow: "Drama, Dependencia" }
-    };
+    PERSONA B (OBJETIVO): ${c2.name}
+    PLACA SOLAR: ${c2.sunSign}
+    PLACA LUNAR: ${c2.moonSign}
+    ASCENDENTE: ${c2.ascSign}
+    MERCURIO: ${c2.mercurySign}
+    VENUS: ${c2.venusSign}
+    MARTE: ${c2.marsSign}
+    SATURNO: ${c2.saturnSign}
+    PLUTÓN: ${c2.plutoSign}
 
-    const elem1 = c1.domElem as keyof typeof elements;
-    const elem2 = c2.domElem as keyof typeof elements;
+    TAREA: Genera un análisis de SINERGIA DE ALMAS CLARO Y COMPLETO.
+    - Sigue el ROL de Alchemistery.
+    - Usa un tono profundo pero extremadamente claro y útil.
+    - Explica la dinámica de poder y crecimiento entre estas dos configuraciones.
+    - No uses clichés de horóscopo. Habla de mecanismos psíquicos.
+    `;
 
-    let synergyType = "";
-    if (elem1 === elem2) synergyType = "ESPEJO RESONANTE";
-    else if ((elem1 === 'Fuego' && elem2 === 'Aire') || (elem1 === 'Aire' && elem2 === 'Fuego') || (elem1 === 'Tierra' && elem2 === 'Agua') || (elem1 === 'Agua' && elem2 === 'Tierra')) synergyType = "COMPLEMENTARIEDAD FÉRTIL";
-    else synergyType = "FRICCIÓN EVOLUTIVA";
-
-    // Deterministic Text Generation for METHOD ACTING / POSSESSION
-    const output: AnalyzeSynastryOutput = {
-        synastry_title: `PROTOCOLO DE POSESIÓN: ${c1.sunSign.toUpperCase()} + ${c2.sunSign.toUpperCase()}`,
+    const fallback: AnalyzeSynastryOutput = {
+        synastry_title: `Sinergia Alquímica: ${sourceName} + ${targetName}`,
         phase1_survival_clash: {
-            title: "EL CHOQUE DE CUERPOS (BIOLOGÍA)",
-            description: `Tu biología (${elem1}) se resiste a la frecuencia invasora de ${targetName} (${elem2}). No es un diálogo, es una transfusión de sangre.`,
-            conflict_dynamic: `Tu nervio central opera en modo ${c1.sunSign}, pero el personaje exige encarnar ${c2.sunSign}. El síntoma físico de este rechazo será tensión o falta de aire.`,
-            shadow_projection: `Lo que te irrita del personaje ("${elements[elem2].shadow.split(',')[0]}") es la llave de entrada. No lo juzgues; cómetelo.`
+            title: "EL CHOQUE DE ESTRATEGIAS",
+            description: `La energía de ${c1.ascSign} se encuentra con ${c2.ascSign}. Es un encuentro de dos formas distintas de ver el mundo.`,
+            conflict_dynamic: `Posible fricción entre la necesidad de control y la búsqueda de expansión.`,
+            shadow_projection: `Cada uno proyecta en el otro lo que más le cuesta integrar de su propia sombra.`
         },
         phase2_friction_flow: {
-            title: "LA FRICCIÓN NERVIOSA (PSIQUE)",
-            description: `Tu Luna en ${c1.moonSign} lucha por mantener el control, pero la Luna en ${c2.moonSign} del personaje exige caos y rendición.`,
-            flow_mechanics: `Para habitar su piel, debes anestesiar tu deseo de ${elements[elem1].keywords.split(',')[1]} y someterte a su obsesión por ${elements[elem2].keywords.split(',')[1]}.`,
-            friction_points: `Aquí duele: Tu ${c1.domElem} se está quemando para alimentar la hoguera de su ${c2.domElem}.`
+            title: "DANZA DE ELEMENTOS",
+            description: `A nivel psíquico, ${c1.sunSign} intenta dialogar con ${c2.sunSign}.`,
+            flow_mechanics: `La comunicación fluye cuando ambos se permiten ser vulnerables.`,
+            friction_points: `El reto está en aprender a respetar los tiempos emocionales del otro.`
         },
         phase3_integration_bridge: {
-            title: "LA POSESIÓN (ESPÍRITU)",
-            description: "Has dejado de actuar. Ahora eres un vehículo vacío. El personaje te respira.",
-            mission_statement: `Sostener la vibración de ${c2.sunSign} en tu cuerpo sin colapsar tu sistema nervioso.`,
-            evolutionary_gift: `Al permitir esta posesión, tu rango actoral ha devorado la esencia de ${elem2}.`
+            title: "PUENTE HACIA LA UNIDAD",
+            description: "Esta relación tiene el potencial de catalizar un gran crecimiento.",
+            mission_statement: "Aprender a integrar las polaridades opuestas.",
+            evolutionary_gift: "Mayor conciencia sobre los propios puntos ciegos."
         },
         synchronization_exercise: {
-            title: "RITUAL DE ENTRADA AL CUERPO",
-            step1: "Cierra los ojos. Expulsa tu energía personal por los pies.",
-            step2: `Inhalas la cualidad densa/ligera de ${c2.domElem}. Deja que deforme tu postura.`,
-            step3: "Camina por la habitación. No eres tú. Eres Eso.",
-            mantra: `"Mi cuerpo es el altar. ${targetName} es el fuego."`
+            title: "RITUAL DE SINTONIZACIÓN",
+            step1: "Inhalen juntos manteniendo el contacto visual por 1 minuto.",
+            step2: "Compartan un miedo que rara vez expresen.",
+            step3: "Afirmen el potencial de crecimiento mutuo.",
+            mantra: "Somos espejos de una misma luz."
         }
     };
 
-    // Return immediately - Simulating AI speed but with instant deterministic result
-    return output;
+    try {
+        const response = await safeGenerate(
+            () => ai.generate({
+                model: 'googleai/gemini-flash-latest',
+                system: QUANTUM_SYNASTRY_PROMPT,
+                prompt: userPrompt,
+                output: { schema: AnalyzeSynastryOutputSchema }
+            }),
+            fallback,
+            `Synastry: ${sourceName} vs ${targetName}`
+        );
+        return response;
+    } catch (e) {
+        console.error("[Synastry] Error:", e);
+        return fallback;
+    }
 }

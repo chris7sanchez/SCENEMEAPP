@@ -237,7 +237,7 @@ function CreatorContent() {
 
             <main className={cn(
                 "flex-1 w-full flex flex-col transition-all duration-700 relative",
-                step === 0 ? "h-[100dvh] overflow-hidden p-0" : "max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-8",
+                step === 0 ? "min-h-screen p-0" : "max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-8",
                 flowType === 'photo' && step > 0 ? "bg-studio-matte" : "bg-transparent"
             )}>
                 {flowType === 'photo' && step > 0 && (

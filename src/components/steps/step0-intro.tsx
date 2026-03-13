@@ -146,7 +146,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
     };
 
     return (
-        <div className="h-full w-full flex flex-col bg-white md:bg-transparent overflow-y-auto scrollbar-hide">
+        <div className="w-full flex flex-col bg-white md:bg-transparent">
             <InstallPrompt />
 
             {/* SPLASH SCREEN */}
@@ -190,7 +190,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                 </div>
             </div>
 
-            <div className="flex-1 relative flex flex-col justify-center w-full max-w-[100vw] overflow-hidden pb-2">
+            <div className="relative flex flex-col w-full max-w-[100vw] pb-2">
 
                 {/* Scroll Container (Desktop/Tablet) */}
                 <div
@@ -329,7 +329,8 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
 
                 {/* MOBILE VIEW */}
                 <div className="md:hidden flex flex-col items-center w-full px-4 space-y-4 mb-0">
-                    <div className="grid grid-cols-3 gap-3 w-full max-w-sm mt-2">
+                    <div className="sticky top-0 z-[60] bg-white/95 backdrop-blur-md py-4 w-full flex justify-center border-b border-zinc-100 -mx-4 px-4">
+                        <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
                         {[
                             { id: 0, icon: Camera, label: "FOTO" },
                             { id: 1, icon: Clapperboard, label: "ESCENA" },
@@ -345,9 +346,10 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                                 </div>
                             </button>
                         ))}
+                        </div>
                     </div>
 
-                    <div className="w-full space-y-32 pt-10 pb-20">
+                    <div className="w-full space-y-12 pt-6 pb-20">
                         {/* MOBILE CARD 1: BOOK */}
                         <div id="mobile-card-0" className="bg-white border border-zinc-50 rounded-[2.5rem] p-8 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
                             <div className="flex justify-between items-start mb-4">
@@ -399,7 +401,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                 </div>
 
                 {/* GRAND FINALE: PACKTOR OFFER */}
-                <div ref={offerRef} className="w-full bg-zinc-950 border-t-4 border-primary shadow-[0_-20px_60px_rgba(0,0,0,0.7)] z-40 relative shrink-0 pb-6 pt-4 px-4 md:px-8 origin-bottom scale-[0.85]">
+                <div ref={offerRef} className="w-full bg-zinc-950 border-t-4 border-primary shadow-[0_-20px_60px_rgba(0,0,0,0.7)] z-40 relative shrink-0 pb-6 pt-4 px-4 md:px-8">
                     <div className="max-w-6xl mx-auto">
                         <div className="text-center mb-4">
                             <span className="bg-red-600 text-white text-[9px] md:text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">⚠ Oferta Limitada: Solo 5 plazas</span>

@@ -116,7 +116,8 @@ export type DailyReadingOutput = z.infer<typeof DailyReadingOutputSchema>;
 // ============================================
 
 export const AnalyzeSynastryInputSchema = z.object({
-    userBirthDate: z.string().describe('REQUIRED. The ISO date string of the user\'s birth (YYYY-MM-DD).'),
+    sourceBirthDate: z.string().describe('REQUIRED. The ISO date string of the source person (YYYY-MM-DD).'),
+    sourceName: z.string().describe('REQUIRED. The name of the source person.'),
     targetBirthDate: z.string().describe('REQUIRED. The ISO date string of the target person/character\'s birth.'),
     targetName: z.string().describe('REQUIRED. The name of the target person or character being compared.'),
 });
