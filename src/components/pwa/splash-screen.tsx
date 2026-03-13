@@ -16,9 +16,10 @@ export function SplashScreen() {
             // return; 
         }
 
-        // Logic for PWA consumers
-        const timer1 = setTimeout(() => setIsFading(true), 2000); // Start fade after 2s
-        const timer2 = setTimeout(() => setIsVisible(false), 2500); // Remove after 2.5s
+        // Logic for PWA consumers and browser preview
+        // Aumentamos los tiempos para asegurar que el video tenga tiempo de cargar y reproducirse
+        const timer1 = setTimeout(() => setIsFading(true), 4500); // Inicia desvanecimiento a los 4.5s
+        const timer2 = setTimeout(() => setIsVisible(false), 5500); // Se elimina por completo a los 5.5s
 
         return () => {
             clearTimeout(timer1);
