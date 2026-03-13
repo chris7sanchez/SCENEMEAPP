@@ -9,12 +9,22 @@ export function SplashScreen() {
     const [videoReady, setVideoReady] = useState(false);
 
     useEffect(() => {
+        // Check if splash has already been shown in this session
+        const hasShownSplash = sessionStorage.getItem('sceneme_splash_shown');
+        if (hasShownSplash) {
+            setIsVisible(false);
+            return;
+        }
+
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
         
         // Si ya está listo el video o han pasado mas de 6 segundos de seguridad
         if (videoReady) {
             const timer1 = setTimeout(() => setIsFading(true), 4000); 
-            const timer2 = setTimeout(() => setIsVisible(false), 5000);
+            const timer2 = setTimeout(() => {
+                setIsVisible(false);
+                sessionStorage.setItem('sceneme_splash_shown', 'true');
+            }, 5000);
             return () => {
                 clearTimeout(timer1);
                 clearTimeout(timer2);
@@ -23,7 +33,10 @@ export function SplashScreen() {
 
         // Timer de seguridad por si el video no carga nunca
         const safetyTimer = setTimeout(() => {
-            if (!videoReady) setIsFading(true);
+            if (!videoReady) {
+                setIsFading(true);
+                sessionStorage.setItem('sceneme_splash_shown', 'true');
+            }
         }, 6000);
 
         return () => clearTimeout(safetyTimer);
