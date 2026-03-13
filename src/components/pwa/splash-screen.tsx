@@ -32,16 +32,29 @@ export function SplashScreen() {
         <div
             className={`pwa-splash fixed inset-0 z-[99999] bg-zinc-950 items-center justify-center flex-col gap-6 transition-opacity duration-500 ease-out ${isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
-            <div className="w-64 h-64 md:w-96 md:h-96 rounded-[3rem] overflow-hidden shadow-2xl relative animate-in zoom-in-50 duration-700 fade-in-0">
-                <img
-                    src="/android-chrome-512x512.png"
-                    alt="Scene Me Logo"
-                    className="w-full h-full object-cover"
-                />
-                {/* Shine effect */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 translate-x-[-100%] animate-[shimmer_1.5s_infinite]" />
+            <div className="w-80 h-80 md:w-[500px] md:h-[500px] overflow-hidden relative animate-in zoom-in-95 duration-1000 fade-in-0">
+                {/* Intentar cargar video, si falla o no existe, mostrar el logo estático */}
+                <video
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-contain"
+                    onEnded={() => setIsFading(true)}
+                >
+                    <source src="/videos/logo-animation.mp4" type="video/mp4" />
+                    {/* Fallback a GIF si prefieres usar GIF */}
+                    <img
+                        src="/logo-animation.gif"
+                        alt="Scene Me Logo Animation"
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                            // Si el GIF también falla, mostrar logo final
+                            (e.target as HTMLImageElement).src = "/android-chrome-512x512.png";
+                        }}
+                    />
+                </video>
             </div>
-            <h1 className="text-white font-black text-2xl tracking-[0.2em] animate-pulse">SCENE ME</h1>
+            <h1 className="text-white font-black text-3xl tracking-[0.3em] animate-pulse mt-4">SCENE ME</h1>
         </div>
     );
 }
