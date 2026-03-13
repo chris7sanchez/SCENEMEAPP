@@ -31,7 +31,7 @@ export function SplashScreen() {
 
     return (
         <div
-            className={`pwa-splash fixed inset-0 z-[99999] bg-zinc-950 items-center justify-center flex-col gap-6 transition-opacity duration-500 ease-out ${isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+            className={`fixed inset-0 z-[99999] bg-[#000000] flex flex-col items-center justify-center gap-8 transition-opacity duration-700 ease-in-out ${isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
             <div className="w-80 h-80 md:w-[500px] md:h-[500px] overflow-hidden relative animate-in zoom-in-95 duration-1000 fade-in-0">
                 {/* Intentar cargar video, si falla o no existe, mostrar el logo estático */}
