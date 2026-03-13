@@ -11,6 +11,8 @@ import AlchemicalTransmutator from './AlchemicalTransmutator';
 interface AlchimestryViewProps {
     currentUser: UserData | null;
     setViewMode: (mode: ViewMode) => void;
+    friends?: any[];
+    characterProfiles?: any[];
 }
 
 const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewMode }) => {
@@ -18,6 +20,10 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
     const [selectedDetail, setSelectedDetail] = useState<{ type: 'planet' | 'house', id: string | number } | null>(null);
     const [deepReading, setDeepReading] = useState<AlchimestryDeepAnalysisOutput | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
+
+    const [synastrySourceId, setSynastrySourceId] = useState<string>('user');
+    const [synastryTargetId, setSynastryTargetId] = useState<string>('');
+    const [synastryResult, setSynastryResult] = useState<any | null>(null);
 
     useEffect(() => {
         setDeepReading(null);
@@ -103,14 +109,14 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
                 </div>
 
                 <nav className="flex flex-wrap justify-center gap-1 md:gap-4 bg-black/40 p-1.5 rounded-full border border-amber-900/20 backdrop-blur-md">
-                    {(['inicio', 'identidad', 'ciclos', 'transformacion', 'casas', 'transmutador'] as AlchimestrySubView[]).map((tab) => (
+                    {(['inicio', 'identidad', 'ciclos', 'transformacion', 'casas', 'transmutador', 'sinastria'] as AlchimestrySubView[]).map((tab) => (
                         <button
                             key={tab}
                             onClick={() => { setSubView(tab); setSelectedDetail(null); }}
                             className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${subView === tab ? 'bg-amber-600 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)]' : 'text-stone-500 hover:text-amber-500'
                                 }`}
                         >
-                            {tab}
+                            {tab === 'sinastria' ? 'Sinergia' : tab}
                         </button>
                     ))}
                 </nav>
@@ -456,6 +462,109 @@ const AlchimestryView: React.FC<AlchimestryViewProps> = ({ currentUser, setViewM
                             <p className="text-stone-500 font-serif italic text-lg max-w-2xl">Sintoniza la frecuencia de vibración de tu personaje para la escena.</p>
                         </div>
                         <AlchemicalTransmutator />
+                    </div>
+                )}
+
+                {/* --- SECCIÓN 7: SINERGIA DE ALMAS --- */}
+                {subView === 'sinastria' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-10 duration-1000 space-y-12">
+                        <div className="text-center mb-12">
+                            <h2 className="text-4xl font-black text-white mb-2 uppercase tracking-tight">Sinergia de Almas</h2>
+                            <p className="text-stone-500 font-serif italic text-lg">Descubre la alquimia entre dos esencias estelares.</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {/* Selector 1 */}
+                            <div className="bg-black/40 p-8 rounded-3xl border border-amber-900/10">
+                                <label className="text-[10px] font-black uppercase text-amber-500/50 mb-4 block tracking-widest">Esencia Base</label>
+                                <select 
+                                    value={synastrySourceId} 
+                                    onChange={(e) => setSynastrySourceId(e.target.value)}
+                                    className="w-full bg-[#0a0d14] border border-amber-900/20 text-white p-4 rounded-xl text-sm outline-none appearance-none"
+                                >
+                                    <option value="user">Mi Perfil ({currentUser?.name})</option>
+                                    {characterProfiles?.map((p, i) => (
+                                        <option key={`char-${i}`} value={`char-${i}`}>Personaje: {p.name}</option>
+                                    ))}
+                                    {friends?.map((f) => (
+                                        <option key={f.id} value={f.id}>Amigo: {f.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Selector 2 */}
+                            <div className="bg-black/40 p-8 rounded-3xl border border-amber-900/10">
+                                <label className="text-[10px] font-black uppercase text-amber-500/50 mb-4 block tracking-widest">Esencia Objetivo</label>
+                                <select 
+                                    value={synastryTargetId} 
+                                    onChange={(e) => setSynastryTargetId(e.target.value)}
+                                    className="w-full bg-[#0a0d14] border border-amber-900/20 text-white p-4 rounded-xl text-sm outline-none appearance-none"
+                                >
+                                    <option value="">Seleccionar...</option>
+                                    <option value="user">Mi Perfil ({currentUser?.name})</option>
+                                    {characterProfiles?.map((p, i) => (
+                                        <option key={`char-${i}`} value={`char-${i}`}>Personaje: {p.name}</option>
+                                    ))}
+                                    {friends?.map((f) => (
+                                        <option key={f.id} value={f.id}>Amigo: {f.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {synastrySourceId && synastryTargetId && (
+                            <div className="flex justify-center">
+                                <button
+                                    onClick={async () => {
+                                        setIsGenerating(true);
+                                        // Simplified synastry logic for AlchimestryView
+                                        const getIdentity = (id: string) => {
+                                            if (id === 'user') return { name: currentUser?.name || "Yo", date: currentUser?.date };
+                                            if (id.startsWith('char-')) {
+                                                const char = characterProfiles?.[parseInt(id.split('-')[1])];
+                                                return char ? { name: char.name, date: char.birthData.date } : null;
+                                            }
+                                            const f = friends?.find(fr => fr.id === id);
+                                            return f ? { name: f.name, date: f.birthData.date } : null;
+                                        };
+                                        const source = getIdentity(synastrySourceId);
+                                        const target = getIdentity(synastryTargetId);
+                                        
+                                        if (source && target) {
+                                            const res = await generateDeepAlchimestry({
+                                                userName: source.name,
+                                                birthData: source.date,
+                                                subject: `Sinastría con ${target.name}`,
+                                                context: `Análisis de compatibilidad alquímica entre ${source.name} y ${target.name}.`
+                                            });
+                                            setSynastryResult({
+                                                title: `Alquimia de ${source.name} & ${target.name}`,
+                                                content: res
+                                            });
+                                        }
+                                        setIsGenerating(false);
+                                    }}
+                                    className="bg-amber-600 hover:bg-amber-500 text-white px-12 py-5 rounded-full font-black uppercase tracking-[0.4em] text-xs transition-all shadow-2xl shadow-amber-900/20 flex items-center gap-3"
+                                >
+                                    {isGenerating ? <Loader2 className="animate-spin" /> : <Zap size={18} />}
+                                    Analizar Sinergia
+                                </button>
+                            </div>
+                        )}
+
+                        {synastryResult && (
+                            <div className="max-w-3xl mx-auto bg-[#e2dcc8] text-[#5c4d3c] p-12 rounded-sm shadow-2xl relative border-x border-[#c8bc9a]">
+                                <div className="absolute top-0 left-0 right-0 h-4 bg-[#c8bc9a] border-b border-[#a19570]" />
+                                <div className="absolute bottom-0 left-0 right-0 h-4 bg-[#c8bc9a] border-t border-[#a19570]" />
+                                <h3 className="text-3xl font-black uppercase tracking-widest text-center mb-8 border-b border-[#5c4d3c]/20 pb-4">{synastryResult.title}</h3>
+                                <div className="space-y-6 font-serif leading-relaxed italic text-lg text-center">
+                                    <p>"{synastryResult.content.meditation}"</p>
+                                    <div className="w-16 h-px bg-[#5c4d3c]/30 mx-auto" />
+                                    <p className="text-sm not-italic font-bold uppercase tracking-widest">La Clave Alquímica:</p>
+                                    <p className="text-xl font-black tracking-tight">{synastryResult.content.alchemicalKey}</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </main>

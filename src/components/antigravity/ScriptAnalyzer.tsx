@@ -560,6 +560,8 @@ export default function ScriptAnalyzer() {
                 <AlchimestryView
                     currentUser={currentUser || { name: '', date: new Date().toISOString(), latitude: 0, longitude: 0, city: '' }}
                     setViewMode={setViewMode}
+                    friends={friends}
+                    characterProfiles={characterProfiles}
                 />
             ) : (
                 <div className="max-w-[98vw] mx-auto p-4 md:p-8 relative z-10 font-sans text-stone-900 selection:bg-stone-200">

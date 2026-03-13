@@ -329,7 +329,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
 
                 {/* MOBILE VIEW */}
                 <div className="md:hidden flex flex-col items-center w-full px-4 space-y-4 mb-0">
-                    <div className="sticky top-0 z-[60] bg-white/95 backdrop-blur-md py-4 w-full flex justify-center border-b border-zinc-100 -mx-4 px-4">
+                    <div className="sticky top-[56px] z-[60] bg-white/95 backdrop-blur-md py-4 w-full flex justify-center border-b border-zinc-100 -mx-4 px-4 shadow-sm">
                         <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
                         {[
                             { id: 0, icon: Camera, label: "FOTO" },
