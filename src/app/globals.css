@@ -117,6 +117,19 @@
     }
   }
 
+  /* Fuente personalizada Christiangraphy */
+  @font-face {
+    font-family: 'Christiangraphy';
+    src: url('/fonts/ChristiangraphyFont-Regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  .christiangraphy {
+    font-family: 'Christiangraphy', 'Caveat', cursive;
+  }
+
   .handwriting {
     font-family: 'Caveat', cursive;
   }

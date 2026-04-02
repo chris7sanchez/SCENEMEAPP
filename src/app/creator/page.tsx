@@ -216,6 +216,11 @@ function CreatorContent() {
                                     <DropdownMenuItem onClick={() => router.push('/antigravity')} className="text-purple-400 focus:text-purple-500 focus:bg-purple-900/10">
                                         <Sparkles className="mr-2 h-4 w-4" /> ALCHEMISTERY
                                     </DropdownMenuItem>
+                                    {/* VIDEO HUB (New Tool) */}
+                                    <DropdownMenuItem onClick={() => router.push('/tools/video')} className="text-blue-400 focus:text-blue-500 focus:bg-blue-900/10">
+                                        <Film className="mr-2 h-4 w-4" /> VIDEO HUB
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
                                     {/* ADMIN PANEL (Hidden Access) */}
                                     <DropdownMenuItem onClick={() => router.push('/admin')} className="text-amber-400 focus:text-amber-500 focus:bg-amber-900/10">
                                         <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

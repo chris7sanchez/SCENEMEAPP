@@ -4,15 +4,13 @@ import { googleAI, gemini15Flash } from '@genkit-ai/googleai';
 // ============================================
 // ANTIGRAVITY AI ENGINE v2.0
 // Powered by Gemini Flash
-// ============================================
-
-// Initialize Genkit with the Google AI plugin.
-// - Fast response times for real-time readings
-const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY || '';
-
+/**
+ * ENGINE v2.1 - Optimizado para Vercel Serverless
+ */
 export const ai = genkit({
-    plugins: apiKey ? [googleAI({ apiKey })] : [],
-    model: 'googleai/gemini-flash-latest',
+    // Al no pasar apiKey aquí, Genkit la busca automáticamente en process.env.GOOGLE_GENAI_API_KEY
+    plugins: [googleAI()],
+    model: gemini15Flash, 
 });
 
 // ============================================

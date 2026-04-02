@@ -82,15 +82,56 @@ export default function LoginPage() {
                 </div>
 
                 {/* 2. Main Value Proposition */}
-                <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-700 delay-150 mb-8">
-                    <p className="font-bold text-xl md:text-2xl text-white leading-relaxed">
-                        ¿Eres actor y necesitas material profesional audiovisual cuanto antes?
+                <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-700 delay-150 mb-6 text-center">
+                    <h2 className="font-black text-white text-3xl md:text-5xl uppercase tracking-tighter leading-tight mb-2">
+                        ¿Eres Actor / Actriz?
+                    </h2>
+                    <div className="flex flex-col items-center">
+                        <p className="font-black text-white text-2xl md:text-3xl uppercase tracking-tighter leading-none">
+                            ¿Necesitas Renovar
+                        </p>
+                        <p className="font-black text-white text-2xl md:text-3xl uppercase tracking-tighter leading-tight">
+                            tu Mejor Material?
+                        </p>
+                        <span
+                            className="christiangraphy text-red-500 text-4xl md:text-5xl leading-none block tracking-tighter"
+                            style={{ transform: 'rotate(-2deg)', marginTop: '-0.1em' }}
+                        >
+                            urgentemente
+                        </span>
+                    </div>
+                    <p className="mt-4 text-base md:text-lg font-bold leading-snug">
+                        <span className="text-primary">de forma PLANEADA, o RÁPIDA, </span>
+                        <span className="text-blue-400 font-black">EXPRESS</span>
+                        <span className="text-primary"> — pero siempre profesional!</span>
                     </p>
                 </div>
 
                 {/* 3. Auth Section */}
-                <div className="w-full max-w-sm mx-auto animate-in fade-in scale-in-95 duration-500 delay-300 mb-8">
-                    <div className="bg-black/60 backdrop-blur-xl rounded-xl shadow-2xl border border-primary/30 p-6">
+                <div className="w-full max-w-sm mx-auto animate-in fade-in scale-in-95 duration-500 delay-300 mb-8 relative">
+                    {/* Graffiti Overlay */}
+                    <div className="absolute inset-x-0 -top-4 -bottom-4 flex flex-col items-center justify-center pointer-events-none z-20 opacity-60">
+                        <span
+                            className="christiangraphy text-red-600 text-4xl md:text-5xl block leading-tight filter drop-shadow-md"
+                            style={{ transform: 'rotate(-4deg)' }}
+                        >
+                            LA APP para ACTORxS
+                        </span>
+                        <span
+                            className="christiangraphy text-red-600 text-2xl md:text-3xl block leading-tight filter drop-shadow-md"
+                            style={{ transform: 'rotate(-2deg)' }}
+                        >
+                            que NO quieren
+                        </span>
+                        <span
+                            className="christiangraphy text-red-600 text-5xl md:text-6xl block leading-tight font-black filter drop-shadow-lg"
+                            style={{ transform: 'rotate(-1deg)' }}
+                        >
+                            PERDER EL TIEMPO!
+                        </span>
+                    </div>
+
+                    <div className="bg-black/60 backdrop-blur-xl rounded-xl shadow-2xl border border-primary/30 p-6 relative z-10">
                         <h2 className="text-xl font-bold text-white mb-4 text-center font-display tracking-wide">
                             {isLogin ? 'ACCESO ACTORES' : 'CREAR CUENTA'}
                         </h2>
@@ -150,31 +191,8 @@ export default function LoginPage() {
                     </div>
                 </div>
 
-                {/* 4. Details Section */}
-                <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-10 duration-700 delay-500 flex flex-col gap-4 pb-6">
-
-                    <p className="text-lg md:text-xl text-primary font-bold tracking-wide leading-tight">
-                        SCENE ME es la app para actores que no quieren perder el tiempo.
-                    </p>
-
-                    <p className="text-white/90 text-lg md:text-xl font-medium leading-tight">
-                        Elige hoy mismo tu escena y cierra una fecha.
-                    </p>
-
-                    <div className="py-2">
-                        <span className="text-primary font-bold text-lg md:text-xl block mb-1 tracking-wide">LA FORMA MÁS RÁPIDA Y PROFESIONAL</span>
-                        <span className="text-white font-bold text-lg md:text-xl">de obtener TU MEJOR ESCENA.</span>
-                    </div>
-
-                    <div className="pt-4 border-t border-white/10 w-full max-w-md mx-auto">
-                        <p className="font-headline text-xl md:text-2xl mb-2 text-white/80">
-                            Cierra fecha y prepárate...
-                        </p>
-                        <span className="text-primary text-4xl md:text-5xl font-headline font-bold block tracking-wider">
-                            ¡SE RUEDA!
-                        </span>
-                    </div>
-                </div>
+                {/* 4. Footer Placeholder */}
+                <div className="h-4"></div>
 
             </div>
 
@@ -187,10 +205,16 @@ export default function LoginPage() {
                 </div>
                 <p>© {new Date().getFullYear()} Scene Me. Todos los derechos reservados.</p>
 
-                {/* PUBLIC ACCESS TO ANTIGRAVITY */}
-                <div className="mt-4">
-                    <a href="/antigravity" className="text-purple-500 font-bold hover:underline text-xs tracking-widest animate-pulse">
-                        ✨ ACCESO EXPERIMENTAL: ALCHEMISTERY
+                {/* PUBLIC ACCESS TO ANTIGRAVITY & EXQUISIT */}
+                <div className="mt-4 flex flex-col items-center gap-2">
+                    <a href="/exquisit" className="text-[#c9a961] font-bold hover:underline text-xs tracking-[0.2em] animate-pulse">
+                        ⚗ ACCESO EXQUISIT: ALTA PERFUMERÍA
+                    </a>
+                    <a href="/hub" className="text-orange-500 font-bold hover:underline text-xs tracking-[0.3em] flex items-center gap-2 mt-1">
+                        🎬 XPERIMENTAL: PRODUCTION HUB
+                    </a>
+                    <a href="/antigravity" className="text-purple-500 font-bold hover:underline text-[10px] tracking-widest opacity-60">
+                        ✨ Character Alchemistery
                     </a>
                 </div>
             </footer>

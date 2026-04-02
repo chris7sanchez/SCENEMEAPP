@@ -331,21 +331,21 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                 <div className="md:hidden flex flex-col items-center w-full px-4 space-y-4 mb-0">
                     <div className="sticky top-[56px] z-[60] bg-white/95 backdrop-blur-md py-4 w-full flex justify-center border-b border-zinc-100 -mx-4 px-4 shadow-sm">
                         <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
-                        {[
-                            { id: 0, icon: Camera, label: "FOTO" },
-                            { id: 1, icon: Clapperboard, label: "ESCENA" },
-                            { id: 2, icon: Film, label: "TAPES" }
-                        ].map((item) => (
-                            <button key={item.id} onClick={() => { setSelectedIndex(null); const card = document.getElementById(`mobile-card-${item.id}`); card?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} className="flex flex-col items-center gap-2 group active:scale-95 transition-transform">
-                                <div className="relative w-14 h-14 rounded-2xl flex items-center justify-center border-2 border-zinc-100 shadow-sm bg-white hover:border-primary/40 transition-colors">
-                                    <item.icon className="w-6 h-6 text-zinc-800" />
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <span className="handwriting text-red-600 text-lg md:text-xl font-bold italic">{item.id + 1}</span>
-                                    <span className="text-[8px] font-black tracking-widest uppercase text-zinc-900">{item.label}</span>
-                                </div>
-                            </button>
-                        ))}
+                            {[
+                                { id: 0, Icon: Camera, label: "FOTO" },
+                                { id: 1, Icon: Clapperboard, label: "ESCENA" },
+                                { id: 2, Icon: Film, label: "TAPES" }
+                            ].map(({ id, Icon, label }) => (
+                                <button key={id} onClick={() => { setSelectedIndex(null); const card = document.getElementById(`mobile-card-${id}`); card?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} className="flex flex-col items-center gap-2 group active:scale-95 transition-transform">
+                                    <div className="relative w-14 h-14 rounded-2xl flex items-center justify-center border-2 border-zinc-100 shadow-sm bg-white hover:border-primary/40 transition-colors">
+                                        <Icon className="w-6 h-6 text-zinc-800" />
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <span className="christiangraphy text-red-600 text-xl">{id + 1}</span>
+                                        <span className="text-[8px] font-black tracking-widest uppercase text-zinc-900">{label}</span>
+                                    </div>
+                                </button>
+                            ))}
                         </div>
                     </div>
 
@@ -357,10 +357,10 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                                 <Camera className="w-8 h-8 text-black opacity-80" />
                             </div>
                             <div className="relative mb-6 mt-2">
-                                <p className="handwriting text-red-600 text-4xl leading-none -rotate-2 mb-4">RESERVA YA.</p>
+                                <p className="christiangraphy text-red-600 text-5xl leading-none -rotate-2 mb-4">Prepárate!</p>
                                 <h3 className="text-3xl font-black text-black uppercase leading-[0.9] tracking-tighter">TU BOOK ACTORAL</h3>
                             </div>
-                            <p className="text-sm text-zinc-300 italic mb-6 font-medium">Levántate del sofá y "revélate" al mundo...</p>
+                            <p className="text-sm text-zinc-400 italic mb-6 font-medium">Levántate del sofá y "revélate" al mundo con <span className="font-bold not-italic text-zinc-700">un buen fotógrafo.</span></p>
                             <div className="flex gap-4">
                                 <Button variant="outline" className="flex-1 bg-zinc-100 border-none text-zinc-600 h-10 text-[10px] font-black tracking-widest rounded-full" onClick={() => { setIsGalleryOpen(true); setVisibleCount(4); }}>VER TRABAJOS</Button>
                                 <Button className="flex-1 bg-black text-white h-10 text-[10px] font-black tracking-widest rounded-full shadow-lg" onClick={() => { if (setFlowType) setFlowType('photo'); if (updateForm) updateForm({ serviceType: 'photo' }); setStep(1); }}>EMPEZAR AHORA</Button>
@@ -369,12 +369,14 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
 
                         {/* MOBILE CARD 2: SCENE ME */}
                         <div id="mobile-card-1" className="bg-[#FFFBEB] border border-mustard-gold/30 rounded-[2.5rem] p-8 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
-                            <div className="flex justify-between items-start mb-6">
-                                <div className="bg-mustard-gold text-white px-4 py-2 rounded-full border border-mustard-gold shadow-sm"><span className="font-black uppercase tracking-widest text-[10px]">PASO 2</span></div>
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="bg-mustard-gold text-black px-4 py-2 rounded-full border border-mustard-gold shadow-sm flex items-center gap-2">
+                                    <span className="font-black uppercase tracking-widest text-[10px]">EL CAMINO</span>
+                                </div>
                                 <Clapperboard className="w-8 h-8 text-black opacity-80" />
                             </div>
                             <div className="relative mb-6 mt-4">
-                                <p className="handwriting text-red-600 text-4xl leading-none -rotate-2 mb-4">CREA Y RUEDA.</p>
+                                <p className="christiangraphy text-red-600 text-5xl leading-none -rotate-2 mb-4">Crea y rueda!</p>
                                 <h3 className="text-3xl font-black text-black uppercase leading-tight tracking-tighter">TU MEJOR ESCENA</h3>
                                 <div className="mt-2 mb-6"><span className="bg-zinc-100 text-zinc-500 text-[10px] font-bold px-3 py-1 rounded-full border border-zinc-200 uppercase tracking-wide">5 PLAZAS DISPONIBLES</span></div>
                             </div>
@@ -390,9 +392,10 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                                 <div className="bg-zinc-100 text-zinc-400 px-4 py-1.5 rounded-full border border-zinc-200"><span className="font-bold uppercase tracking-widest text-[10px]">PASO 3</span></div>
                                 <Film className="w-8 h-8 text-black opacity-80" />
                             </div>
-                            <div className="relative mb-6 mt-4">
-                                <p className="handwriting text-red-600 text-4xl leading-none -rotate-3 mb-4">ASEGÚRATE.</p>
-                                <h3 className="text-3xl font-black text-black uppercase leading-[0.9] tracking-tighter">TUS MEJORES<br />SELF-TAPES</h3>
+                            <div className="relative mb-4 mt-4">
+                                <p className="christiangraphy text-red-600 text-5xl leading-none -rotate-3 mb-3">Asegúrate...</p>
+                                <p className="text-base font-bold text-zinc-600 leading-tight mb-1">¡PREPÁRATE para recibir <br /><span className="text-3xl font-black text-blue-600 animate-shine-text">EL SÍ!</span></p>
+                                <h3 className="text-3xl font-black text-black uppercase leading-[0.9] tracking-tighter mt-3">TUS MEJORES<br />SELF-TAPES</h3>
                             </div>
                             <p className="text-sm text-zinc-400 italic mb-8 font-medium">"La suerte es ciega. El Director de Casting, no."</p>
                             <Button variant="outline" className="w-full border-2 border-primary text-black hover:bg-primary/5 font-black h-14 text-[11px] tracking-widest rounded-xl shadow-sm" onClick={() => { if (setFlowType) setFlowType('photo'); if (updateForm) updateForm({ serviceType: 'photo', photoType: 'event' }); setStep(1); }}>RESERVAR ASESORÍA</Button>

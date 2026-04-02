@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BirthData, calculateRealPlanets, findPossibleBirthDates } from '@/utils/astronomy';
 import { calculateAspects, Aspect } from '@/utils/astrology';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
@@ -75,6 +75,8 @@ export default function ScriptAnalyzer() {
     const [mundaneAspects, setMundaneAspects] = useState<Aspect[]>([]);
     const [dailyReading, setDailyReading] = useState<DailyReadingOutput | null>(null);
     const [isReadingLoading, setIsReadingLoading] = useState(false);
+    // Cache key: prevents re-fetching when user object is recreated but data hasn't changed
+    const lastReadingKey = useRef<string>('');
 
     // Body / Script State
     const [script, setScript] = useState('');
@@ -236,16 +238,26 @@ export default function ScriptAnalyzer() {
     }, [viewMode]);
 
     // Transits & Reading
+    // Uses a stable cache key so re-renders that recreate currentUser don't trigger duplicate AI calls
     useEffect(() => {
-        if (currentUser) {
-            const transits = calculateRealPlanets(transitDate.toISOString(), currentUser.latitude, currentUser.longitude);
-            const natal = calculateRealPlanets(currentUser.date, currentUser.latitude, currentUser.longitude);
-            const aspects = calculateAspects(transits.planets, natal.planets, 'NATAL');
-            setDailyAspects(aspects.slice(0, 5));
-            const timer = setTimeout(() => fetchDailyReading(currentUser, aspects.slice(0, 5)), 500);
-            return () => clearTimeout(timer);
-        }
-    }, [transitDate, currentUser]);
+        if (!currentUser) return;
+
+        const transitDay = transitDate.toISOString().slice(0, 10);
+        // Key: birth date + transit day — same data → same key → skip
+        const cacheKey = `${currentUser.date?.slice(0, 10)}_${transitDay}`;
+
+        const transits = calculateRealPlanets(transitDate.toISOString(), currentUser.latitude, currentUser.longitude);
+        const natal = calculateRealPlanets(currentUser.date, currentUser.latitude, currentUser.longitude);
+        const aspects = calculateAspects(transits.planets, natal.planets, 'NATAL');
+        setDailyAspects(aspects.slice(0, 5));
+
+        // Only fetch if the key is new (different user or different transit day)
+        if (cacheKey === lastReadingKey.current) return;
+        lastReadingKey.current = cacheKey;
+
+        const timer = setTimeout(() => fetchDailyReading(currentUser, aspects.slice(0, 5)), 500);
+        return () => clearTimeout(timer);
+    }, [transitDate, currentUser?.date, currentUser?.latitude, currentUser?.longitude]);
 
     const fetchDailyReading = async (user: UserData, aspects: Aspect[]) => {
         setIsReadingLoading(true);

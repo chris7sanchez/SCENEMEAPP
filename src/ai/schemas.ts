@@ -102,11 +102,23 @@ export const DailyReadingInputSchema = z.object({
 
 export type DailyReadingInput = z.infer<typeof DailyReadingInputSchema>;
 
+// Single effluvio schema (used inside array)
+const EfluvioSchema = z.object({
+    headline: z.string().describe('REQUIRED. A mystical, evocative title (5-10 words). Example: "El Fuego Interior Reclama su Trono".'),
+    theme: z.string().describe('REQUIRED. The main energetic theme in 2-4 words. Example: "Transformación Profunda".'),
+    reading: z.string().describe('REQUIRED. A personalized, alchemical interpretation (120-200 words). Use second person ("tú"). Reference specific transits. Be specific and psychological.'),
+    advice: z.string().describe('REQUIRED. A cryptic but actionable piece of advice (1-2 sentences). Example: "No resistas el río; aprende a nadar con su corriente."'),
+    planetSource: z.string().optional().describe('The main planetary transit that generates this effluvio (e.g. "Marte → Luna").'),
+});
+
 export const DailyReadingOutputSchema = z.object({
-    headline: z.string().describe('REQUIRED. A mystical, evocative title for the daily reading (5-10 words). Use alchemical or esoteric language. Example: "El Fuego Interior Reclama su Trono".'),
-    theme: z.string().describe('REQUIRED. The main energetic theme in 2-4 words. Example: "Transformación Profunda", "Claridad Mental", "Tensión Creativa".'),
-    reading: z.string().describe('REQUIRED. A personalized, deep, and alchemical interpretation (150-250 words). Use second person ("tú"). Reference specific transits. Weave them into a coherent narrative about the day\'s energy. Avoid generic horoscope language. Be specific and psychological.'),
-    advice: z.string().describe('REQUIRED. A cryptic but actionable piece of advice (1-2 sentences). Should feel like wisdom from an ancient teacher. Example: "No resistas el río; aprende a nadar con su corriente."'),
+    // Backwards-compat single reading (primary effluvio)
+    headline: z.string().describe('REQUIRED. Mystical title for the primary reading (5-10 words).'),
+    theme: z.string().describe('REQUIRED. Main theme in 2-4 words.'),
+    reading: z.string().describe('REQUIRED. Primary alchemical interpretation (120-200 words). Use second person.'),
+    advice: z.string().describe('REQUIRED. Cryptic but actionable advice (1-2 sentences).'),
+    // Multiple efluvios for tab navigation
+    efluvios: z.array(EfluvioSchema).min(1).max(4).describe('REQUIRED. Between 2 and 4 distinct efluvios, each covering a different active transit or energetic dimension of the day. Each must be meaningfully different.'),
 });
 
 export type DailyReadingOutput = z.infer<typeof DailyReadingOutputSchema>;

@@ -240,7 +240,12 @@ export default function AdminPage() {
         setGenderActors(newArr);
     };
 
+    const [errorMessages, setErrorMessages] = useState<string[]>(["", "", ""]);
+
     const generateSingleScript = async (index: number) => {
+        // Reset specific error
+        setErrorMessages(prev => { const n = [...prev]; n[index] = ""; return n; });
+        
         const newIsGenerating = [...isGenerating];
         newIsGenerating[index] = true;
         setIsGenerating(newIsGenerating);
@@ -252,7 +257,7 @@ export default function AdminPage() {
             const actorsDescription = genderActors.map((g, i) => `Actor ${i + 1}: ${g}`).join(", ");
 
             // Format duration
-            let lengthString = "120 seconds"; // Default value, though it will be overwritten
+            let lengthString = "120 seconds";
             if (durationMode === "fixed") {
                 lengthString = "30 seconds";
             } else {
@@ -271,15 +276,26 @@ export default function AdminPage() {
                 props,
                 endingType,
                 language
-
             });
 
-            const newScripts = [...scripts];
-            newScripts[index] = result.script;
-            setScripts(newScripts);
+            if (result.error) {
+                console.error("Server Error:", result.error);
+                setErrorMessages(prev => { const n = [...prev]; n[index] = result.error || "Error desconocido"; return n; });
+                return;
+            }
+
+            if (result.script) {
+                const newScripts = [...scripts];
+                newScripts[index] = result.script;
+                setScripts(newScripts);
+            }
         } catch (error) {
             console.error("Error generating script:", error);
-            alert("Error al generar el guion: " + (error instanceof Error ? error.message : String(error)));
+            setErrorMessages(prev => { 
+                const n = [...prev]; 
+                n[index] = "Excepción: " + (error instanceof Error ? error.message : String(error)); 
+                return n; 
+            });
         } finally {
             setIsGenerating(prev => {
                 const next = [...prev];
@@ -290,8 +306,6 @@ export default function AdminPage() {
     };
 
     const handleGenerateAll = async () => {
-        // Trigger all 3 in parallel but don't await them here to block UI
-        // Each generateSingleScript handles its own loading state
         const promises = [0, 1, 2].map(index => generateSingleScript(index));
         await Promise.all(promises);
     };
@@ -838,11 +852,16 @@ export default function AdminPage() {
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="h-[300px] flex flex-col items-center justify-center text-zinc-600 border border-dashed border-zinc-800 rounded-lg bg-black/20">
+                                                <div className="h-[300px] flex flex-col items-center justify-center text-zinc-600 border border-dashed border-zinc-800 rounded-lg bg-black/20 p-4">
                                                     {isGenerating[index] ? (
                                                         <div className="text-center">
                                                             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-primary" />
                                                             <p className="text-xs animate-pulse">Escribiendo guion...</p>
+                                                        </div>
+                                                    ) : errorMessages[index] ? (
+                                                        <div className="text-center text-red-500 overflow-y-auto w-full h-full p-2 bg-red-950/20 border border-red-900/50 rounded flex flex-col items-center justify-center">
+                                                            <p className="font-bold mb-2">Error de Generación</p>
+                                                            <p className="text-sm whitespace-pre-wrap">{errorMessages[index]}</p>
                                                         </div>
                                                     ) : (
                                                         <p className="text-sm">Esperando generación...</p>
