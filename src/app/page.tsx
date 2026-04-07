@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Clapperboard, Eye, EyeOff } from 'lucide-react';
+import { Clapperboard, Eye, EyeOff, Lock } from 'lucide-react';
 
 export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -188,14 +188,15 @@ export default function LoginPage() {
 
             </div>
 
-            {/* Admin Access Link - Discreet */}
-            <div className="relative z-10 mt-8 opacity-30 hover:opacity-100 transition-opacity">
-                <a
-                    href="/admin"
-                    className="text-[10px] text-zinc-600 hover:text-zinc-400 font-mono tracking-widest uppercase"
+            {/* Admin Access Link - Visible */}
+            <div className="relative z-10 mt-8">
+                <Button
+                    variant="outline"
+                    onClick={() => router.push('/admin')}
+                    className="bg-black/50 border-zinc-800 text-zinc-400 hover:text-white hover:border-primary hover:bg-black/80 font-mono tracking-widest uppercase text-xs px-6"
                 >
-                    Panel Admin
-                </a>
+                    <Lock className="w-3 h-3 mr-2" /> Panel Admin
+                </Button>
             </div>
         </div>
     );

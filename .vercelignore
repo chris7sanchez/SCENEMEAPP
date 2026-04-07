@@ -1,6 +1,10 @@
 public/videos/
 *.zip
 sceneeme.mov
-src/data/exquisit/
+src/data/exquisit/design_elements/
+src/data/exquisit/documents/
+src/data/exquisit/esencias/
+src/data/exquisit/guides/
 *.mp4
 *.mov
+src/app/tools/video/

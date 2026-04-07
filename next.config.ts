@@ -27,7 +27,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  serverExternalPackages: ['pdf-parse'],
+  outputFileTracingExcludes: {
+    "**/*": [
+      "node_modules/ffmpeg-static/**/*",
+      "node_modules/@ffmpeg-installer/**/*",
+      "src/data/exquisit/**/*",
+      "public/videos/**/*"
+    ]
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '5mb',

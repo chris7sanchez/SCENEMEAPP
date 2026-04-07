@@ -1,6 +1,7 @@
 'use server';
 
-import { getAI } from '@/ai/genkit';
+import { genkit } from 'genkit';
+import { googleAI, gemini20Flash } from '@genkit-ai/googleai';
 
 export interface ScriptInput {
     language?: string;
@@ -22,12 +23,19 @@ export interface ScriptInput {
  */
 export async function generateScript(input: ScriptInput): Promise<{ script?: string, error?: string }> {
     try {
-        console.log("[AI Flow] Iniciando generación de guion con Genkit Engine...");
+        console.log("[AI Flow] Iniciando generación de guion directo...");
         
-        // Obtenemos el motor de forma segura
-        const ai = getAI();
+        const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            return { error: "Falta la API Key de Gemini en el servidor." };
+        }
+
+        const ai = genkit({
+            plugins: [googleAI({ apiKey })]
+        });
 
         const result = await ai.generate({
+            model: gemini20Flash,
             prompt: `You are a professional screenwriter. Generate a complete screenplay in ${input.language || 'Spanish'}.
             
             CONTEXT:
@@ -52,7 +60,7 @@ export async function generateScript(input: ScriptInput): Promise<{ script?: str
         const script = result.text;
 
         if (!script) {
-            return { error: "La IA respondió pero no generó texto. Comprueba que el logline no viole políticas de seguridad." };
+            return { error: "La IA respondió pero no generó texto." };
         }
 
         return { script };
@@ -60,9 +68,7 @@ export async function generateScript(input: ScriptInput): Promise<{ script?: str
     } catch (e: any) {
         console.error("[AI Flow] Error Crítico:", e);
         return {
-            error: e.message.includes("ERROR_CONFIG") 
-                ? "Fallo de Configuración: Falta la API Key en el servidor (Vercel)." 
-                : `Error del servidor de Genkit: ${e.message}`
+            error: `Fallo de Engine AI: ${e.message || "Error desconocido."}`
         };
     }
 }
