@@ -12,23 +12,31 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    // TODO: Add isAdmin check once we have custom claims or an admin list
-    // function isAdmin() {
-    //   return request.auth.token.email == 'admin@sceneme.com'; 
-    // }
+    function isAdmin() {
+      // Permitir acceso si el usuario es el administrador verificado vía contraseña maestra (UID fijo)
+      // o si su email coincide con el administrador configurado.
+      return request.auth != null && (
+        request.auth.uid == 'admin-dashboard' || 
+        request.auth.token.email == 'chris.7sanchez@gmail.com'
+      );
+    }
 
     // Users collection: Users can read/write their own profile
     match /users/{userId} {
       allow read, write: if isAuthenticated() && isOwner(userId);
+
+      // Antigravity data: only the user can access their own state
+      match /antigravity/{docId} {
+        allow read, write: if isAuthenticated() && isOwner(userId);
+      }
     }
 
     // Orders collection: 
     // - Anyone can create an order (public checkout)
-    // - Only owner or admin can read/update (for now, authenticated users can read their own)
+    // - Only admin can read/update/delete.
     match /orders/{orderId} {
-      allow create: if true; // Public checkout needs to create orders
-      allow read: if isAuthenticated(); // Ideally restrict to owner/admin
-      allow update: if isAuthenticated(); // Admin updates status
+      allow create: if true; 
+      allow read, update, delete: if isAdmin();
     }
   }
 }

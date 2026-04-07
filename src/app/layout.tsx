@@ -3,6 +3,8 @@ import './globals.css';
 
 export const viewport: Viewport = {
     themeColor: '#000000',
+    // iOS PWA safe areas
+    viewportFit: 'cover',
 }
 
 export const metadata: Metadata = {
@@ -33,9 +35,9 @@ export const metadata: Metadata = {
     },
 };
 
-import { SiteFooter } from '@/components/site-footer';
 import { SplashScreen } from '@/components/pwa/splash-screen';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
+import { BottomTabBar } from '@/components/bottom-tab-bar';
 
 export default function RootLayout({
     children,
@@ -52,11 +54,11 @@ export default function RootLayout({
             <body className="font-body antialiased flex flex-col min-h-screen">
                 <SplashScreen />
                 <GlobalErrorBoundary>
-                    <main className="flex-1">
+                    <main className="flex-1 pb-16 md:pb-0">
                         {children}
                     </main>
                 </GlobalErrorBoundary>
-                <SiteFooter />
+                <BottomTabBar />
             </body>
         </html>
     );

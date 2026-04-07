@@ -65,13 +65,8 @@
     @apply bg-background text-foreground;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-headline tracking-wider;
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline font-black uppercase tracking-tight;
   }
 }
 
@@ -117,21 +112,8 @@
     }
   }
 
-  /* Fuente personalizada Christiangraphy */
-  @font-face {
-    font-family: 'Christiangraphy';
-    src: url('/fonts/ChristiangraphyFont-Regular.otf') format('opentype');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-  }
-
-  .christiangraphy {
-    font-family: 'Christiangraphy', 'Caveat', cursive;
-  }
-
-  .handwriting {
-    font-family: 'Caveat', cursive;
+  .handwriting, .christiangraphy {
+    @apply font-headline font-black;
   }
 
   @keyframes rotate-pause {
@@ -257,5 +239,10 @@
 
   .animate-light-leak {
     animation: light-leak 10s ease-in-out infinite;
+  }
+
+  /* iOS safe area for bottom tab bar */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }

@@ -169,7 +169,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
             )}
 
             <div className="pt-2 px-4 flex flex-col items-center">
-                <p className="handwriting text-mustard-gold text-5xl md:text-8xl leading-none animate-in slide-in-from-top duration-700">
+                <p className="text-primary font-black text-4xl md:text-7xl leading-none animate-in slide-in-from-top duration-700 uppercase tracking-tight">
                     Alcanza el éxito
                 </p>
                 <p className="text-red-600 font-headline font-black text-4xl md:text-9xl p-0 -mt-2 leading-none tracking-tighter filter drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]">
@@ -184,7 +184,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                     <p className="text-[10px] md:text-sm font-medium text-zinc-500 tracking-[0.3em] uppercase mb-1">
                         merece una ESTRATEGIA GANADORA
                     </p>
-                    <p className="handwriting text-mustard-gold text-2xl md:text-5xl leading-normal block animate-float opacity-80 pt-2 pb-8 px-8 relative z-10 -mt-2">
+                    <p className="text-primary font-black text-xl md:text-3xl leading-normal block pt-2 pb-8 px-8 relative z-10 -mt-2 uppercase tracking-tight">
                         hoy mismo
                     </p>
                 </div>
@@ -341,7 +341,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                                         <Icon className="w-6 h-6 text-zinc-800" />
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <span className="christiangraphy text-red-600 text-xl">{id + 1}</span>
+                                        <span className="text-red-600 text-xl font-black">{id + 1}</span>
                                         <span className="text-[8px] font-black tracking-widest uppercase text-zinc-900">{label}</span>
                                     </div>
                                 </button>
@@ -357,7 +357,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                                 <Camera className="w-8 h-8 text-black opacity-80" />
                             </div>
                             <div className="relative mb-6 mt-2">
-                                <p className="christiangraphy text-red-600 text-5xl leading-none -rotate-2 mb-4">Prepárate!</p>
+                                <p className="text-red-600 text-3xl font-black leading-none -rotate-1 mb-4 uppercase">¡Prepárate!</p>
                                 <h3 className="text-3xl font-black text-black uppercase leading-[0.9] tracking-tighter">TU BOOK ACTORAL</h3>
                             </div>
                             <p className="text-sm text-zinc-400 italic mb-6 font-medium">Levántate del sofá y "revélate" al mundo con <span className="font-bold not-italic text-zinc-700">un buen fotógrafo.</span></p>
@@ -376,7 +376,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                                 <Clapperboard className="w-8 h-8 text-black opacity-80" />
                             </div>
                             <div className="relative mb-6 mt-4">
-                                <p className="christiangraphy text-red-600 text-5xl leading-none -rotate-2 mb-4">Crea y rueda!</p>
+                                <p className="text-red-600 text-3xl font-black leading-none -rotate-1 mb-4 uppercase">¡Crea y rueda!</p>
                                 <h3 className="text-3xl font-black text-black uppercase leading-tight tracking-tighter">TU MEJOR ESCENA</h3>
                                 <div className="mt-2 mb-6"><span className="bg-zinc-100 text-zinc-500 text-[10px] font-bold px-3 py-1 rounded-full border border-zinc-200 uppercase tracking-wide">5 PLAZAS DISPONIBLES</span></div>
                             </div>
@@ -393,7 +393,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                                 <Film className="w-8 h-8 text-black opacity-80" />
                             </div>
                             <div className="relative mb-4 mt-4">
-                                <p className="christiangraphy text-red-600 text-5xl leading-none -rotate-3 mb-3">Asegúrate...</p>
+                                <p className="text-red-600 text-3xl font-black leading-none -rotate-1 mb-3 uppercase">¡Asegúrate!</p>
                                 <p className="text-base font-bold text-zinc-600 leading-tight mb-1">¡PREPÁRATE para recibir <br /><span className="text-3xl font-black text-blue-600 animate-shine-text">EL SÍ!</span></p>
                                 <h3 className="text-3xl font-black text-black uppercase leading-[0.9] tracking-tighter mt-3">TUS MEJORES<br />SELF-TAPES</h3>
                             </div>

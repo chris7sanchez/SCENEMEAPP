@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Clapperboard } from 'lucide-react';
+import { Clapperboard, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
@@ -22,7 +23,6 @@ export default function LoginPage() {
             if (isLogin) {
                 const result = await auth.login(email, password);
                 if (result.success) {
-                    // Force full reload to ensure auth state is picked up
                     window.location.href = '/creator';
                 } else {
                     setError(result.error || 'Credenciales incorrectas o usuario no encontrado.');
@@ -40,7 +40,6 @@ export default function LoginPage() {
         });
     };
 
-    // Auto-redirect if already logged in
     React.useEffect(() => {
         import('@/lib/auth').then(async ({ auth }) => {
             const user = await auth.getCurrentUser();
@@ -52,20 +51,16 @@ export default function LoginPage() {
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden bg-black flex flex-col items-center justify-center py-6">
-            <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="fixed top-0 left-0 w-full h-full object-cover opacity-40 z-0 pointer-events-none"
-            >
-                <source src="/login-video.mp4" type="video/mp4" />
-                Tu navegador no soporta vídeos HTML5.
-            </video>
+            {/* Fondo cinemático CSS */}
+            <div className="fixed top-0 left-0 w-full h-full z-0 pointer-events-none">
+                <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-zinc-900" />
+                <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 blur-[150px] rounded-full animate-pulse" />
+                <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-red-900/10 blur-[120px] rounded-full" />
+            </div>
 
             <div className="relative z-10 w-full max-w-4xl mx-auto px-4 flex flex-col items-center text-center h-full justify-center">
 
-                {/* 1. Header Section */}
+                {/* Header Section */}
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-10 duration-700 mb-6">
                     <div
                         className="cursor-pointer group relative inline-block"
@@ -81,7 +76,7 @@ export default function LoginPage() {
                     <p className="text-xl md:text-3xl text-primary font-headline tracking-wide uppercase">THE ACTOR'S STORE CONCEPT</p>
                 </div>
 
-                {/* 2. Main Value Proposition */}
+                {/* Value Proposition — SIN fuente manuscrita */}
                 <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-700 delay-150 mb-6 text-center">
                     <h2 className="font-black text-white text-3xl md:text-5xl uppercase tracking-tighter leading-tight mb-2">
                         ¿Eres Actor / Actriz?
@@ -93,11 +88,8 @@ export default function LoginPage() {
                         <p className="font-black text-white text-2xl md:text-3xl uppercase tracking-tighter leading-tight">
                             tu Mejor Material?
                         </p>
-                        <span
-                            className="christiangraphy text-red-500 text-4xl md:text-5xl leading-none block tracking-tighter"
-                            style={{ transform: 'rotate(-2deg)', marginTop: '-0.1em' }}
-                        >
-                            urgentemente
+                        <span className="text-red-500 text-3xl md:text-4xl leading-none block tracking-tight font-black uppercase mt-1">
+                            ¡URGENTEMENTE!
                         </span>
                     </div>
                     <p className="mt-4 text-base md:text-lg font-bold leading-snug">
@@ -107,31 +99,9 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                {/* 3. Auth Section */}
+                {/* Auth Section — SIN graffiti overlay */}
                 <div className="w-full max-w-sm mx-auto animate-in fade-in scale-in-95 duration-500 delay-300 mb-8 relative">
-                    {/* Graffiti Overlay */}
-                    <div className="absolute inset-x-0 -top-4 -bottom-4 flex flex-col items-center justify-center pointer-events-none z-20 opacity-60">
-                        <span
-                            className="christiangraphy text-red-600 text-4xl md:text-5xl block leading-tight filter drop-shadow-md"
-                            style={{ transform: 'rotate(-4deg)' }}
-                        >
-                            LA APP para ACTORxS
-                        </span>
-                        <span
-                            className="christiangraphy text-red-600 text-2xl md:text-3xl block leading-tight filter drop-shadow-md"
-                            style={{ transform: 'rotate(-2deg)' }}
-                        >
-                            que NO quieren
-                        </span>
-                        <span
-                            className="christiangraphy text-red-600 text-5xl md:text-6xl block leading-tight font-black filter drop-shadow-lg"
-                            style={{ transform: 'rotate(-1deg)' }}
-                        >
-                            PERDER EL TIEMPO!
-                        </span>
-                    </div>
-
-                    <div className="bg-black/60 backdrop-blur-xl rounded-xl shadow-2xl border border-primary/30 p-6 relative z-10">
+                    <div className="bg-black/60 backdrop-blur-xl rounded-2xl shadow-2xl border border-primary/30 p-6 relative z-10">
                         <h2 className="text-xl font-bold text-white mb-4 text-center font-display tracking-wide">
                             {isLogin ? 'ACCESO ACTORES' : 'CREAR CUENTA'}
                         </h2>
@@ -143,82 +113,81 @@ export default function LoginPage() {
                                     placeholder="Email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="bg-white/5 border-white/10 text-white placeholder:text-white/40 h-10 text-base px-3 focus:border-primary/50 transition-all text-center"
+                                    className="bg-white/10 border-white/30 text-white placeholder:text-white/60 h-12 text-base px-5 focus:border-primary/50 transition-all rounded-xl focus:bg-white/20"
                                     required
                                 />
                             </div>
-                            <div className="space-y-1">
+                            <div className="space-y-1 relative">
                                 <Input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     placeholder="Contraseña"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="bg-white/5 border-white/10 text-white placeholder:text-white/40 h-10 text-base px-3 focus:border-primary/50 transition-all text-center"
+                                    className="bg-white/10 border-white/30 text-white placeholder:text-white/60 h-12 text-base px-5 pr-12 focus:border-primary/50 transition-all rounded-xl focus:bg-white/20"
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
                             </div>
 
-                            {error && <p className="text-destructive text-xs font-bold text-center bg-destructive/10 p-1 rounded">{error}</p>}
+                            {error && <p className="text-destructive text-xs font-bold text-center bg-destructive/10 p-2 rounded-lg">{error}</p>}
 
                             <Button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full h-10 text-base font-bold tracking-wider bg-primary hover:bg-primary/90 text-black transition-all transform hover:scale-[1.02]"
+                                className="w-full h-12 text-base font-black tracking-widest bg-primary hover:bg-primary/90 text-black transition-all transform active:scale-95 rounded-xl shadow-lg shadow-primary/20 uppercase"
                             >
                                 {isLoading ? 'CARGANDO...' : (isLogin ? 'ENTRAR' : 'REGISTRARME')}
                             </Button>
                         </form>
 
-                        <div className="mt-4 text-center pt-2 border-t border-white/10">
+                        {/* SSO Section */}
+                        <div className="mt-6 flex flex-col gap-3">
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10"></span></div>
+                                <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest text-white/40"><span className="bg-black/40 px-2 backdrop-blur-sm">O continuar con</span></div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                                <Button 
+                                    variant="outline" 
+                                    className="h-11 bg-white/5 border-white/10 hover:bg-white/10 text-white font-bold rounded-xl flex items-center gap-2"
+                                    onClick={() => {}} // SSO Logic
+                                >
+                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.92 3.12-1.92 4.12-1.2 1.2-3.08 2.48-6.12 2.48-4.92 0-8.96-4-8.96-8.92 0-4.92 4.04-8.92 8.96-8.92 2.68 0 4.6 1.04 6.04 2.44l2.32-2.32C18.64 1.16 15.84 0 12.48 0 5.6 0 0 5.6 0 12.48S5.6 24.96 12.48 24.96c3.68 0 6.48-1.2 8.68-3.48 2.24-2.24 2.96-5.4 2.96-8.08 0-.68-.04-1.32-.12-1.92h-11.52z"/></svg>
+                                    Google
+                                </Button>
+                                <Button 
+                                    variant="outline" 
+                                    className="h-11 bg-white/5 border-white/10 hover:bg-white/10 text-white font-bold rounded-xl flex items-center gap-2"
+                                    onClick={() => {}} // SSO Logic
+                                >
+                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.96.95-2.22 1.78-3.53 1.78-1.28 0-1.67-.83-3.15-.83-1.51 0-1.97.82-3.13.82-1.2 0-2.54-.91-3.6-2.47-1.1-1.63-1.92-4.63-1.92-7.14 0-3.97 2.35-6.07 4.54-6.07 1.04 0 1.95.6 2.76.6.77 0 1.88-.63 3.09-.63 1.3 0 2.44.57 3.25 1.57-2.61 1.44-2.18 5.17.47 6.27-.66 1.63-1.57 3.27-2.78 4.37v-.3zm-2.85-15.65c.57-.7 1-1.63 1-2.63 0-.12-.01-.25-.03-.37-.87.03-1.87.59-2.48 1.3-.5.58-.94 1.54-.94 2.53 0 .15.02.29.05.4.92-.01 1.83-.53 2.4-1.23z"/></svg>
+                                    Apple
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 text-center pt-2 border-t border-white/10">
                             <button
                                 onClick={() => { setIsLogin(!isLogin); setError(''); }}
-                                className="text-white/70 hover:text-primary font-bold text-xs transition-colors uppercase tracking-widest"
+                                className="text-white/70 hover:text-primary font-bold text-[10px] transition-colors uppercase tracking-widest"
                             >
                                 {isLogin ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia sesión"}
                             </button>
                         </div>
                     </div>
-
-                    {/* Talent Directory Link - INTEGRATED HERE */}
-                    <div className="mt-6 text-center animate-in fade-in slide-in-from-bottom-2 duration-500 delay-400">
-                        <a
-                            href="/talents"
-                            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-200 hover:text-white text-xs font-bold uppercase tracking-wider transition-all hover:scale-105 group"
-                        >
-                            <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">★</span>
-                            ¿Buscas actores? Explora el Directorio
-                        </a>
-                    </div>
                 </div>
 
-                {/* 4. Footer Placeholder */}
                 <div className="h-4"></div>
 
             </div>
-
-            {/* 5. Footer */}
-            <footer className="w-full text-center py-6 text-xs text-white/40 mt-auto animate-in fade-in duration-1000 delay-700 relative z-10">
-                <div className="flex justify-center gap-4 mb-2">
-                    <a href="/privacy" className="hover:text-white transition-colors">Política de Privacidad</a>
-                    <span>•</span>
-                    <a href="/terms" className="hover:text-white transition-colors">Términos y Condiciones</a>
-                </div>
-                <p>© {new Date().getFullYear()} Scene Me. Todos los derechos reservados.</p>
-
-                {/* PUBLIC ACCESS TO ANTIGRAVITY & EXQUISIT */}
-                <div className="mt-4 flex flex-col items-center gap-2">
-                    <a href="/exquisit" className="text-[#c9a961] font-bold hover:underline text-xs tracking-[0.2em] animate-pulse">
-                        ⚗ ACCESO EXQUISIT: ALTA PERFUMERÍA
-                    </a>
-                    <a href="/hub" className="text-orange-500 font-bold hover:underline text-xs tracking-[0.3em] flex items-center gap-2 mt-1">
-                        🎬 XPERIMENTAL: PRODUCTION HUB
-                    </a>
-                    <a href="/antigravity" className="text-purple-500 font-bold hover:underline text-[10px] tracking-widest opacity-60">
-                        ✨ Character Alchemistery
-                    </a>
-                </div>
-            </footer>
-
+            {/* FOOTER ELIMINADO — enlaces legales en Perfil/Ajustes */}
         </div>
     );
 }

@@ -17,19 +17,18 @@ export interface ScriptInput {
 }
 
 /**
- * SERVICIO PROFESIONAL DE GENERACIÓN (Genkit Native)
- * Restaurado con diagnósticos avanzados para producción.
+ * SERVICIO DE GENERACIÓN DE GUIONES (Genkit AI)
+ * Genera guiones escritos profesionales para actores.
  */
-export async function generateVideoScript(input: ScriptInput): Promise<{ script?: string, error?: string }> {
+export async function generateScript(input: ScriptInput): Promise<{ script?: string, error?: string }> {
     try {
-        console.log("[AI Flow] Iniciando generación con Genkit Engine...");
+        console.log("[AI Flow] Iniciando generación de guion con Genkit Engine...");
 
-        // 1. Verificación de Seguridad
+        // Verificación de API Key
         if (!process.env.GOOGLE_GENAI_API_KEY && !process.env.GEMINI_API_KEY) {
             return { error: "CONFIGURACIÓN: No se detectó ninguna API Key en el servidor (Vercel)." };
         }
 
-        // 2. Generación con Genkit
         const result = await ai.generate({
             prompt: `You are a professional screenwriter. Generate a complete screenplay in ${input.language || 'Spanish'}.
             
@@ -62,14 +61,11 @@ export async function generateVideoScript(input: ScriptInput): Promise<{ script?
 
     } catch (e: any) {
         console.error("[AI Flow] Error Crítico:", e);
-
-        // Devolvemos el error detallado para localizar el fallo (Cuota, API Key, o Red)
         return {
             error: `Fallo de Engine AI: ${e.message || "Error desconocido en el servidor de Genkit."}`
         };
     }
 }
 
-
-
-
+// Alias de compatibilidad — evita romper imports existentes durante la transición
+export { generateScript as generateVideoScript };

@@ -24,7 +24,7 @@ import {
     DollarSign,
     ShoppingCart
 } from "lucide-react";
-import { generateVideoScript } from "@/ai/flows/generate-video-script";
+import { generateScript as generateVideoScript } from "@/ai/flows/generate-script";
 import { GENRES, TONES, LOCATIONS } from "@/lib/data";
 
 declare global {
@@ -36,7 +36,8 @@ declare global {
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
+import { signInWithCustomToken } from 'firebase/auth';
+import { auth as firebaseAuth } from "@/lib/firebase";
 import { auth } from "@/lib/auth";
 
 export default function AdminPage() {
@@ -93,13 +94,15 @@ export default function AdminPage() {
 
                 // Check if user is logged in AND is the admin email
                 const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-                if (mounted && user && user.email) {
-                    if (adminEmail && user.email.toLowerCase() === adminEmail.toLowerCase()) {
+                const isAdminUid = user.uid === 'admin-dashboard';
+
+                if (mounted && user) {
+                    if (isAdminUid || (user.email && adminEmail && user.email.toLowerCase() === adminEmail.toLowerCase())) {
                         setIsAuthenticated(true);
-                    } else if (!adminEmail) {
+                    } else if (!adminEmail && user.email) {
                         // Fallback: If no admin email configured, allow any logged in user (legacy behavior, risky)
-                        // Better to require configuration, but for now let's be safe and require it.
-                        console.warn("NEXT_PUBLIC_ADMIN_EMAIL not set. Admin access restricted.");
+                        console.warn("NEXT_PUBLIC_ADMIN_EMAIL not set. Access granted based on active session.");
+                        setIsAuthenticated(true);
                     }
                 }
             } catch (error) {
@@ -112,18 +115,49 @@ export default function AdminPage() {
         return () => { mounted = false; };
     }, []);
 
+    // Estado de conexión para debug
+    const [firestoreError, setFirestoreError] = useState<string | null>(null);
+
     useEffect(() => {
         if (!isAuthenticated) return;
 
+        setFirestoreError(null);
         const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const ordersData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setOrders(ordersData);
-            setLoadingOrders(false);
-        });
+
+        // onSnapshot con error handler explícito
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const ordersData = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                setOrders(ordersData);
+                setLoadingOrders(false);
+                setFirestoreError(null);
+            },
+            async (error) => {
+                // Error en realtime — fallback a getDocs
+                console.error("onSnapshot failed:", error.code, error.message);
+                setFirestoreError(`Realtime: ${error.code || error.message}`);
+
+                try {
+                    const { getDocs } = await import("firebase/firestore");
+                    const snapshot = await getDocs(q);
+                    const ordersData = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    setOrders(ordersData);
+                    setFirestoreError(`Modo offline (${ordersData.length} pedidos cargados)`);
+                } catch (fallbackErr) {
+                    console.error("Fallback getDocs also failed:", fallbackErr);
+                    setFirestoreError("Sin conexión a Firestore. Verifica reglas de seguridad y configuración.");
+                } finally {
+                    setLoadingOrders(false);
+                }
+            }
+        );
 
         return () => unsubscribe();
     }, [isAuthenticated]);
@@ -142,8 +176,12 @@ export default function AdminPage() {
                 });
 
                 if (res.ok) {
-                    setIsAuthenticated(true);
-                    return;
+                    const { token } = await res.json();
+                    if (token) {
+                        await signInWithCustomToken(firebaseAuth, token);
+                        setIsAuthenticated(true);
+                        return;
+                    }
                 }
             } catch (err) {
                 console.error("Master password check failed", err);
@@ -418,42 +456,72 @@ export default function AdminPage() {
 
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center p-4">
-                <Card className="w-full max-w-md bg-zinc-900 border-zinc-800 text-white">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-display text-primary text-center">SCENE ME ADMIN</CardTitle>
-                        <CardDescription className="text-center text-zinc-400">Acceso restringido</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="admin@sceneme.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="bg-black/50 border-zinc-700 text-white"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="password">Contraseña</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="bg-black/50 border-zinc-700 text-white"
-                                />
-                            </div>
-                            {loginError && <p className="text-red-500 text-sm text-center">{loginError}</p>}
-                            <Button type="submit" className="w-full bg-primary text-black hover:bg-primary/90 font-bold">
-                                Entrar
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                {/* Fondo cinemático interactivo */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900 via-black to-black z-0" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-primary/20 blur-[100px] md:blur-[120px] rounded-full pointer-events-none z-0" />
+                
+                <div className="z-10 w-full max-w-sm space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                    <div className="text-center space-y-2">
+                        <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 border border-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.3)] backdrop-blur-md">
+                            <Lock className="w-8 h-8 text-primary" />
+                        </div>
+                        <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-500 tracking-widest uppercase drop-shadow-sm">
+                            Scene Me
+                        </h1>
+                        <p className="text-zinc-400 font-mono text-xs tracking-[0.3em] uppercase">Private Terminal</p>
+                    </div>
+
+                    <Card className="bg-black/40 backdrop-blur-2xl border border-white/5 text-white shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                        <CardContent className="pt-8 pb-6 px-6">
+                            <form onSubmit={handleLogin} className="space-y-6">
+                                <div className="space-y-4">
+                                    <div className="group relative">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <User className="h-4 w-4 text-zinc-500 group-focus-within:text-primary transition-colors" />
+                                        </div>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            placeholder="Identidad Director"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="pl-12 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus:border-primary/50 focus:bg-primary/5 transition-all h-14 rounded-xl text-base"
+                                        />
+                                    </div>
+                                    <div className="group relative">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <svg className="h-4 w-4 text-zinc-500 group-focus-within:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                            </svg>
+                                        </div>
+                                        <Input
+                                            id="password"
+                                            type="password"
+                                            placeholder="Clave Maestra"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="pl-12 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus:border-primary/50 focus:bg-primary/5 transition-all h-14 rounded-xl text-base"
+                                        />
+                                    </div>
+                                </div>
+                                {loginError && (
+                                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
+                                        <p className="text-red-400 text-xs font-mono">{loginError}</p>
+                                    </div>
+                                )}
+                                <Button type="submit" className="w-full h-14 bg-primary text-black hover:bg-white hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] transition-all duration-300 font-bold tracking-widest uppercase rounded-xl">
+                                    Desbloquear
+                                </Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+                </div>
+                
+                <div className="absolute bottom-6 left-0 right-0 text-center opacity-50 hover:opacity-100 transition-opacity">
+                    <p className="text-[9px] text-zinc-500 font-mono tracking-[0.2em] uppercase">SCENEME OS v2.0 • HIGHLY CLASSIFIED</p>
+                </div>
             </div>
         );
     }
@@ -478,6 +546,25 @@ export default function AdminPage() {
                     </TabsList>
 
                     <TabsContent value="orders" className="mt-6">
+                        {firestoreError && (
+                            <div className="mb-4 p-3 rounded-lg border border-amber-500/30 bg-amber-500/5 flex items-center justify-between gap-3">
+                                <p className="text-amber-400 text-xs font-mono flex-1">{firestoreError}</p>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 text-xs shrink-0"
+                                    onClick={() => {
+                                        setLoadingOrders(true);
+                                        setFirestoreError(null);
+                                        // Force re-mount by toggling auth
+                                        setIsAuthenticated(false);
+                                        setTimeout(() => setIsAuthenticated(true), 100);
+                                    }}
+                                >
+                                    Reintentar
+                                </Button>
+                            </div>
+                        )}
                         {loadingOrders ? (
                             <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary" /></div>
                         ) : orders.length === 0 ? (

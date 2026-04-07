@@ -33,6 +33,7 @@ import AlchemicalPortal from './AlchemicalPortal';
 import MiniCalculator from './MiniCalculator';
 import ChartNotesSystem from './ChartNotesSystem';
 import { auth } from '@/lib/auth';
+import { loadAntigravityState, saveAntigravityState } from '@/lib/antigravity-db';
 
 export default function ScriptAnalyzer() {
     // --- STATE ---
@@ -136,57 +137,68 @@ export default function ScriptAnalyzer() {
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     // --- INITIALIZATION ---
+    // Strategy: Firestore first (multi-device), localStorage as fallback (offline/guest)
     useEffect(() => {
-        const userStr = localStorage.getItem('userBirthData');
-        const userLibStr = localStorage.getItem('userLibrary');
-        const friendsStr = localStorage.getItem('astroFriends');
-        const scriptLibStr = localStorage.getItem('scriptLibrary');
-        const lastSession = localStorage.getItem('lastSessionData');
         const savedEmail = localStorage.getItem('antigravity_email');
-        // CHECK FOR FIREBASE AUTH FIRST
-        auth.getCurrentUser().then(user => {
+
+        auth.getCurrentUser().then(async (user) => {
             if (user && user.email) {
                 setUserEmail(user.email);
                 setIsLoggedIn(true);
+
+                // Try to load from Firestore (cloud state)
+                const cloudState = await loadAntigravityState();
+                if (cloudState) {
+                    if (cloudState.themeSettings) setThemeSettings(cloudState.themeSettings);
+                    if (cloudState.userLibrary) setUserLibrary(cloudState.userLibrary);
+                    if (cloudState.scriptLibrary) setScriptLibrary(cloudState.scriptLibrary);
+                    if (cloudState.friends) setFriends(cloudState.friends);
+                    if (cloudState.userBirthData) {
+                        setCurrentUser(cloudState.userBirthData);
+                        syncDateParts(cloudState.userBirthData.date);
+                        const planets = calculateRealPlanets(
+                            cloudState.userBirthData.date,
+                            cloudState.userBirthData.latitude,
+                            cloudState.userBirthData.longitude
+                        );
+                        syncUserSigns(planets);
+                    }
+                    return; // Cloud data loaded — skip localStorage
+                }
             } else if (savedEmail) {
-                // Fallback to legacy local email if no Firebase user
                 setUserEmail(savedEmail);
                 setIsLoggedIn(true);
             }
+
+            // Fallback: load from localStorage (guest mode or no cloud state yet)
+            const themeStr = localStorage.getItem('themeSettings');
+            const userStr = localStorage.getItem('userBirthData');
+            const userLibStr = localStorage.getItem('userLibrary');
+            const friendsStr = localStorage.getItem('astroFriends');
+            const scriptLibStr = localStorage.getItem('scriptLibrary');
+            const lastSession = localStorage.getItem('lastSessionData');
+
+            if (themeStr) { try { setThemeSettings(JSON.parse(themeStr)); } catch (e) {} }
+            if (userLibStr) { try { setUserLibrary(JSON.parse(userLibStr)); } catch (e) {} }
+            if (scriptLibStr) { try { setScriptLibrary(JSON.parse(scriptLibStr)); } catch (e) {} }
+            if (friendsStr) { try { setFriends(JSON.parse(friendsStr)); } catch (e) {} }
+            if (lastSession) {
+                try {
+                    const session = JSON.parse(lastSession);
+                    if (session.script) setScript(session.script);
+                    if (session.profiles) setCharacterProfiles(session.profiles);
+                } catch (e) {}
+            }
+            if (userStr) {
+                try {
+                    const userData = JSON.parse(userStr);
+                    setCurrentUser(userData);
+                    syncDateParts(userData.date);
+                    const planets = calculateRealPlanets(userData.date, userData.latitude, userData.longitude);
+                    syncUserSigns(planets);
+                } catch (e) {}
+            }
         });
-
-        const themeStr = localStorage.getItem('themeSettings');
-
-        if (themeStr) {
-            try { setThemeSettings(JSON.parse(themeStr)); } catch (e) { }
-        }
-
-        if (userLibStr) {
-            try { setUserLibrary(JSON.parse(userLibStr)); } catch (e) { }
-        }
-        if (scriptLibStr) {
-            try { setScriptLibrary(JSON.parse(scriptLibStr)); } catch (e) { }
-        }
-        if (friendsStr) {
-            try { setFriends(JSON.parse(friendsStr)); } catch (e) { }
-        }
-        if (lastSession) {
-            try {
-                const session = JSON.parse(lastSession);
-                if (session.script) setScript(session.script);
-                if (session.profiles) setCharacterProfiles(session.profiles);
-            } catch (e) { }
-        }
-
-        if (userStr) {
-            try {
-                const userData = JSON.parse(userStr);
-                setCurrentUser(userData);
-                syncDateParts(userData.date);
-                const planets = calculateRealPlanets(userData.date, userData.latitude, userData.longitude);
-                syncUserSigns(planets);
-            } catch (e) { }
-        }
     }, []);
 
     // Sync signs helper
@@ -271,14 +283,18 @@ export default function ScriptAnalyzer() {
         } catch (e) { } finally { setIsReadingLoading(false); }
     };
 
-    // Handlers
     const handleSaveUser = (data: UserData) => {
         setCurrentUser(data);
+        // Keep localStorage for instant offline access
         localStorage.setItem('userBirthData', JSON.stringify(data));
         if (data.name) {
             const updatedLib = [data, ...userLibrary.filter(u => u.name !== data.name)].slice(0, 200);
             setUserLibrary(updatedLib);
             localStorage.setItem('userLibrary', JSON.stringify(updatedLib));
+            // Sync to Firestore (non-blocking)
+            saveAntigravityState({ userBirthData: data, userLibrary: updatedLib });
+        } else {
+            saveAntigravityState({ userBirthData: data });
         }
         const planets = calculateRealPlanets(data.date, data.latitude, data.longitude);
         syncUserSigns(planets);
@@ -461,8 +477,11 @@ export default function ScriptAnalyzer() {
     const handleAddFriend = () => {
         if (!newFriend.name || !newFriend.date) return;
         const entry = { id: Date.now().toString(), name: newFriend.name, birthData: { date: `${newFriend.date}T${newFriend.time}:00`, latitude: 40.4168, longitude: -3.7038 } };
-        const updated = [...friends, entry]; setFriends(updated);
+        const updated = [...friends, entry];
+        setFriends(updated);
         localStorage.setItem('astroFriends', JSON.stringify(updated));
+        // Sync to Firestore (non-blocking)
+        saveAntigravityState({ friends: updated });
         setNewFriend({ name: '', date: '', time: '12:00' });
     };
 

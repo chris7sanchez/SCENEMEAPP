@@ -10,7 +10,7 @@ import { googleAI, gemini15Flash } from '@genkit-ai/googleai';
 export const ai = genkit({
     // Al no pasar apiKey aquí, Genkit la busca automáticamente en process.env.GOOGLE_GENAI_API_KEY
     plugins: [googleAI()],
-    model: gemini15Flash, 
+    model: 'googleai/gemini-2.5-flash', 
 });
 
 // ============================================
