@@ -187,7 +187,16 @@ export default function LoginPage() {
                 <div className="h-4"></div>
 
             </div>
-            {/* FOOTER ELIMINADO — enlaces legales en Perfil/Ajustes */}
+
+            {/* Admin Access Link - Discreet */}
+            <div className="relative z-10 mt-8 opacity-30 hover:opacity-100 transition-opacity">
+                <a
+                    href="/admin"
+                    className="text-[10px] text-zinc-600 hover:text-zinc-400 font-mono tracking-widest uppercase"
+                >
+                    Panel Admin
+                </a>
+            </div>
         </div>
     );
 }

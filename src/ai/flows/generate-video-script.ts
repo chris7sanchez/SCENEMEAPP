@@ -1,6 +1,6 @@
 'use server';
 
-import { ai } from '@/ai/genkit';
+import { getAI } from '@/ai/genkit';
 
 export interface ScriptInput {
     language?: string;
@@ -29,7 +29,10 @@ export async function generateVideoScript(input: ScriptInput): Promise<{ script?
             return { error: "CONFIGURACIÓN: No se detectó ninguna API Key en el servidor (Vercel)." };
         }
 
-        // 2. Generación con Genkit
+        // 2. Obtener instancia de AI de forma segura
+        const ai = getAI();
+
+        // 3. Generación con Genkit
         const result = await ai.generate({
             prompt: `You are a professional screenwriter. Generate a complete screenplay in ${input.language || 'Spanish'}.
             

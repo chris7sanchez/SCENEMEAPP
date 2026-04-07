@@ -69,6 +69,7 @@ export default function AdminPage() {
     const [logline, setLogline] = useState("");
     const [props, setProps] = useState("");
     const [emailToSend, setEmailToSend] = useState("");
+    const [tones, setTones] = useState<string[]>([]);
 
     // Speech Recognition State
     const [isListening, setIsListening] = useState(false);
@@ -290,7 +291,7 @@ export default function AdminPage() {
                 secondaryGenre: secondaryGenre === "-" ? undefined : secondaryGenre,
                 numActors,
                 genderActors: actorsDescription,
-                tones: ["Intense"],
+                tones: tones.length > 0 ? tones : undefined,
                 locationPreference: location === "Otro" ? customLocation : (location === "Sin preferencia" ? undefined : location),
                 length: lengthString,
                 logline: logline + variationPrompt,
@@ -345,6 +346,7 @@ export default function AdminPage() {
             setLogline("");
             setProps("");
             setLanguage("Español");
+            setTones([]);
 
             setEmailToSend("");
             setScripts(["", "", ""]);
@@ -362,24 +364,47 @@ export default function AdminPage() {
             setGenre("Drama");
         }
 
-        // Map TONES from Step 5 to Secondary Genre
+        // Map TONES from order
         if (order.tones && order.tones.length > 0) {
-            setSecondaryGenre(order.tones[0]);
+            setTones(order.tones);
         } else {
-            setSecondaryGenre("-");
+            setTones([]);
         }
 
         const size = order.crewSize || 2;
         setNumActors(size.toString());
-        // Default to alternating genders or just Masculino for simplicity as we can't parse 'dynamic' reliably without complex logic
-        const newGenders = Array(size).fill("Masculino");
-        if (size >= 2) newGenders[1] = "Femenino"; // Simple default heuristic
-        setGenderActors(newGenders);
+
+        // Use dynamic field to determine actor genders
+        const dynamic = order.dynamic || "m-f";
+        let genderMap: string[] = [];
+
+        if (dynamic === "solo") {
+            genderMap = ["Masculino"];
+        } else if (dynamic === "m-f") {
+            genderMap = ["Masculino", "Femenino"];
+        } else if (dynamic === "f-f") {
+            genderMap = ["Femenino", "Femenino"];
+        } else if (dynamic === "m-m") {
+            genderMap = ["Masculino", "Masculino"];
+        } else if (dynamic === "triad") {
+            genderMap = ["Masculino", "Femenino", "Masculino"];
+        } else {
+            // ensemble or unknown - default alternating
+            for (let i = 0; i < size; i++) {
+                genderMap.push(i % 2 === 0 ? "Masculino" : "Femenino");
+            }
+        }
+
+        // Ensure array matches crewSize
+        while (genderMap.length < size) {
+            genderMap.push(genderMap.length % 2 === 0 ? "Masculino" : "Femenino");
+        }
+        setGenderActors(genderMap.slice(0, size));
 
         // Location Mapping
         if (order.locations && order.locations.length > 0) {
             const loc = order.locations[0];
-            // Check if loc maps to a known constant ID or Label? 
+            // Check if loc maps to a known constant ID or Label?
             // LOCATIONS in data.ts are strings like "Casa / Sala de estar".
             // If it matches exactly, set it. If not, it's custom.
             const isKnown = LOCATIONS.includes(loc as any);
@@ -834,7 +859,20 @@ export default function AdminPage() {
                                             />
                                         </div>
 
-
+                                        <div className="space-y-2">
+                                            <Label>Tonos (del pedido)</Label>
+                                            <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-black/30 rounded-md border border-zinc-700">
+                                                {tones.length > 0 ? (
+                                                    tones.map((tone, idx) => (
+                                                        <span key={idx} className="bg-primary/20 text-primary px-2 py-1 rounded text-xs">
+                                                            {tone}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-zinc-500 text-sm">Sin tonos específicos</span>
+                                                )}
+                                            </div>
+                                        </div>
 
                                         <div className="space-y-2">
                                             <Label>Idioma del Guion</Label>
