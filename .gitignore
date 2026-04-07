@@ -45,5 +45,6 @@ media_backups/
 *.jpg
 *.png
 !public/**  # Allow images in public/
+public/videos/ # <-- AI FIX: Do not track massive 24GB video folder in GitHub/Vercel
 !src/**     # Allow assets in src/ (if any)
 
