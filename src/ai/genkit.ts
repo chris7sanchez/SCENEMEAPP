@@ -7,11 +7,33 @@ import { googleAI, gemini15Flash } from '@genkit-ai/googleai';
 /**
  * ENGINE v2.1 - Optimizado para Vercel Serverless
  */
-export const ai = genkit({
-    // Al no pasar apiKey aquí, Genkit la busca automáticamente en process.env.GOOGLE_GENAI_API_KEY
-    plugins: [googleAI()],
-    model: 'googleai/gemini-2.5-flash', 
-});
+let aiInstance: any = null;
+
+/**
+ * MOTOR DE IA - INICIALIZACIÓN PEREZOSA
+ * Evita crashes en el servidor si las env vars no están cargadas al inicio.
+ */
+export function getAI() {
+    if (!aiInstance) {
+        const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
+        
+        if (!apiKey) {
+            throw new Error("ERROR_CONFIG: No se encontró GOOGLE_GENAI_API_KEY o GEMINI_API_KEY en el servidor.");
+        }
+
+        aiInstance = genkit({
+            plugins: [googleAI({ apiKey })],
+            model: 'googleai/gemini-1.5-flash', 
+        });
+    }
+    return aiInstance;
+}
+
+// Export para compatibilidad legacy (pero se recomienda usar getAI())
+export const ai = null; 
+
+
+console.log("[Antigravity AI] Engine Init: Genkit v2.1 (Flash Mode Enabled)");
 
 // ============================================
 // RETRY UTILITY WITH EXPONENTIAL BACKOFF

@@ -1,32 +1,6 @@
-# Vercel Ignore File
-
-# Ignore large backups and media at root
-/media_backups/
-/*.zip
-/*.rar
-/*.tar.gz
-/*.mp4
-/*.mov
-/*.tif
-/*.tiff
-/*.m4a
-/*.code-workspace
-
-# Ignore sub-projects and other modules
-/antigravity-app/
-/actorpro/
-/EXQUISIT-ASTOR/
-/antigravity_module/
-/antigravity_restored/
-
-# Logs and temp
-node_modules/
-.next/
-.ds_store
-
-# Ensure public assets ARE NOT ignored even if they match extensions above
-!/public/**/*.mp4
-!/public/**/*.png
-!/public/**/*.jpg
-!/public/**/*.JPG
-!/public/**/*.tif
+public/videos/
+*.zip
+sceneeme.mov
+src/data/exquisit/
+*.mp4
+*.mov

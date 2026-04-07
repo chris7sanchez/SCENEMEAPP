@@ -1,6 +1,6 @@
 'use server';
 
-import { ai } from '@/ai/genkit';
+import { getAI } from '@/ai/genkit';
 
 export interface ScriptInput {
     language?: string;
@@ -23,11 +23,9 @@ export interface ScriptInput {
 export async function generateScript(input: ScriptInput): Promise<{ script?: string, error?: string }> {
     try {
         console.log("[AI Flow] Iniciando generación de guion con Genkit Engine...");
-
-        // Verificación de API Key
-        if (!process.env.GOOGLE_GENAI_API_KEY && !process.env.GEMINI_API_KEY) {
-            return { error: "CONFIGURACIÓN: No se detectó ninguna API Key en el servidor (Vercel)." };
-        }
+        
+        // Obtenemos el motor de forma segura
+        const ai = getAI();
 
         const result = await ai.generate({
             prompt: `You are a professional screenwriter. Generate a complete screenplay in ${input.language || 'Spanish'}.
@@ -62,7 +60,9 @@ export async function generateScript(input: ScriptInput): Promise<{ script?: str
     } catch (e: any) {
         console.error("[AI Flow] Error Crítico:", e);
         return {
-            error: `Fallo de Engine AI: ${e.message || "Error desconocido en el servidor de Genkit."}`
+            error: e.message.includes("ERROR_CONFIG") 
+                ? "Fallo de Configuración: Falta la API Key en el servidor (Vercel)." 
+                : `Error del servidor de Genkit: ${e.message}`
         };
     }
 }

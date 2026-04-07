@@ -58,5 +58,11 @@
       "image/avif",
       "image/webp"
     ]
+  },
+  "functions": {
+    "src/app/tools/video/page.tsx": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
   }
 }

@@ -83,36 +83,28 @@ export default function AdminPage() {
 
     // Check authentication on mount
     useEffect(() => {
-        let mounted = true;
-        const checkAuth = async () => {
-            try {
-                // Timeout safety in case Firebase hangs
-                const timeoutPromise = new Promise(resolve => setTimeout(resolve, 5000));
-                const authPromise = auth.getCurrentUser();
-
-                const user = await Promise.race([authPromise, timeoutPromise]) as any;
-
-                // Check if user is logged in AND is the admin email
-                const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-                const isAdminUid = user.uid === 'admin-dashboard';
-
-                if (mounted && user) {
-                    if (isAdminUid || (user.email && adminEmail && user.email.toLowerCase() === adminEmail.toLowerCase())) {
-                        setIsAuthenticated(true);
-                    } else if (!adminEmail && user.email) {
-                        // Fallback: If no admin email configured, allow any logged in user (legacy behavior, risky)
-                        console.warn("NEXT_PUBLIC_ADMIN_EMAIL not set. Access granted based on active session.");
-                        setIsAuthenticated(true);
-                    }
-                }
-            } catch (error) {
-                console.error("Auth check failed:", error);
-            } finally {
-                if (mounted) setIsLoadingAuth(false);
+        const unsubscribe = firebaseAuth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                setIsAuthenticated(false);
+                setIsLoadingAuth(false);
+                return;
             }
-        };
-        checkAuth();
-        return () => { mounted = false; };
+
+            const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+            const isAdminUid = user.uid === 'admin-dashboard';
+            const isEmailAdmin = user.email && adminEmail && user.email.toLowerCase() === adminEmail.toLowerCase();
+
+            if (isAdminUid || isEmailAdmin || !adminEmail) {
+                setIsAuthenticated(true);
+            } else {
+                setIsAuthenticated(false);
+                // Si el usuario no es admin, cerramos sesión para evitar estados ambiguos
+                await firebaseAuth.signOut();
+            }
+            setIsLoadingAuth(false);
+        });
+
+        return () => unsubscribe();
     }, []);
 
     // Estado de conexión para debug
@@ -122,9 +114,10 @@ export default function AdminPage() {
         if (!isAuthenticated) return;
 
         setFirestoreError(null);
+        setLoadingOrders(true);
+        
         const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
 
-        // onSnapshot con error handler explícito
         const unsubscribe = onSnapshot(
             q,
             (snapshot) => {
@@ -137,25 +130,15 @@ export default function AdminPage() {
                 setFirestoreError(null);
             },
             async (error) => {
-                // Error en realtime — fallback a getDocs
-                console.error("onSnapshot failed:", error.code, error.message);
-                setFirestoreError(`Realtime: ${error.code || error.message}`);
-
-                try {
-                    const { getDocs } = await import("firebase/firestore");
-                    const snapshot = await getDocs(q);
-                    const ordersData = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    setOrders(ordersData);
-                    setFirestoreError(`Modo offline (${ordersData.length} pedidos cargados)`);
-                } catch (fallbackErr) {
-                    console.error("Fallback getDocs also failed:", fallbackErr);
-                    setFirestoreError("Sin conexión a Firestore. Verifica reglas de seguridad y configuración.");
-                } finally {
-                    setLoadingOrders(false);
+                console.error("Firestore Error:", error.code, error.message);
+                
+                // Intento de recuperación si es un error de permisos o red
+                if (error.code === 'permission-denied') {
+                    setFirestoreError("Acceso denegado: Verifica que tu cuenta tenga permisos de administrador.");
+                } else {
+                    setFirestoreError(`Error de conexión: ${error.message}`);
                 }
+                setLoadingOrders(false);
             }
         );
 
