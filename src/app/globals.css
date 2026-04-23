@@ -34,17 +34,17 @@
 
   .dark {
     --background: 0 0% 0%;
-    --foreground: 45 20% 90%;
+    --foreground: 45 20% 95%;
     --card: 0 0% 5%;
-    --card-foreground: 45 20% 90%;
+    --card-foreground: 45 20% 95%;
     --popover: 0 0% 5%;
-    --popover-foreground: 45 20% 90%;
-    --primary: 45 93% 47%;
+    --popover-foreground: 45 20% 95%;
+    --primary: 45 93% 58%;
     --primary-foreground: 0 0% 0%;
     --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 60%;
+    --muted-foreground: 0 0% 72%;
     --accent: 45 93% 47%;
     --accent-foreground: 0 0% 0%;
     --destructive: 0 62.8% 30.6%;
@@ -244,5 +244,20 @@
   /* iOS safe area for bottom tab bar */
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Contraste garantizado WCAG AA - usar en lugar de text-white/40 etc */
+  .text-on-dark {
+    color: rgba(255, 255, 255, 0.90); /* ratio >7:1 sobre negro */
+  }
+  .text-on-dark-secondary {
+    color: rgba(255, 255, 255, 0.72); /* ratio ~4.6:1 sobre negro - mínimo AA */
+  }
+  .text-on-dark-muted {
+    color: rgba(255, 255, 255, 0.60); /* ratio ~3.8:1 - solo para texto decorativo grande */
+  }
+  .text-primary-contrast {
+    /* Usar en lugar de text-primary sobre negro - versión más brillante */
+    color: hsl(45, 93%, 62%);
   }
 }

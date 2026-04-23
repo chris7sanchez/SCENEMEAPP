@@ -149,8 +149,8 @@ export default function LoginPage() {
                         {/* SSO Section */}
                         <div className="mt-6 flex flex-col gap-3">
                             <div className="relative">
-                                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10"></span></div>
-                                <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest text-white/40"><span className="bg-black/40 px-2 backdrop-blur-sm">O continuar con</span></div>
+                                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/20"></span></div>
+                                <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest text-white/60"><span className="bg-black/40 px-2 backdrop-blur-sm">O continuar con</span></div>
                             </div>
                             
                             <div className="grid grid-cols-2 gap-3">
@@ -173,10 +173,10 @@ export default function LoginPage() {
                             </div>
                         </div>
 
-                        <div className="mt-6 text-center pt-2 border-t border-white/10">
+                        <div className="mt-6 text-center pt-2 border-t border-white/20">
                             <button
                                 onClick={() => { setIsLogin(!isLogin); setError(''); }}
-                                className="text-white/70 hover:text-primary font-bold text-[10px] transition-colors uppercase tracking-widest"
+                                className="text-white/85 hover:text-primary font-bold text-[11px] transition-colors uppercase tracking-widest"
                             >
                                 {isLogin ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia sesión"}
                             </button>
@@ -188,14 +188,14 @@ export default function LoginPage() {
 
             </div>
 
-            {/* Admin Access Link - Visible */}
-            <div className="relative z-10 mt-8">
+            {/* Admin Access Link - Oculto, solo para admins que saben que existe */}
+            <div className="relative z-10 mt-4 opacity-20 hover:opacity-60 transition-opacity duration-500">
                 <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => router.push('/admin')}
-                    className="bg-black/50 border-zinc-800 text-zinc-400 hover:text-white hover:border-primary hover:bg-black/80 font-mono tracking-widest uppercase text-xs px-6"
+                    className="text-zinc-600 hover:text-zinc-400 font-mono tracking-widest uppercase text-[9px] px-4"
                 >
-                    <Lock className="w-3 h-3 mr-2" /> Panel Admin
+                    <Lock className="w-2.5 h-2.5 mr-1" /> admin
                 </Button>
             </div>
         </div>

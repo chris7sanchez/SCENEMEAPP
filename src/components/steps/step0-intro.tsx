@@ -200,7 +200,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                     {/* CARD 1: BOOK */}
                     <div className="min-w-[76vw] md:min-w-0 md:w-[400px] shrink-0 snap-center bg-white border border-zinc-200 rounded-3xl p-5 flex flex-col h-[62vh] md:h-auto relative shadow-xl lg:shadow-none lg:border-0 lg:rounded-none hover:bg-zinc-50 transition-colors group justify-between">
                         <div className="w-full bg-zinc-50 py-2 text-center border-b border-zinc-100 rounded-t-2xl lg:rounded-none -mt-5 -mx-5 mb-4">
-                            <span className="font-black text-zinc-400 uppercase tracking-widest text-xs flex justify-center items-center gap-1">
+                            <span className="font-black text-zinc-500 uppercase tracking-widest text-xs flex justify-center items-center gap-1">
                                 EL <span className="text-sm">1</span>er PASO
                             </span>
                         </div>
@@ -353,7 +353,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                         {/* MOBILE CARD 1: BOOK */}
                         <div id="mobile-card-0" className="bg-white border border-zinc-50 rounded-[2.5rem] p-8 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
                             <div className="flex justify-between items-start mb-4">
-                                <div className="bg-zinc-50 px-4 py-2 rounded-full border border-zinc-100"><span className="text-zinc-300 font-bold uppercase tracking-widest text-[10px]">PASO 1</span></div>
+                                <div className="bg-zinc-50 px-4 py-2 rounded-full border border-zinc-200"><span className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">PASO 1</span></div>
                                 <Camera className="w-8 h-8 text-black opacity-80" />
                             </div>
                             <div className="relative mb-6 mt-2">
