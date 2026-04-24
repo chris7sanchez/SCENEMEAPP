@@ -76,26 +76,10 @@ export default function LoginPage() {
                     <p className="text-xl md:text-3xl text-primary font-headline tracking-wide uppercase">THE ACTOR'S STORE CONCEPT</p>
                 </div>
 
-                {/* Value Proposition — SIN fuente manuscrita */}
-                <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-700 delay-150 mb-6 text-center">
-                    <h2 className="font-black text-white text-3xl md:text-5xl uppercase tracking-tighter leading-tight mb-2">
-                        ¿Eres Actor / Actriz?
-                    </h2>
-                    <div className="flex flex-col items-center">
-                        <p className="font-black text-white text-2xl md:text-3xl uppercase tracking-tighter leading-none">
-                            ¿Necesitas Renovar
-                        </p>
-                        <p className="font-black text-white text-2xl md:text-3xl uppercase tracking-tighter leading-tight">
-                            tu Mejor Material?
-                        </p>
-                        <span className="text-red-500 text-3xl md:text-4xl leading-none block tracking-tight font-black uppercase mt-1">
-                            ¡URGENTEMENTE!
-                        </span>
-                    </div>
-                    <p className="mt-4 text-base md:text-lg font-bold leading-snug">
-                        <span className="text-primary">de forma PLANEADA, o RÁPIDA, </span>
-                        <span className="text-blue-400 font-black">EXPRESS</span>
-                        <span className="text-primary"> — pero siempre profesional!</span>
+                {/* Value Proposition — una sola línea limpia */}
+                <div className="max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-700 delay-150 mb-8 text-center">
+                    <p className="text-white/75 text-base md:text-lg font-light leading-relaxed tracking-wide">
+                        La forma más rápida y profesional de obtener tu mejor material.
                     </p>
                 </div>
 
