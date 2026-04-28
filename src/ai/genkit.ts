@@ -1,69 +1,24 @@
-import { genkit, z } from 'genkit';
+import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { vertexAI } from '@genkit-ai/vertexai';
 
-// ============================================
-// ANTIGRAVITY AI ENGINE v3.0 (Vertex AI Edition)
-// ============================================
-/**
- * ENGINE v3.0 - Optimizado para producción con Vertex AI.
- * Resuelve problemas de cuota (429) usando Enterprise Grade AI.
- */
 let aiInstance: any = null;
 
-/**
- * MOTOR DE IA - INICIALIZACIÓN HÍBRIDA
- * Prioriza Vertex AI si hay Service Account, de lo contrario usa Gemini Studio API Key.
- */
 export function getAI() {
     if (!aiInstance) {
         const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
-        const saEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-        const saKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
-        const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'scene-me';
-        const location = process.env.GOOGLE_CLOUD_LOCATION || 'us-central1';
 
-        const plugins: any[] = [];
-
-        // 1. Configuración de Vertex AI (Enterprise)
-        // Usamos las credenciales explícitas del Service Account para garantizar acceso en Vercel.
-        if (saEmail && saKey) {
-            console.log("[Antigravity AI] Activating Vertex AI Backend (Explicit Auth)...");
-            
-            plugins.push(vertexAI({
-                projectId,
-                location,
-                googleAuth: {
-                    credentials: {
-                        client_email: saEmail,
-                        private_key: saKey.replace(/\\n/g, '\n'),
-                    }
-                }
-            }));
-        } 
-        
-        // 2. Configuración de Google AI (Gemini Studio)
-        if (apiKey) {
-            console.log("[Antigravity AI] Activating Google AI (Studio) Backend...");
-            plugins.push(googleAI({ apiKey }));
+        if (!apiKey) {
+            throw new Error("ERROR_CONFIG: Falta GOOGLE_GENAI_API_KEY en las variables de entorno.");
         }
 
-        if (plugins.length === 0) {
-             throw new Error("ERROR_CONFIG: AI not configured. Missing Service Account or API Key.");
-        }
-
-        // Definimos el modelo primario según disponibilidad
-        // Si hay Vertex, usamos su modelo flash para aprovechar cuotas generosas.
-        const defaultModel = (saEmail && saKey) 
-            ? 'vertexai/gemini-1.5-flash' 
-            : 'googleai/gemini-2.0-flash'; // Fallback a 2.0 en studio si está disponible
+        console.log("[Antigravity AI] Activating Google AI (Studio) Backend...");
 
         aiInstance = genkit({
-            plugins,
-            model: defaultModel as any, 
+            plugins: [googleAI({ apiKey })],
+            model: 'googleai/gemini-2.5-flash' as any,
         });
 
-        console.log(`[Antigravity AI] Engine Ready. Default Model: ${defaultModel}`);
+        console.log("[Antigravity AI] Engine Ready. Model: gemini-2.5-flash");
     }
     return aiInstance;
 }
