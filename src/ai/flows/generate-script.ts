@@ -1,7 +1,6 @@
 'use server';
 
-import { genkit } from 'genkit';
-import { googleAI, gemini20Flash } from '@genkit-ai/googleai';
+import { getAI } from '@/ai/genkit';
 
 export interface ScriptInput {
     language?: string;
@@ -18,24 +17,18 @@ export interface ScriptInput {
 }
 
 /**
- * SERVICIO DE GENERACIÓN DE GUIONES (Genkit AI)
+ * SERVICIO DE GENERACIÓN DE GUIONES (Antigravity AI Engine)
  * Genera guiones escritos profesionales para actores.
+ * Optimizado para usar Vertex AI si está configurado (evita errores 429).
  */
 export async function generateScript(input: ScriptInput): Promise<{ script?: string, error?: string }> {
     try {
-        console.log("[AI Flow] Iniciando generación de guion directo...");
+        console.log("[AI Flow] Iniciando generación de guion con Engine centralizado...");
         
-        const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            return { error: "Falta la API Key de Gemini en el servidor." };
-        }
-
-        const ai = genkit({
-            plugins: [googleAI({ apiKey })]
-        });
+        const ai = getAI();
 
         const result = await ai.generate({
-            model: gemini20Flash,
+            // El modelo se hereda del Engine (Vertex AI Flash o Gemini Studio 2.0 Flash)
             prompt: `You are a professional screenwriter. Generate a complete screenplay in ${input.language || 'Spanish'}.
             
             CONTEXT:

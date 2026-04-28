@@ -24,7 +24,7 @@ import {
     DollarSign,
     ShoppingCart
 } from "lucide-react";
-import { generateScript as generateVideoScript } from "@/ai/flows/generate-script";
+// Generación via API Route (sin Genkit — evita bloat de 1GB en funciones de Vercel)
 import { GENRES, TONES, LOCATIONS } from "@/lib/data";
 
 declare global {
@@ -286,19 +286,24 @@ export default function AdminPage() {
                 lengthString = `${durationMin} to ${durationMax} minutes`;
             }
 
-            const result = await generateVideoScript({
-                genre,
-                secondaryGenre: secondaryGenre === "-" ? undefined : secondaryGenre,
-                numActors,
-                genderActors: actorsDescription,
-                tones: tones.length > 0 ? tones : undefined,
-                locationPreference: location === "Otro" ? customLocation : (location === "Sin preferencia" ? undefined : location),
-                length: lengthString,
-                logline: logline + variationPrompt,
-                props,
-                endingType,
-                language
+            const response = await fetch('/api/generate-script', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    genre,
+                    secondaryGenre: secondaryGenre === "-" ? undefined : secondaryGenre,
+                    numActors,
+                    genderActors: actorsDescription,
+                    tones: tones.length > 0 ? tones : undefined,
+                    locationPreference: location === "Otro" ? customLocation : (location === "Sin preferencia" ? undefined : location),
+                    length: lengthString,
+                    logline: logline + variationPrompt,
+                    props,
+                    endingType,
+                    language
+                })
             });
+            const result = await response.json();
 
             if (result.error) {
                 console.error("Server Error:", result.error);

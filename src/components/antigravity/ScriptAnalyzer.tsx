@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { BirthData, calculateRealPlanets, findPossibleBirthDates } from '@/utils/astronomy';
 import { calculateAspects, Aspect } from '@/utils/astrology';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
@@ -36,8 +37,19 @@ import { auth } from '@/lib/auth';
 import { loadAntigravityState, saveAntigravityState } from '@/lib/antigravity-db';
 
 export default function ScriptAnalyzer() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
     // --- STATE ---
     const [viewMode, setViewMode] = useState<ViewMode>('COSMOS');
+
+    useEffect(() => {
+        const mode = searchParams.get('mode')?.toUpperCase() as ViewMode;
+        if (mode && ['COSMOS', 'BODY', 'SPIRIT', 'ALCHIMESTRY'].includes(mode)) {
+            setViewMode(mode);
+        }
+    }, [searchParams]);
+
     const [previousViewMode, setPreviousViewMode] = useState<ViewMode>('COSMOS');
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [alchimestrySubView, setAlchimestrySubView] = useState<AlchimestrySubView>('inicio');
@@ -602,9 +614,9 @@ export default function ScriptAnalyzer() {
                         <div className="flex flex-col items-center md:items-start gap-1">
                             <div className="flex items-center gap-6">
                                 <button
-                                    onClick={() => window.location.href = '/'}
+                                    onClick={() => router.push('/creator')}
                                     className="p-2 border border-[#1a1a1a]/20 hover:bg-[#1a1a1a] hover:text-white transition-all group"
-                                    title="Volver al Inicio"
+                                    title="Volver al Panel"
                                 >
                                     <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
                                 </button>

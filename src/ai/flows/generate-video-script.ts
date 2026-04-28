@@ -24,9 +24,9 @@ export async function generateVideoScript(input: ScriptInput): Promise<{ script?
     try {
         console.log("[AI Flow] Iniciando generación con Genkit Engine...");
 
-        // 1. Verificación de Seguridad
-        if (!process.env.GOOGLE_GENAI_API_KEY && !process.env.GEMINI_API_KEY) {
-            return { error: "CONFIGURACIÓN: No se detectó ninguna API Key en el servidor (Vercel)." };
+        // 1. Verificación de Seguridad (API Key o Service Account)
+        if (!process.env.GOOGLE_GENAI_API_KEY && !process.env.GEMINI_API_KEY && !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
+            return { error: "CONFIGURACIÓN: No se detectaron credenciales de IA (API Key o Service Account) en el servidor." };
         }
 
         // 2. Obtener instancia de AI de forma segura
@@ -66,9 +66,17 @@ export async function generateVideoScript(input: ScriptInput): Promise<{ script?
     } catch (e: any) {
         console.error("[AI Flow] Error Crítico:", e);
 
-        // Devolvemos el error detallado para localizar el fallo (Cuota, API Key, o Red)
+        let errorMessage = "Error desconocido en el servidor de Genkit.";
+        
+        // Detección específica de error 429 o de cuota excedida
+        if (e?.message?.includes("429") || e?.status === 429 || e?.message?.toLowerCase().includes("quota")) {
+            errorMessage = "Has superado la cuota gratuita de tu API Key de Gemini. Por favor, asocia una tarjeta de crédito en Google AI Studio o genera una cuenta/API Key nueva para continuar.";
+        } else if (e?.message) {
+            errorMessage = e.message;
+        }
+
         return {
-            error: `Fallo de Engine AI: ${e.message || "Error desconocido en el servidor de Genkit."}`
+            error: `Fallo de Engine AI: ${errorMessage}`
         };
     }
 }

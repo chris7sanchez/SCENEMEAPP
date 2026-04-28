@@ -1,18 +1,19 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Clapperboard, Users, User } from 'lucide-react';
+import { Home, Clapperboard, Users, User, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TABS = [
     { id: 'home', label: 'Inicio', icon: Home, path: '/creator' },
     { id: 'services', label: 'Servicios', icon: Clapperboard, path: '/creator?tab=services' },
+    { id: 'workshop', label: 'Alquimia', icon: Sparkles, path: '/antigravity' },
     { id: 'talents', label: 'Talentos', icon: Users, path: '/talents' },
     { id: 'profile', label: 'Perfil', icon: User, path: '/creator?tab=profile' },
 ] as const;
 
 // Rutas donde NO mostrar la barra
-const HIDDEN_ROUTES = ['/admin', '/antigravity', '/exquisit', '/hub', '/astro-lab', '/astrologia', '/alquimia', '/xalvaje'];
+const HIDDEN_ROUTES = ['/admin', '/exquisit', '/hub', '/astro-lab', '/astrologia', '/alquimia', '/xalvaje'];
 
 export function BottomTabBar() {
     const pathname = usePathname();
@@ -25,6 +26,7 @@ export function BottomTabBar() {
 
     const getActiveTab = () => {
         if (pathname === '/talents') return 'talents';
+        if (pathname.startsWith('/antigravity')) return 'workshop';
         if (pathname === '/creator' || pathname.startsWith('/creator')) return 'home';
         return 'home';
     };
