@@ -204,58 +204,58 @@ export default function Step5Budget({ formData, updateForm, setStep }: Step5Budg
             description="Elige tu experiencia de rodaje y reserva tus fechas."
             footerContent={footer}
         >
-            <div className="space-y-10">
+            <div className="space-y-5">
                 {/* 1. Opciones de Rodaje */}
-                <div className="space-y-4">
-                    <Label className="font-subheadline text-2xl text-white">Opciones de Rodaje</Label>
+                <div className="space-y-2">
+                    <Label className="font-subheadline text-lg text-white">Opciones de Rodaje</Label>
                     <div className="grid md:grid-cols-2 gap-4">
                         {/* Standard */}
                         <div
-                            className={`border-2 rounded-xl p-6 cursor-pointer transition-all relative ${formData.shootingType === 'standard' ? 'border-white bg-zinc-800' : 'border-zinc-700 hover:border-zinc-500 bg-black'}`}
+                            className={`border-2 rounded-xl p-4 cursor-pointer transition-all relative ${formData.shootingType === 'standard' ? 'border-white bg-zinc-800' : 'border-zinc-700 hover:border-zinc-500 bg-black'}`}
                             onClick={() => updateForm({ shootingType: 'standard' })}
                         >
-                            <div className="flex justify-between items-start mb-4">
-                                <h3 className={`font-bold text-xl ${formData.shootingType === 'standard' ? 'text-white' : 'text-zinc-300'}`}>Rodaje Standard</h3>
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className={`font-bold text-lg ${formData.shootingType === 'standard' ? 'text-white' : 'text-zinc-300'}`}>Rodaje Standard</h3>
                                 {formData.shootingType === 'standard' && <div className="bg-white text-black rounded-full p-1"><Check className="w-4 h-4" /></div>}
                             </div>
-                            <p className="text-sm text-zinc-300 mb-6 leading-relaxed font-medium">
+                            <p className="text-xs text-zinc-300 mb-3 leading-snug font-medium">
                                 Rueda tu escena rodead@ de nuestro equipo "Scene Me", compuesto por profesionales del sector que cuentan con una gran trayectoria delante y detrás de cámaras.
                             </p>
-                            <div className="font-bold text-lg text-white">Incluido en el precio</div>
+                            <div className="font-bold text-base text-white">Incluido en el precio</div>
                         </div>
 
                         {/* Premium */}
                         <div
-                            className={`border-2 rounded-xl p-6 cursor-pointer transition-all relative overflow-hidden ${formData.shootingType === 'premium' ? 'border-yellow-400 bg-yellow-950/30' : 'border-zinc-700 hover:border-zinc-500 bg-black'}`}
+                            className={`border-2 rounded-xl p-4 cursor-pointer transition-all relative overflow-hidden ${formData.shootingType === 'premium' ? 'border-yellow-400 bg-yellow-950/30' : 'border-zinc-700 hover:border-zinc-500 bg-black'}`}
                             onClick={() => updateForm({ shootingType: 'premium' })}
                         >
                             <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[10px] uppercase font-black px-3 py-1 rounded-bl-lg tracking-wider">Recomendado</div>
-                            <div className="flex justify-between items-start mb-4">
-                                <h3 className="font-bold text-xl text-yellow-400 flex items-center gap-2"><Star className="w-5 h-5 fill-yellow-400" /> Premium</h3>
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-bold text-lg text-yellow-400 flex items-center gap-2"><Star className="w-5 h-5 fill-yellow-400" /> Premium</h3>
                                 {formData.shootingType === 'premium' && <div className="bg-yellow-400 text-black rounded-full p-1"><Check className="w-4 h-4" /></div>}
                             </div>
-                            <p className="text-sm text-zinc-300 mb-6 leading-relaxed font-medium">
+                            <p className="text-xs text-zinc-300 mb-3 leading-snug font-medium">
                                 Siéntete como una verdadera estrella. Maquillaje, peluquería, vestuario y catering incluidos. Una experiencia inolvidable.
                             </p>
-                            <div className="font-bold text-lg text-yellow-400">+350€</div>
+                            <div className="font-bold text-base text-yellow-400">+350€</div>
                         </div>
                     </div>
                 </div>
 
                 {/* 2. Calendario */}
-                <div className="space-y-6">
+                <div className="space-y-3">
                     <div className="flex justify-between items-end">
-                        <Label className="font-subheadline text-2xl text-white">Fecha(s) de Rodaje</Label>
+                        <Label className="font-subheadline text-lg text-white">Fecha(s) de Rodaje</Label>
                         <a href="mailto:admin@scenemeapp.com?subject=Duda%20sobre%20fechas" className="text-xs text-primary underline hover:text-white transition-colors">
                             ¿Tienes dudas? Contáctanos
                         </a>
                     </div>
 
-                    <div className="bg-blue-600 border border-blue-400 p-5 rounded-lg flex gap-4 items-start shadow-lg shadow-blue-900/20">
-                        <Info className="w-6 h-6 text-white shrink-0 mt-1" />
+                    <div className="bg-blue-600 border border-blue-400 p-3 rounded-lg flex gap-3 items-start shadow-lg shadow-blue-900/20">
+                        <Info className="w-5 h-5 text-white shrink-0 mt-0.5" />
                         <div>
-                            <h4 className="font-bold text-white text-lg">Selección Flexible</h4>
-                            <p className="text-sm text-blue-50 mt-1 font-medium">
+                            <h4 className="font-bold text-white text-base">Selección Flexible</h4>
+                            <p className="text-xs text-blue-50 mt-0.5 font-medium">
                                 Selecciona días sueltos, arrastra o usa las herramientas para marcar meses completos.
                                 <br />
                                 <strong>Tip:</strong> Usa <code>Shift + Click</code> para seleccionar rangos (primer y último día).

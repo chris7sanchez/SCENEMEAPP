@@ -76,19 +76,19 @@ export const PHOTO_PACKS_ACTOR = [
         id: 'essential',
         label: 'Básico / Esencial',
         price: '150€',
-        features: ['8 Fotos Retocadas', 'Mejor iluminación y calidad', 'Toda la calidad que necesitas para mostrar tu mejor versión.', 'Entrega digital']
+        features: ['8 Fotos Retocadas', '2 cambios de ropa', 'Entrega digital · calidad e iluminación pro']
     },
     {
         id: 'complete',
         label: 'Completo',
         price: '299€',
-        features: ['12-15 Fotos Retocadas', 'Máxima calidad y mejor luz', 'Variedad de planos y perfiles', 'Entrega digital']
+        features: ['12-15 Fotos Retocadas', '2-3 cambios de ropa', 'Entrega digital · calidad e iluminación pro']
     },
     {
         id: 'premium',
         label: 'Premium',
         price: '399€',
-        features: ['15+ Fotos Retocadas', '3 Cambios de Ropa', 'Maquillaje y Peluquería', 'Reel de presentación (4K)']
+        features: ['15+ Fotos Retocadas', '3 Cambios de Ropa', 'Maquillaje y Peluquería incl.', 'Reel de presentación (4K)', 'Entrega digital · calidad e iluminación pro']
     }
 ];
 

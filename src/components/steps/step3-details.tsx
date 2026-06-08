@@ -26,27 +26,28 @@ const DetailsForm = ({
     title?: string,
     onUpdate: (sceneIndex: 0 | 1, data: Partial<SceneData>) => void
 }) => (
-    <div className="space-y-8 pt-4">
+    <div className="space-y-4 pt-1">
         {title && (
-            <div className="flex items-center gap-4 pb-2 border-b border-white/10">
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-black font-bold text-lg">
+            <div className="flex items-center gap-4 pb-2 border-b border-border">
+                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-background font-bold text-lg">
                     {sceneIndex + 1}
                 </div>
-                <h3 className="font-display text-2xl text-primary uppercase tracking-wider">{title}</h3>
+                <h3 className="font-headline text-xl text-primary uppercase tracking-wider">{title}</h3>
             </div>
         )}
 
+        <div className="grid md:grid-cols-2 gap-x-6 gap-y-4">
         {/* TONES SECTION */}
         <div>
-            <div className="flex justify-between items-end mb-3">
-                <Label className="font-headline text-2xl uppercase tracking-wide">Tono/s</Label>
-                <span className="text-xs text-primary font-bold uppercase tracking-wider">Máximo 3</span>
+            <div className="flex items-baseline justify-between mb-1">
+                <Label className="font-headline text-base uppercase tracking-wide text-foreground">Tono</Label>
+                <span className="text-[11px] text-primary font-bold uppercase tracking-wider">Hasta 3</span>
             </div>
+            <p className="text-xs text-muted-foreground mb-2">¿Qué atmósfera quieres? Elige hasta tres.</p>
             <TagGrid
                 options={TONES}
                 value={data.tones}
                 onChange={(tones) => {
-                    // Limit to 3 items
                     if (Array.isArray(tones) && tones.length > 3) return;
                     onUpdate(sceneIndex, { tones });
                 }}
@@ -56,10 +57,11 @@ const DetailsForm = ({
 
         {/* LOCATION SECTION */}
         <div>
-            <div className="flex justify-between items-end mb-3">
-                <Label className="font-headline text-2xl uppercase tracking-wide">Ubicación</Label>
-                <span className="text-xs text-primary font-bold uppercase tracking-wider">Selecciona 1</span>
+            <div className="flex items-baseline justify-between mb-1">
+                <Label className="font-headline text-base uppercase tracking-wide text-foreground">Ubicación</Label>
+                <span className="text-[11px] text-primary font-bold uppercase tracking-wider">Elige 1</span>
             </div>
+            <p className="text-xs text-muted-foreground mb-2">¿Dónde transcurre la escena? Selecciona el espacio principal.</p>
             <TagGrid
                 options={LOCATIONS}
                 value={data.locations[0] || ""}
@@ -68,14 +70,16 @@ const DetailsForm = ({
             />
         </div>
 
+        </div>
         {/* OTHER DETAILS / CUSTOM LOCATION */}
         <div>
-            <Label className="mb-3 font-headline text-xl uppercase tracking-wide block text-white/80">
-                Otros Lugares / Notas
+            <Label className="font-headline text-base uppercase tracking-wide text-foreground block mb-1">
+                Otros lugares / notas
             </Label>
+            <p className="text-xs text-muted-foreground mb-2">¿Tu ubicación no está arriba? Descríbela aquí. (Opcional)</p>
             <Textarea
-                placeholder="Si tu ubicación no aparece arriba, descríbela aquí..."
-                className="w-full h-24 bg-zinc-900/50 border border-white/10 rounded-xl p-4 text-base focus:border-primary/50 transition-all resize-none placeholder:text-white/20"
+                placeholder="Ej.: terraza de un ático al atardecer…"
+                className="w-full h-16 bg-secondary border border-border rounded-xl p-3 text-base text-foreground focus:border-primary/50 transition-all resize-none placeholder:text-muted-foreground"
                 value={data.otherDetails || ""}
                 onChange={(e) => onUpdate(sceneIndex, { otherDetails: e.target.value })}
             />
@@ -108,10 +112,11 @@ export default function Step3Details({ formData, updateForm, setStep }: Step3Det
     return (
         <StepCard
             title="Detalles de la escena"
-            description="Define el ambiente y localización de tu rodaje."
+            description="Define el tono, dónde rodáis y cuánto dura la sesión."
             footerContent={footer}
+            plainTitle
         >
-            <div className="space-y-12">
+            <div className="space-y-5">
                 <DetailsForm
                     sceneIndex={0}
                     data={formData}
@@ -129,18 +134,17 @@ export default function Step3Details({ formData, updateForm, setStep }: Step3Det
                 )}
 
                 {/* Global Length Selection */}
-                <div className="pt-8 border-t border-white/10">
-                    <Label className="mb-4 font-headline text-2xl uppercase tracking-wide block">
-                        Duración Estimada de la Sesión
+                <div className="pt-4 border-t border-border">
+                    <Label className="font-headline text-base uppercase tracking-wide text-foreground block mb-1">
+                        Duración de la sesión
                     </Label>
+                    <p className="text-sm text-muted-foreground mb-3">¿Cuánto tiempo reservamos? Incluye la preparación.</p>
                     <TagGrid
                         options={LENGTHS}
                         value={formData.length}
                         onChange={(length) => updateForm({ length })}
                     />
-                    <p className="text-[10px] text-white/40 uppercase tracking-widest mt-3 px-1">
-                        * Tiempos aproximados incluyendo preparación.
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">Tiempos aproximados.</p>
                 </div>
             </div>        </StepCard>
     );

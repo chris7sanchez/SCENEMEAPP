@@ -37,30 +37,39 @@ export default function Step2Cast({ formData, updateForm, setStep }: Step2CastPr
     };
 
     const CastSelection = ({ sceneIndex, currentDynamic }: { sceneIndex: 0 | 1, currentDynamic: string }) => (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-            {DYNAMICS.map((d: any) => (
-                <div
-                    key={d.id}
-                    onClick={() => updateScene(sceneIndex, { dynamic: d.id })}
-                    className={cn(
-                        "cursor-pointer rounded-xl border-2 p-4 flex items-center gap-4 transition-all hover:border-primary/50 hover:bg-gray-100",
-                        currentDynamic === d.id
-                            ? "border-primary border-[3px] bg-primary/20 shadow-[0_0_20px_rgba(234,179,8,0.2)]"
-                            : "border-transparent bg-gray-50"
-                    )}
-                >
-                    <div className={cn(
-                        "p-3 rounded-full",
-                        currentDynamic === d.id ? "bg-primary text-primary-foreground shadow-md" : "bg-white text-gray-500"
-                    )}>
-                        {d.id === 'solo' ? <User className="w-6 h-6" /> : <Users className="w-6 h-6" />}
-                    </div>
-                    <div>
-                        <div className="font-bold text-black">{d.label}</div>
-                        <div className="text-xs text-gray-600">{d.desc}</div>
-                    </div>
-                </div>
-            ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 md:grid-rows-3 md:grid-flow-col gap-3 pt-2">
+            {DYNAMICS.map((d: any) => {
+                const selected = currentDynamic === d.id;
+                return (
+                    <button
+                        key={d.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => updateScene(sceneIndex, { dynamic: d.id })}
+                        className={cn(
+                            "w-full text-left cursor-pointer rounded-2xl border p-3 flex items-center gap-3 transition-all",
+                            selected
+                                ? "border-primary bg-primary/15 shadow-[0_0_24px_hsla(42,90%,55%,0.18)]"
+                                : "border-border bg-secondary hover:border-primary/50 hover:bg-primary/5"
+                        )}
+                    >
+                        <div className={cn(
+                            "shrink-0 p-2.5 rounded-full transition-colors",
+                            selected ? "bg-primary text-background" : "bg-muted text-primary"
+                        )}>
+                            {d.id === 'solo' ? <User className="w-5 h-5" /> : <Users className="w-5 h-5" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="font-bold text-foreground text-base leading-tight">{d.label}</div>
+                            <div className="text-xs text-muted-foreground leading-tight">{d.desc}</div>
+                        </div>
+                        <div className={cn(
+                            "shrink-0 w-5 h-5 rounded-full border-2 transition-colors",
+                            selected ? "border-primary bg-primary" : "border-border"
+                        )} />
+                    </button>
+                );
+            })}
         </div>
     );
 

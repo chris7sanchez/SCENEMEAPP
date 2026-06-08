@@ -146,12 +146,12 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
     };
 
     return (
-        <div className="w-full flex flex-col bg-white md:bg-transparent">
+        <div className="w-full flex flex-col bg-transparent">
             <InstallPrompt />
 
             {/* SPLASH SCREEN */}
             {showSplash && (
-                <div className={`fixed inset-0 z-[99999] bg-zinc-950 flex items-center justify-center transition-opacity duration-500 ${splashFading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                <div className={`fixed inset-0 z-[99999] bg-[hsl(var(--sm-bg-base))] flex items-center justify-center transition-opacity duration-500 ${splashFading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                     <div className="flex flex-col items-center gap-6 animate-in zoom-in-50 duration-700 fade-in-0">
                         <div className="w-32 h-32 md:w-48 md:h-48 rounded-3xl overflow-hidden shadow-2xl relative">
                             <Image
@@ -168,25 +168,16 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                 </div>
             )}
 
-            <div className="pt-2 px-4 flex flex-col items-center">
-                <p className="text-primary font-black text-4xl md:text-7xl leading-none animate-in slide-in-from-top duration-700 uppercase tracking-tight">
-                    Alcanza el éxito
+            <div className="pt-0 px-4 flex flex-col items-center">
+                <p className="font-headline font-black text-lg md:text-4xl leading-none animate-in slide-in-from-top duration-700 uppercase tracking-tight">
+                    <span className="text-primary">El ÉXITO</span> <span className="text-white">del ACTOR</span>
                 </p>
-                <p className="text-red-600 font-headline font-black text-4xl md:text-9xl p-0 -mt-2 leading-none tracking-tighter filter drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)]">
-                    EN SOLO 3 PASOS!
+                <p className="text-red-600 font-headline font-black text-lg md:text-4xl p-0 leading-none tracking-tighter filter drop-shadow-[0_2px_2px_rgba(0,0,0,0.1)] mt-1">
+                    en 3 PASOS
                 </p>
 
-                <div className="pt-6 flex flex-col items-center w-full">
-                    <h2 className="font-sans font-black text-zinc-900 text-3xl md:text-6xl uppercase tracking-tighter leading-none mb-1">
-                        TU CARRERA ACTORAL
-                    </h2>
-                    <div className="w-full max-w-[280px] md:max-w-md h-[1px] bg-zinc-200 mb-2" />
-                    <p className="text-[10px] md:text-sm font-medium text-zinc-500 tracking-[0.3em] uppercase mb-1">
-                        merece una ESTRATEGIA GANADORA
-                    </p>
-                    <p className="text-primary font-black text-xl md:text-3xl leading-normal block pt-2 pb-8 px-8 relative z-10 -mt-2 uppercase tracking-tight">
-                        hoy mismo
-                    </p>
+                <div className="pt-0 md:pt-2 flex flex-col items-center w-full">
+                    <div className="w-full max-w-[280px] md:max-w-md h-[1px] bg-[hsl(var(--sm-border)/0.5)]" />
                 </div>
             </div>
 
@@ -195,33 +186,39 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                 {/* Scroll Container (Desktop/Tablet) */}
                 <div
                     ref={scrollContainerRef}
-                    className="hidden md:flex flex-row items-stretch justify-center gap-24 lg:gap-40 w-full max-w-[95rem] mx-auto px-10 pb-24 pt-10 overflow-x-auto scrollbar-hide snap-x scroll-smooth"
+                    className="flex flex-row items-stretch gap-4 lg:gap-6 w-full max-w-[78rem] mx-auto px-4 lg:px-6 pb-3 pt-2 overflow-x-auto snap-x scrollbar-hide"
                 >
                     {/* CARD 1: BOOK */}
-                    <div className="min-w-[76vw] md:min-w-0 md:w-[400px] shrink-0 snap-center bg-white border border-zinc-200 rounded-3xl p-5 flex flex-col h-[62vh] md:h-auto relative shadow-xl lg:shadow-none lg:border-0 lg:rounded-none hover:bg-zinc-50 transition-colors group justify-between">
-                        <div className="w-full bg-zinc-50 py-2 text-center border-b border-zinc-100 rounded-t-2xl lg:rounded-none -mt-5 -mx-5 mb-4">
-                            <span className="font-black text-zinc-500 uppercase tracking-widest text-xs flex justify-center items-center gap-1">
-                                EL <span className="text-sm">1</span>er PASO
+                    <div
+                        style={{ backgroundColor: 'hsla(220, 30%, 10%, 0.7)' }}
+                        className="flex-1 snap-center min-w-[300px] md:min-w-[280px] md:max-w-[400px] backdrop-blur-xl border-2 border-white/10 rounded-[2rem] p-6 flex flex-col md:min-h-[440px] relative shadow-2xl transition-all duration-500 hover:shadow-[var(--sm-shadow-glow)] hover:border-primary/30 group justify-between overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
+                        <div className="w-full bg-white/5 py-3 text-center border-b border-white/10 -mt-6 -mx-6 mb-6">
+                            <span className="font-black text-primary uppercase tracking-[0.3em] text-base flex justify-center items-center gap-2">
+                                1<span className="lowercase">er</span> Paso
                             </span>
                         </div>
-                        <div className="text-center space-y-2">
-                            <p className="text-base font-bold text-zinc-600 uppercase">Levántate del sofá,</p>
-                            <p className="text-base font-bold text-zinc-600 uppercase">busca una buena luz</p>
-                            <p className="text-xl font-black text-black bg-primary/20 inline-block px-2 transform -rotate-1 uppercase">y "revélate" al mundo!</p>
-                            <p className="text-sm text-zinc-500 italic px-2 leading-tight pt-2">
-                                ...pero cuida que sea <br /> <span className="font-bold text-zinc-800 not-italic">CON UN BUEN FOTÓGRAFO.</span>
+                        <div className="text-center space-y-1 relative z-10 pt-0 font-sans">
+                            <p className="text-lg font-bold text-white uppercase tracking-tight">Levántate del sofá,</p>
+                            <p className="text-lg font-bold text-white uppercase tracking-tight">busca una buena luz</p>
+                            <div className="relative inline-block py-1">
+                                <span className="absolute inset-0 bg-primary skew-x-[-12deg] transform rotate-[-1deg]" />
+                                <p className="relative text-2xl font-black text-black px-4 uppercase tracking-tighter italic">"REVÉLATE" AL MUNDO!</p>
+                            </div>
+                            <p className="text-sm text-white font-bold px-2 leading-relaxed pt-1">
+                                con tu mejor <span className="text-primary font-black">BOOK</span> de fotos <span className="text-primary font-black">YA!</span>
                             </p>
                         </div>
-                        <div className="flex justify-center my-2">
-                            <ArrowDown className="w-8 h-8 text-primary animate-bounce stroke-[3]" />
-                        </div>
-                        <div className="text-center space-y-3">
+                        <div className="text-center space-y-2 relative z-10 pt-1">
                             <div className="flex justify-center">
-                                <Camera className="w-12 h-12 text-zinc-800" />
+                                <div className="p-3 bg-primary/10 rounded-full border border-primary/20 shadow-[0_0_20px_rgba(251,191,36,0.1)] group-hover:scale-110 transition-transform duration-500">
+                                    <Camera className="w-8 h-8 text-primary" />
+                                </div>
                             </div>
                             <div>
-                                <h3 className="text-3xl font-black text-black uppercase tracking-tighter mb-0">BOOK</h3>
-                                <span className="text-[10px] font-bold text-zinc-400 tracking-[0.2em] uppercase">Actor / Actriz</span>
+                                <h3 className="text-3xl font-display font-black text-white uppercase tracking-tighter mb-1">BOOK</h3>
+                                <span className="text-[11px] font-bold text-primary tracking-[0.3em] uppercase opacity-70">Actor / Actriz</span>
                             </div>
                             <div className="space-y-2 w-full">
                                 <Dialog open={isGalleryOpen} onOpenChange={(open) => {
@@ -230,97 +227,141 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                                     if (!open) setTimeout(() => setVisibleCount(4), 300);
                                 }}>
                                     <DialogTrigger asChild>
-                                        <Button variant="outline" className="w-full border-zinc-300 text-zinc-700 hover:bg-zinc-100 font-bold tracking-wider h-9 text-xs">
+                                        <Button variant="outline" className="w-full bg-white text-black border-white hover:bg-zinc-200 hover:text-black font-black tracking-[0.2em] h-10 text-xs uppercase transition-all">
                                             VER TRABAJOS
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-4xl bg-white border-zinc-200 text-zinc-900 max-h-[90vh] overflow-y-auto">
-                                        <DialogHeader><DialogTitle className="text-2xl font-display font-black uppercase tracking-wider text-black">Nuestros Trabajos</DialogTitle></DialogHeader>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4 pb-4">
+                                    <DialogContent className="max-w-5xl bg-[hsl(var(--sm-bg-base))] border-white/10 text-[hsl(var(--sm-text-primary))] max-h-[90vh] overflow-y-auto backdrop-blur-2xl studio-rim-light">
+                                        <DialogHeader>
+                                            <DialogTitle className="text-4xl font-display font-black uppercase tracking-widest text-primary italic text-center mb-4 drop-shadow-[0_0_20px_rgba(251,191,36,0.2)]">Nuestros Trabajos</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6 pb-6">
                                             {Array.from({ length: TOTAL_IMAGES }, (_, i) => i + 1).slice(0, visibleCount).map((num) => (
                                                 <GalleryGridItem key={num} num={num} onClick={() => { setIsGalleryOpen(false); setTimeout(() => { setSelectedIndex(num); setSelectedVariant(0); }, 100); }} />
                                             ))}
                                         </div>
                                         {visibleCount < TOTAL_IMAGES && (
-                                            <div className="flex justify-center pb-8 pt-2">
-                                                <Button variant="outline" onClick={() => setVisibleCount(prev => Math.min(prev + 4, TOTAL_IMAGES))} className="border-zinc-300 text-zinc-600 font-bold uppercase tracking-widest text-xs">Cargar Más Fotos...</Button>
+                                            <div className="flex justify-center pb-12 pt-4">
+                                                <Button variant="outline" onClick={() => setVisibleCount(prev => Math.min(prev + 4, TOTAL_IMAGES))} className="border-primary/40 text-primary hover:bg-primary/10 font-black uppercase tracking-[0.3em] text-xs h-12 px-10 rounded-full">Cargar Más Fotos...</Button>
                                             </div>
                                         )}
                                     </DialogContent>
                                 </Dialog>
                                 <Button
-                                    className="w-full bg-zinc-900 hover:bg-black text-white font-bold tracking-wider h-10 text-sm"
+                                    className="w-full bg-primary hover:bg-primary-hover text-[hsl(var(--sm-bg-base))] font-black tracking-[0.2em] h-11 text-sm uppercase shadow-xl shadow-primary/20 sm-hover-lift"
                                     onClick={() => { if (setFlowType) setFlowType('photo'); if (updateForm) updateForm({ serviceType: 'photo' }); setStep(1); }}
                                 >
-                                    <Mail className="mr-2 w-3 h-3" /> ELEGIR BOOK
+                                    <Mail className="mr-3 w-4 h-4" /> ELEGIR BOOK
                                 </Button>
                             </div>
                         </div>
                     </div>
 
                     {/* CARD 2: SCENE ME */}
-                    <div className="min-w-[76vw] md:min-w-0 md:w-[420px] shrink-0 snap-center bg-primary/5 border-2 border-primary/20 rounded-3xl p-5 flex flex-col h-[62vh] md:h-auto relative shadow-2xl lg:shadow-none lg:border-0 lg:rounded-none hover:bg-primary/10 transition-colors z-10 justify-between transform scale-105 md:scale-100">
-                        <div className="w-full bg-primary text-black py-2 text-center font-black uppercase tracking-widest text-xs shadow-sm rounded-t-2xl lg:rounded-none -mt-5 -mx-5 mb-4">
-                            EL CAMINO
+                    <div className="flex-1 snap-center min-w-[300px] md:min-w-[280px] md:max-w-[400px] bg-primary/5 backdrop-blur-2xl border-2 border-primary/30 rounded-[2rem] p-6 flex flex-col md:min-h-[440px] relative shadow-[0_0_50px_rgba(251,191,36,0.15)] transition-all duration-500 z-10 justify-between group overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-t from-primary/[0.05] to-transparent pointer-events-none" />
+                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+
+                        <div className="w-full bg-primary text-[hsl(var(--sm-bg-base))] py-3 text-center font-black uppercase tracking-[0.3em] text-base shadow-lg -mt-6 -mx-6 mb-6 border-b border-primary/40">
+                            2º Paso
                         </div>
-                        <div className="text-center space-y-1">
-                            <p className="text-sm font-bold text-zinc-600 uppercase tracking-wide">Exposición y el mejor enfoque</p>
-                            <p className="text-lg font-black text-black leading-tight">para <span className="text-primary-600 bg-primary/20 px-1">TU MEJOR ESCENA!</span></p>
-                            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Estás en el lugar adecuado.</p>
+
+                        <div className="text-center relative z-10 font-sans leading-none">
+                            <p className="text-sm md:text-base font-bold text-white uppercase tracking-wide">Diseña</p>
+                            <h2 className="text-3xl md:text-4xl font-black text-primary leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(251,191,36,0.4)] uppercase py-0.5">
+                                Tu Mejor Escena
+                            </h2>
+                            <p className="text-sm md:text-base font-bold text-white uppercase tracking-wide">Ahora</p>
+                            <p className="text-xs text-white font-bold pt-1">
+                                y <span className="text-primary font-black">Rueda</span> cuando quieras!
+                            </p>
                         </div>
-                        <div className="bg-white/80 p-3 rounded-xl border border-primary/10 shadow-sm space-y-3 text-xs text-left backdrop-blur-sm mt-2">
-                            <div className="flex items-start gap-2">
-                                <div className="bg-primary text-black w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shrink-0 mt-0.5">1</div>
-                                <div className="leading-tight"><span className="text-black font-bold block">Elige tu Pack</span><span className="text-[10px] text-zinc-500">1 o 2 escenas.</span></div>
+
+                        <div className="bg-white/[0.03] p-3 rounded-2xl border border-white/5 shadow-inner space-y-2 text-xs text-left backdrop-blur-sm mt-3 relative z-10 font-sans">
+                            <div className="flex items-start gap-3 group/item">
+                                <div className="bg-primary text-black w-5 h-5 rounded-lg flex items-center justify-center font-black text-[11px] shrink-0 group-hover/item:scale-110 transition-transform">1</div>
+                                <div className="leading-tight">
+                                    <span className="text-white font-black uppercase tracking-wider block text-xs">Elige tu Pack</span>
+                                    <span className="text-zinc-300 font-medium">Contrata 1 o 2 escenas de máxima calidad.</span>
+                                </div>
                             </div>
-                            <div className="flex items-start gap-2">
-                                <div className="bg-primary text-black w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shrink-0 mt-0.5">2</div>
-                                <div className="leading-tight"><span className="text-black font-bold block">Personaliza tu guión</span><span className="text-[10px] text-zinc-500">Género, ubicación, vestuario...</span></div>
+                            <div className="flex items-start gap-3 group/item">
+                                <div className="bg-primary text-black w-5 h-5 rounded-lg flex items-center justify-center font-black text-[11px] shrink-0 group-hover/item:scale-110 transition-transform">2</div>
+                                <div className="leading-tight">
+                                    <span className="text-white font-black uppercase tracking-wider block text-xs">Personaliza</span>
+                                    <span className="text-zinc-300 font-medium">Género, ubicación, vestuario y guion a medida.</span>
+                                </div>
                             </div>
-                            <div className="flex items-start gap-2">
-                                <div className="bg-primary text-black w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shrink-0 mt-0.5">3</div>
-                                <div className="leading-tight"><span className="text-black font-bold block">Reserva y Rueda</span><span className="text-[10px] text-zinc-500">Cierra fecha al instante. Recibe material profesional y...</span><span className="text-black font-bold block mt-1">¡A RODAR!</span></div>
+                            <div className="flex items-start gap-3 group/item">
+                                <div className="bg-primary text-black w-5 h-5 rounded-lg flex items-center justify-center font-black text-[11px] shrink-0 group-hover/item:scale-110 transition-transform">3</div>
+                                <div className="leading-tight">
+                                    <span className="text-white font-black uppercase tracking-wider block text-xs">Reserva y Rueda</span>
+                                    <span className="text-zinc-300 font-medium">Cierra fecha al instante y recibe material listo para triunfar.</span>
+                                </div>
                             </div>
                         </div>
-                        <div className="text-center space-y-2 pt-2">
-                            <div className="flex justify-center"><Clapperboard className="w-10 h-10 text-black animate-clapper" /></div>
+
+                        <div className="text-center space-y-2 pt-3 relative z-10">
+                            <div className="flex justify-center">
+                                <div className="relative">
+                                    <Clapperboard className="w-11 h-11 text-primary animate-clapper" />
+                                    <Sparkles className="absolute -top-2 -right-2 w-5 h-5 text-primary animate-pulse" />
+                                </div>
+                            </div>
                             <div>
-                                <h3 className="text-3xl font-display font-black text-black uppercase tracking-tighter mb-0 whitespace-nowrap">SCENE ME</h3>
-                                <span className="text-[9px] font-bold text-primary-600 tracking-[0.2em] uppercase">THE ACTOR'S STORE CONCEPT</span>
+                                <h3 className="text-4xl font-display font-black text-primary uppercase tracking-[0.05em] mb-0.5 drop-shadow-[0_0_25px_rgba(251,191,36,0.3)]">SCENE ME</h3>
+                                <span className="text-[10px] font-black text-[hsl(var(--sm-text-primary)/0.5)] tracking-[0.4em] uppercase">THE ACTOR'S STORE CONCEPT</span>
                             </div>
                             <Button
                                 size="lg"
-                                className="w-full bg-primary hover:bg-primary/90 text-black font-black tracking-widest h-10 text-sm shadow-lg shadow-primary/20"
+                                className="w-full bg-primary hover:bg-primary-hover text-[hsl(var(--sm-bg-base))] font-black tracking-[0.2em] h-12 text-base shadow-2xl shadow-primary/30 rounded-2xl sm-hover-lift"
                                 onClick={() => { if (setFlowType) setFlowType('scene'); if (updateForm) updateForm({ serviceType: 'scene' }); setStep(1); }}
                             >
-                                EMPEZAR AHORA <ArrowRight className="ml-2 w-4 h-4" />
+                                EMPEZAR AHORA <ArrowRight className="ml-3 w-5 h-5" />
                             </Button>
                         </div>
                     </div>
 
                     {/* CARD 3: SELF-TAPES */}
-                    <div className="min-w-[76vw] md:min-w-0 md:w-[400px] shrink-0 snap-center bg-white border border-zinc-200 rounded-3xl p-5 flex flex-col h-[62vh] md:h-auto relative shadow-xl lg:shadow-none lg:border-0 lg:rounded-none hover:bg-zinc-50 transition-colors group justify-between">
-                        <div className="w-full bg-zinc-100 py-2 text-center border-b border-zinc-200 rounded-t-2xl lg:rounded-none -mt-5 -mx-5 mb-4">
-                            <span className="font-black text-zinc-600 uppercase tracking-widest text-xs">ÚLTIMO EMPUJÓN</span>
+                    <div
+                        style={{ backgroundColor: 'hsla(220, 30%, 10%, 0.7)' }}
+                        className="flex-1 snap-center min-w-[300px] md:min-w-[280px] md:max-w-[400px] backdrop-blur-xl border-2 border-blue-500/20 rounded-[2rem] p-6 flex flex-col md:min-h-[440px] relative shadow-2xl hover:border-blue-500/40 transition-all duration-500 group justify-between overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.04] to-transparent pointer-events-none" />
+                        <div className="w-full bg-white/5 py-3 text-center border-b border-white/10 -mt-6 -mx-6 mb-6">
+                            <span className="font-black text-blue-400 uppercase tracking-[0.3em] text-base flex justify-center items-center gap-2">
+                                3<span className="lowercase">er</span> Paso
+                            </span>
                         </div>
-                        <div className="text-center space-y-2">
-                            <p className="text-base font-bold text-zinc-600 leading-tight">¡PREPÁRATE para recibir <br /> <span className="text-3xl font-black text-blue-600 animate-shine-text">EL SÍ!</span></p>
-                            <div className="border-l-2 border-blue-400 pl-3 py-1 mx-4 text-left"><p className="text-xs text-zinc-500 italic leading-tight">"La suerte es ciega. El Director de Casting, no."</p></div>
+                        <div className="text-center relative z-10 pt-0 font-sans leading-none">
+                            <p className="text-base md:text-lg font-bold text-white uppercase tracking-wide">Prepárate para</p>
+                            <h2 className="text-3xl md:text-4xl font-black text-blue-400 leading-tight tracking-tighter drop-shadow-[0_0_15px_rgba(96,165,250,0.4)] uppercase">
+                                El Sí
+                            </h2>
+                            <p className="text-xs text-white font-bold pt-1">
+                                con <span className="text-blue-400 font-black">Self-Tapes</span> de cine!
+                            </p>
                         </div>
-                        <div className="text-left space-y-2 bg-zinc-50 p-3 rounded-lg border border-zinc-100 text-xs">
-                            <p className="font-bold text-zinc-700 text-[10px] uppercase tracking-wide mb-1">Exprime cada oportunidad:</p>
-                            <div className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3 text-blue-500" /> Iluminación Profesional</div>
-                            <div className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3 text-blue-500" /> Sonido Perfecto</div>
-                            <div className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3 text-blue-500" /> Calidad de Imagen</div>
+                        <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/5 shadow-inner space-y-2 text-xs text-left backdrop-blur-sm mt-2 relative z-10 text-white font-sans">
+                            <p className="font-bold text-blue-400 text-[10px] uppercase tracking-wide mb-2">Exprime cada oportunidad:</p>
+                            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" /> Iluminación Profesional</div>
+                            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" /> Sonido Perfecto</div>
+                            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" /> Calidad de Imagen</div>
                         </div>
-                        <div className="text-center space-y-2">
-                            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tight">¡Un equipo de dirección para sacar lo mejor de TI!</p>
-                            <div className="flex justify-center"><Film className="w-10 h-10 text-zinc-800" /></div>
-                            <div>
-                                <h3 className="text-2xl font-black text-black uppercase tracking-tighter mb-0">SELF-TAPES</h3>
-                                <span className="text-[9px] font-bold text-zinc-400 tracking-[0.2em] uppercase">Coaching & Dirección</span>
+                        <div className="text-center space-y-2 relative z-10 pt-1">
+                            <div className="flex justify-center">
+                                <div className="p-3 bg-blue-500/10 rounded-full border border-blue-500/20 shadow-[0_0_20px_rgba(96,165,250,0.1)] group-hover:scale-110 transition-transform duration-500">
+                                    <Film className="w-8 h-8 text-blue-400" />
+                                </div>
                             </div>
-                            <Button variant="outline" className="w-full border-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white font-bold tracking-wider h-9 text-xs" onClick={() => router.push('/booking?service=selftape')}>
+                            <div>
+                                <h3 className="text-3xl font-display font-black text-white uppercase tracking-tighter mb-1">SELF-TAPES</h3>
+                                <span className="text-[11px] font-bold text-blue-400 tracking-[0.3em] uppercase opacity-70">Coaching & Dirección</span>
+                            </div>
+                            <Button
+                                className="w-full bg-blue-500 hover:bg-blue-400 text-white font-black tracking-[0.2em] h-11 text-sm uppercase shadow-xl shadow-blue-500/20 sm-hover-lift rounded-xl"
+                                onClick={() => router.push('/booking?service=selftape')}
+                            >
                                 RESERVAR ASESORÍA
                             </Button>
                         </div>
@@ -328,83 +369,77 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                 </div>
 
                 {/* MOBILE VIEW */}
-                <div className="md:hidden flex flex-col items-center w-full px-4 space-y-4 mb-0">
-                    <div className="sticky top-[56px] z-[60] bg-white/95 backdrop-blur-md py-4 w-full flex justify-center border-b border-zinc-100 -mx-4 px-4 shadow-sm">
+                <div className="hidden flex-col items-center w-full px-4 space-y-4 mb-0">
+                    <div className="sticky top-[56px] z-[60] bg-[hsl(var(--sm-bg-base))/0.9] backdrop-blur-md py-1 w-full flex justify-center border-b border-white/5 -mx-4 px-4 shadow-sm">
                         <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
                             {[
                                 { id: 0, Icon: Camera, label: "FOTO" },
                                 { id: 1, Icon: Clapperboard, label: "ESCENA" },
                                 { id: 2, Icon: Film, label: "TAPES" }
                             ].map(({ id, Icon, label }) => (
-                                <button key={id} onClick={() => { setSelectedIndex(null); const card = document.getElementById(`mobile-card-${id}`); card?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} className="flex flex-col items-center gap-2 group active:scale-95 transition-transform">
-                                    <div className="relative w-14 h-14 rounded-2xl flex items-center justify-center border-2 border-zinc-100 shadow-sm bg-white hover:border-primary/40 transition-colors">
-                                        <Icon className="w-6 h-6 text-zinc-800" />
+                                <button key={id} onClick={() => { setSelectedIndex(null); const card = document.getElementById(`mobile-card-${id}`); card?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} className="flex flex-col items-center gap-1 group active:scale-95 transition-transform">
+                                    <div className="relative w-9 h-9 rounded-xl flex items-center justify-center border-2 border-white/5 shadow-sm bg-white/5 hover:border-primary/40 transition-colors">
+                                        <Icon className="w-5 h-5 text-primary" />
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <span className="text-red-600 text-xl font-black">{id + 1}</span>
-                                        <span className="text-[8px] font-black tracking-widest uppercase text-zinc-900">{label}</span>
+                                        <span className="text-primary text-lg font-black">{id + 1}</span>
+                                        <span className="text-[8px] font-black tracking-widest uppercase text-white">{label}</span>
                                     </div>
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    <div className="w-full space-y-12 pt-6 pb-20">
+                    <div className="w-full space-y-1.5 pt-2 pb-4">
                         {/* MOBILE CARD 1: BOOK */}
-                        <div id="mobile-card-0" className="bg-white border border-zinc-50 rounded-[2.5rem] p-8 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="bg-zinc-50 px-4 py-2 rounded-full border border-zinc-200"><span className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">PASO 1</span></div>
-                                <Camera className="w-8 h-8 text-black opacity-80" />
+                        <div id="mobile-card-0" className="bg-[hsl(var(--sm-bg-surface))] border border-white/5 rounded-2xl p-2.5 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
+                            <div className="flex justify-between items-center mb-2">
+                                <div className="bg-white/5 px-3 py-1 rounded-full border border-white/10"><span className="text-[hsl(var(--sm-text-muted))] font-bold uppercase tracking-widest text-[9px]">PASO 1</span></div>
+                                <Camera className="w-6 h-6 text-primary opacity-80" />
                             </div>
-                            <div className="relative mb-6 mt-2">
-                                <p className="text-red-600 text-3xl font-black leading-none -rotate-1 mb-4 uppercase">¡Prepárate!</p>
-                                <h3 className="text-3xl font-black text-black uppercase leading-[0.9] tracking-tighter">TU BOOK ACTORAL</h3>
-                            </div>
-                            <p className="text-sm text-zinc-400 italic mb-6 font-medium">Levántate del sofá y "revélate" al mundo con <span className="font-bold not-italic text-zinc-700">un buen fotógrafo.</span></p>
-                            <div className="flex gap-4">
-                                <Button variant="outline" className="flex-1 bg-zinc-100 border-none text-zinc-600 h-10 text-[10px] font-black tracking-widest rounded-full" onClick={() => { setIsGalleryOpen(true); setVisibleCount(4); }}>VER TRABAJOS</Button>
-                                <Button className="flex-1 bg-black text-white h-10 text-[10px] font-black tracking-widest rounded-full shadow-lg" onClick={() => { if (setFlowType) setFlowType('photo'); if (updateForm) updateForm({ serviceType: 'photo' }); setStep(1); }}>EMPEZAR AHORA</Button>
+                            <p className="text-primary text-base font-black leading-none mb-0.5 uppercase">¡Prepárate!</p>
+                            <h3 className="text-lg font-black text-white uppercase leading-[0.95] tracking-tighter">TU BOOK ACTORAL</h3>
+                            <p className="text-[11px] text-[hsl(var(--sm-text-muted))] italic my-0.5 font-medium leading-snug">Levántate del sofá y "revélate" al mundo con <span className="font-bold not-italic text-white">un buen fotógrafo.</span></p>
+                            <div className="flex gap-2 mt-auto">
+                                <Button variant="outline" className="flex-1 bg-white/5 border-none text-[hsl(var(--sm-text-muted))] h-9 text-[9px] font-black tracking-widest rounded-full" onClick={() => { setIsGalleryOpen(true); setVisibleCount(4); }}>VER TRABAJOS</Button>
+                                <Button className="flex-1 bg-primary text-[hsl(var(--sm-bg-base))] h-9 text-[9px] font-black tracking-widest rounded-full shadow-lg" onClick={() => { if (setFlowType) setFlowType('photo'); if (updateForm) updateForm({ serviceType: 'photo' }); setStep(1); }}>EMPEZAR AHORA</Button>
                             </div>
                         </div>
 
                         {/* MOBILE CARD 2: SCENE ME */}
-                        <div id="mobile-card-1" className="bg-[#FFFBEB] border border-mustard-gold/30 rounded-[2.5rem] p-8 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="bg-mustard-gold text-black px-4 py-2 rounded-full border border-mustard-gold shadow-sm flex items-center gap-2">
-                                    <span className="font-black uppercase tracking-widest text-[10px]">EL CAMINO</span>
+                        <div id="mobile-card-1" className="bg-primary/10 border border-primary/20 rounded-2xl p-2.5 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
+                            <div className="flex justify-between items-center mb-2">
+                                <div className="bg-primary text-[hsl(var(--sm-bg-base))] px-3 py-1 rounded-full border border-primary shadow-sm flex items-center gap-2">
+                                    <span className="font-black uppercase tracking-widest text-[9px]">EL CAMINO</span>
                                 </div>
-                                <Clapperboard className="w-8 h-8 text-black opacity-80" />
+                                <Clapperboard className="w-6 h-6 text-primary opacity-80" />
                             </div>
-                            <div className="relative mb-6 mt-4">
-                                <p className="text-red-600 text-3xl font-black leading-none -rotate-1 mb-4 uppercase">¡Crea y rueda!</p>
-                                <h3 className="text-3xl font-black text-black uppercase leading-tight tracking-tighter">TU MEJOR ESCENA</h3>
-                                <div className="mt-2 mb-6"><span className="bg-zinc-100 text-zinc-500 text-[10px] font-bold px-3 py-1 rounded-full border border-zinc-200 uppercase tracking-wide">5 PLAZAS DISPONIBLES</span></div>
-                            </div>
-                            <div className="space-y-3">
-                                <button className="w-full bg-black text-white h-10 text-[10px] font-black tracking-widest rounded-full shadow-lg" onClick={() => { if (updateForm) updateForm({ serviceType: 'scene' }); setStep(1); }}>EMPEZAR AHORA</button>
-                                <button onClick={() => router.push('/booking?service=scene')} className="w-full bg-[#E11D48] text-white rounded-full h-10 flex items-center justify-center gap-2 font-black text-[10px] tracking-widest uppercase shadow-lg"><AlertTriangle className="w-3 h-3 text-white" /> OFERTA LIMITADA: MÁS INFO AQUÍ</button>
+                            <p className="text-primary text-base font-black leading-none mb-0.5 uppercase">¡Crea y rueda!</p>
+                            <h3 className="text-lg font-black text-white uppercase leading-tight tracking-tighter">TU MEJOR ESCENA</h3>
+                            <div className="mt-1 mb-2"><span className="bg-primary/20 text-primary text-[9px] font-bold px-2 py-0.5 rounded-full border border-primary/20 uppercase tracking-wide">5 PLAZAS DISPONIBLES</span></div>
+                            <div className="space-y-2 mt-auto">
+                                <button className="w-full bg-primary text-[hsl(var(--sm-bg-base))] h-9 text-[9px] font-black tracking-widest rounded-full shadow-lg" onClick={() => { if (updateForm) updateForm({ serviceType: 'scene' }); setStep(1); }}>EMPEZAR AHORA</button>
+                                <button onClick={() => router.push('/booking?service=scene')} className="w-full bg-[#E11D48] text-white rounded-full h-9 flex items-center justify-center gap-2 font-black text-[9px] tracking-widest uppercase shadow-lg"><AlertTriangle className="w-3 h-3 text-white" /> OFERTA LIMITADA: MÁS INFO AQUÍ</button>
                             </div>
                         </div>
 
                         {/* MOBILE CARD 3: SELF-TAPES */}
-                        <div id="mobile-card-2" className="bg-white border border-zinc-100 rounded-[2.5rem] p-8 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
-                            <div className="flex justify-between items-start mb-6">
-                                <div className="bg-zinc-100 text-zinc-400 px-4 py-1.5 rounded-full border border-zinc-200"><span className="font-bold uppercase tracking-widest text-[10px]">PASO 3</span></div>
-                                <Film className="w-8 h-8 text-black opacity-80" />
+                        <div id="mobile-card-2" className="bg-[hsl(var(--sm-bg-surface))] border border-white/5 rounded-2xl p-2.5 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
+                            <div className="flex justify-between items-center mb-2">
+                                <div className="bg-white/5 text-[hsl(var(--sm-text-muted))] px-3 py-1 rounded-full border border-white/10"><span className="font-bold uppercase tracking-widest text-[9px]">PASO 3</span></div>
+                                <Film className="w-6 h-6 text-primary opacity-80" />
                             </div>
-                            <div className="relative mb-4 mt-4">
-                                <p className="text-red-600 text-3xl font-black leading-none -rotate-1 mb-3 uppercase">¡Asegúrate!</p>
-                                <p className="text-base font-bold text-zinc-600 leading-tight mb-1">¡PREPÁRATE para recibir <br /><span className="text-3xl font-black text-blue-600 animate-shine-text">EL SÍ!</span></p>
-                                <h3 className="text-3xl font-black text-black uppercase leading-[0.9] tracking-tighter mt-3">TUS MEJORES<br />SELF-TAPES</h3>
-                            </div>
-                            <p className="text-sm text-zinc-400 italic mb-8 font-medium">"La suerte es ciega. El Director de Casting, no."</p>
-                            <Button variant="outline" className="w-full border-2 border-primary text-black hover:bg-primary/5 font-black h-14 text-[11px] tracking-widest rounded-xl shadow-sm" onClick={() => { if (setFlowType) setFlowType('photo'); if (updateForm) updateForm({ serviceType: 'photo', photoType: 'event' }); setStep(1); }}>RESERVAR ASESORÍA</Button>
+                            <p className="text-primary text-base font-black leading-none mb-1 uppercase">¡Asegúrate!</p>
+                            <p className="text-xs font-bold text-[hsl(var(--sm-text-muted))] leading-tight">¡PREPÁRATE para recibir <span className="text-lg font-black text-blue-400 animate-shine-text">EL SÍ!</span></p>
+                            <h3 className="text-lg font-black text-white uppercase leading-[0.95] tracking-tighter mt-1">TUS MEJORES SELF-TAPES</h3>
+                            <p className="text-[11px] text-[hsl(var(--sm-text-muted))] italic my-0.5 font-medium leading-snug">"La suerte es ciega. El Director de Casting, no."</p>
+                            <Button variant="outline" className="w-full border-2 border-primary text-primary hover:bg-primary/5 font-black h-9 text-[10px] tracking-widest rounded-xl shadow-sm mt-auto" onClick={() => { if (setFlowType) setFlowType('photo'); if (updateForm) updateForm({ serviceType: 'photo', photoType: 'event' }); setStep(1); }}>RESERVAR ASESORÍA</Button>
                         </div>
                     </div>
                 </div>
 
                 {/* GRAND FINALE: PACKTOR OFFER */}
-                <div ref={offerRef} className="w-full bg-zinc-950 border-t-4 border-primary shadow-[0_-20px_60px_rgba(0,0,0,0.7)] z-40 relative shrink-0 pb-6 pt-4 px-4 md:px-8">
+                <div ref={offerRef} className="w-full bg-[hsl(var(--sm-bg-surface))] border-t-4 border-primary shadow-[0_-20px_60px_rgba(0,0,0,0.7)] z-40 relative shrink-0 pb-6 pt-4 px-4 md:px-8">
                     <div className="max-w-6xl mx-auto">
                         <div className="text-center mb-4">
                             <span className="bg-red-600 text-white text-[9px] md:text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">⚠ Oferta Limitada: Solo 5 plazas</span>
@@ -451,7 +486,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                                     <span className="text-black/50 text-xl line-through font-bold">850€</span>
                                     <span className="text-6xl font-black text-black tracking-tighter">660€</span>
                                 </div>
-                                <Button className="w-full bg-black hover:bg-zinc-900 text-white font-black tracking-widest h-14 text-lg shadow-xl" onClick={() => router.push('/booking?service=packtor')}>¡LO QUIERO!</Button>
+                                <Button className="w-full bg-[hsl(var(--sm-bg-base))] hover:bg-[hsl(var(--sm-bg-surface))] text-primary border border-primary/20 font-black tracking-widest h-14 text-lg shadow-xl" onClick={() => router.push('/booking?service=packtor')}>¡LO QUIERO!</Button>
                                 <p className="text-[10px] text-black/70 font-bold uppercase tracking-wide mt-3">*Pago fraccionado disponible</p>
                             </div>
                         </div>
@@ -466,21 +501,45 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                         setIsGalleryOpen(true);
                     }
                 }}>
-                    <DialogContent className="max-w-none w-screen h-[100dvh] bg-white border-none shadow-none p-0 gap-0 rounded-none flex flex-col items-center justify-center outline-none z-[10000]" excludeCloseButton={true}>
+                    <DialogContent className="max-w-none w-screen h-[100dvh] bg-[hsl(var(--sm-bg-base))] border-none shadow-none p-0 gap-0 rounded-none flex flex-col items-center justify-center outline-none z-[10000]" excludeCloseButton={true}>
                         <div className="w-full h-full flex flex-col relative" onClick={(e) => { if (e.target === e.currentTarget) setSelectedIndex(null); }}>
-                            <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-center bg-gradient-to-b from-white/90 to-transparent z-[10005]">
-                                <button className="bg-white/90 text-zinc-900 font-bold tracking-wider text-xs px-5 py-3 rounded-full border border-zinc-200 shadow-xl flex items-center" onClick={() => setSelectedIndex(null)}><ChevronLeft className="w-5 h-5 mr-1" /> VOLVER</button>
-                                <button className="text-zinc-500 hover:text-black bg-zinc-100/50 p-3 rounded-full" onClick={() => setSelectedIndex(null)}><X className="w-8 h-8" /></button>
+                            <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center bg-gradient-to-b from-[hsl(var(--sm-bg-base))/0.95] to-transparent z-[10005]">
+                                <button className="bg-white/5 backdrop-blur-md text-white font-black tracking-[0.2em] text-[10px] px-8 py-4 rounded-full border border-white/10 shadow-2xl flex items-center uppercase hover:bg-white/10 transition-all" onClick={() => setSelectedIndex(null)}><ChevronLeft className="w-5 h-5 mr-2" /> VOLVER</button>
+                                <button className="text-white/60 hover:text-white bg-white/5 p-4 rounded-full border border-white/5 transition-all" onClick={() => setSelectedIndex(null)}><X className="w-8 h-8" /></button>
                             </div>
 
-                            <button className="absolute left-2 top-1/2 -translate-y-1/2 p-3 text-zinc-800 bg-white/40 rounded-full z-[10005]" onClick={(e) => { e.stopPropagation(); handlePrev(); }}><ChevronLeft className="w-8 h-8" /></button>
-                            <button className="absolute right-2 top-1/2 -translate-y-1/2 p-3 text-zinc-800 bg-white/40 rounded-full z-[10005]" onClick={(e) => { e.stopPropagation(); handleNext(); }}><ChevronRight className="w-8 h-8" /></button>
+                            <button className="absolute left-6 top-1/2 -translate-y-1/2 p-4 text-white bg-white/5 backdrop-blur-md border border-white/10 rounded-full z-[10005] hover:bg-primary hover:text-[hsl(var(--sm-bg-base))] transition-all" onClick={(e) => { e.stopPropagation(); handlePrev(); }}><ChevronLeft className="w-10 h-10" /></button>
+                            <button className="absolute right-6 top-1/2 -translate-y-1/2 p-4 text-white bg-white/5 backdrop-blur-md border border-white/10 rounded-full z-[10005] hover:bg-primary hover:text-[hsl(var(--sm-bg-base))] transition-all" onClick={(e) => { e.stopPropagation(); handleNext(); }}><ChevronRight className="w-10 h-10" /></button>
 
-                            <div className="flex-1 flex items-center justify-center p-4 pb-48 w-full h-full"><Image key={`${selectedIndex}-${selectedVariant}`} src={getImagePath(selectedIndex || 1, selectedVariant)} alt="Vista" fill className="object-contain" sizes="100vw" /></div>
+                            <div className="flex-1 flex items-center justify-center p-8 pb-56 w-full h-full relative">
+                                <Image key={`${selectedIndex}-${selectedVariant}`} src={getImagePath(selectedIndex || 1, selectedVariant)} alt="Vista" fill className="object-contain" sizes="100vw" priority />
+                                <div className="absolute bottom-64 left-1/2 -translate-x-1/2 text-center">
+                                    <h4 className="text-primary font-display font-black text-5xl uppercase tracking-[0.2em] drop-shadow-[0_0_30px_rgba(251,191,36,0.5)]">SCENE ME</h4>
+                                    <p className="text-white/40 text-xs font-black tracking-[0.5em] uppercase mt-2">Professional Work Portfolio</p>
+                                </div>
+                            </div>
 
-                            <div className="absolute bottom-0 left-0 w-full bg-white pt-8 pb-4 flex flex-col gap-2">
-                                <div className="px-3"><p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Proyecto</p><div className="flex gap-2 overflow-x-auto">{[0, 1, 2].map((v) => (selectedIndex !== null && (v === 0 || ITEMS_WITH_VARIANTS.includes(selectedIndex))) && <button key={v} onClick={() => setSelectedVariant(v)} className={`w-12 h-16 border rounded ${selectedVariant === v ? 'border-primary' : 'border-zinc-200'}`}><Image src={getImagePath(selectedIndex, v)} fill className="object-cover" alt="v" /></button>)}</div></div>
-                                <div className="px-3 bg-zinc-50 py-2 border-t"><p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Más</p><div className="flex gap-2 overflow-x-auto">{Array.from({ length: TOTAL_IMAGES }, (_, i) => i + 1).map((n) => <button key={n} onClick={() => { setSelectedIndex(n); setSelectedVariant(0); }} className={`w-14 h-14 rounded-full border-2 overflow-hidden ${selectedIndex === n ? 'border-black' : 'border-transparent'}`}><Image src={getImagePath(n, 0)} fill className="object-cover" alt="n" /></button>)}</div></div>
+                            <div className="absolute bottom-0 left-0 w-full bg-[hsl(var(--sm-bg-surface))] border-t border-white/5 pt-10 pb-10 flex flex-col gap-6 backdrop-blur-2xl">
+                                <div className="px-8">
+                                    <p className="text-[10px] text-primary font-black uppercase tracking-[0.3em] mb-3">Vistas del Proyecto</p>
+                                    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                                        {[0, 1, 2].map((v) => (selectedIndex !== null && (v === 0 || ITEMS_WITH_VARIANTS.includes(selectedIndex))) && (
+                                            <button key={v} onClick={() => setSelectedVariant(v)} className={`relative w-20 h-28 border-2 rounded-xl overflow-hidden shrink-0 transition-all ${selectedVariant === v ? 'border-primary scale-110 shadow-[0_0_20px_rgba(251,191,36,0.3)]' : 'border-white/10 opacity-50 hover:opacity-100'}`}>
+                                                <Image src={getImagePath(selectedIndex, v)} fill className="object-cover" alt="v" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="px-8 pt-6 border-t border-white/5">
+                                    <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.3em] mb-3">Más Trabajos</p>
+                                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                                        {Array.from({ length: TOTAL_IMAGES }, (_, i) => i + 1).map((n) => (
+                                            <button key={n} onClick={() => { setSelectedIndex(n); setSelectedVariant(0); }} className={`relative w-16 h-16 rounded-full border-2 overflow-hidden shrink-0 transition-all ${selectedIndex === n ? 'border-primary scale-110 shadow-[0_0_15px_rgba(251,191,36,0.3)]' : 'border-transparent opacity-40 hover:opacity-100'}`}>
+                                                <Image src={getImagePath(n, 0)} fill className="object-cover" alt="n" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </DialogContent>

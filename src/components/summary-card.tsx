@@ -13,7 +13,7 @@ const SummaryItem = ({ label, value, dark = false }: { label: string; value: str
     if (!value) return null;
     return (
         <div className={cn(
-            "flex flex-col space-y-1 border-b pb-3 last:border-0 last:pb-0",
+            "flex flex-col space-y-0.5 min-w-[120px]",
             dark ? "border-zinc-800" : "border-border/50"
         )}>
             <span className={cn(
@@ -34,7 +34,7 @@ export function SummaryCard({ formData, dynamicLabel }: SummaryCardProps) {
 
     return (
         <Card className={cn(
-            "rounded-none border-t-2 sticky top-24 transition-all duration-500 shadow-2xl relative overflow-hidden",
+            "rounded-none border-t-2 transition-all duration-500 shadow-2xl relative overflow-hidden",
             isPhoto
                 ? "bg-black border-white text-phosphor shadow-[0_20px_60px_rgba(0,0,0,0.8)] studio-rim-light"
                 : "bg-card border-primary text-card-foreground"
@@ -54,7 +54,7 @@ export function SummaryCard({ formData, dynamicLabel }: SummaryCardProps) {
                     </div>
                 )}
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex flex-wrap gap-x-8 gap-y-3 items-start">
                 {isPhoto ? (
                     <>
                         <SummaryItem
@@ -99,8 +99,8 @@ export function SummaryCard({ formData, dynamicLabel }: SummaryCardProps) {
                         <SummaryItem label="Duración Estimada" value={`${length} minutos`} />
                         {logline && (
                             <>
-                                <Separator className="bg-primary/10" />
-                                <div className="text-sm space-y-1">
+                                <Separator className="bg-primary/10 w-full" />
+                                <div className="w-full text-sm space-y-1">
                                     <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Sinopsis / Logline</span>
                                     <p className="font-medium text-xs leading-relaxed italic">"{logline}"</p>
                                 </div>

@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { type FormData, type UserProfile, initialSceneData } from "@/lib/types";
 import { Stepper } from "@/components/stepper";
 import { SummaryCard } from "@/components/summary-card";
+import { PhotoPackSelector } from "@/components/photo-pack-selector";
 import Step0Intro from "@/components/steps/step0-intro";
 import Step1Selection from "@/components/steps/step1-selection";
 import Step1Genre from "@/components/steps/step1-genre";
@@ -29,12 +30,14 @@ import { AnimatePresence, motion } from "framer-motion";
 function CreatorContent() {
     const { toast } = useToast();
     const router = useRouter();
-    const [step, setStep] = useState(0);
-    const [flowType, setFlowType] = useState<"scene" | "photo">("scene");
+    const searchParams = useSearchParams();
+    const [step, setStep] = useState(() => Number(searchParams.get('step')) || 0);
+    const [flowType, setFlowType] = useState<"scene" | "photo">(
+        searchParams.get('flow') === 'photo' ? 'photo' : 'scene'
+    );
     const [currentUserEmail, setCurrentUserEmail] = useState("");
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const searchParams = useSearchParams();
 
     useEffect(() => {
         const isGuest = searchParams.get('guest') === 'true';
@@ -128,18 +131,18 @@ function CreatorContent() {
     if (isLoading) return null;
 
     return (
-        <div className="min-h-screen bg-black text-foreground flex flex-col overflow-hidden">
-            <header className="border-b border-white/5 bg-black/90 backdrop-blur-xl sticky top-0 z-[110] transition-all duration-200 h-14 md:h-16 flex items-center">
-                <div className="max-w-7xl mx-auto w-full px-4 flex items-center justify-between">
-                    <div className="cursor-pointer flex flex-col items-center flex-1" onClick={() => router.push('/')}>
-                        <h1 className="font-display text-2xl md:text-3xl tracking-tighter leading-none text-primary uppercase">SCENE ME</h1>
-                        <p className="text-[7px] md:text-[9px] text-white/40 tracking-[0.4em] font-headline uppercase mt-0.5">the ACTOR'S STORE concept</p>
+        <div className="min-h-screen bg-[hsl(var(--sm-bg-base))] text-[hsl(var(--sm-text-muted))] flex flex-col">
+            <header className="border-b border-white/10 bg-[hsl(var(--sm-bg-surface)/0.8)] backdrop-blur-md sticky top-0 z-[110] transition-all duration-200 h-16 md:h-20 flex items-center shadow-lg">
+                <div className="max-w-7xl mx-auto w-full px-6 flex items-center justify-between">
+                    <div className="cursor-pointer flex flex-col items-center flex-1 group" onClick={() => router.push('/')}>
+                        <h1 className="font-display text-3xl md:text-4xl tracking-[0.1em] leading-none text-primary uppercase group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_15px_hsla(42,90%,55%,0.3)]">SCENE ME</h1>
+                        <p className="text-[8px] md:text-[10px] text-[hsl(var(--sm-text-primary)/0.6)] tracking-[0.4em] font-headline uppercase mt-1">the ACTOR'S STORE concept</p>
                     </div>
                 </div>
             </header>
 
             <main className={cn(
-                "flex-1 w-full flex flex-col relative pb-24 md:pb-8",
+                "flex-1 w-full flex flex-col relative pb-28 md:pb-28",
                 step === 0 || activeTab === 'profile' ? "p-0" : "max-w-7xl mx-auto px-4 md:px-8 py-6"
             )}>
                 {activeTab === 'profile' ? (
@@ -167,8 +170,9 @@ function CreatorContent() {
                             </div>
                         </section>
 
-                        <div className="mt-12 text-center opacity-20 hover:opacity-100 transition-opacity pb-12">
-                            <p className="text-[8px] font-black text-white uppercase tracking-[0.5em]">Scene Me © 2024 — ACTOR WORLDWIDE</p>
+                        <div className="mt-12 text-center pb-12">
+                            <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8" />
+                            <p className="text-[10px] font-black text-[hsl(var(--sm-text-primary)/0.8)] uppercase tracking-[0.5em] drop-shadow-sm">Scene Me © 2024 — ACTOR WORLDWIDE</p>
                         </div>
                     </div>
                 ) : (
@@ -182,10 +186,12 @@ function CreatorContent() {
                                         steps={flowType === 'photo' ? PHOTO_STEPS : STEPS}
                                         dark={true}
                                     />
-                                    <SummaryCard formData={formData} dynamicLabel={dynamicLabel} />
+                                    {flowType === 'photo' && step === 1 && (
+                                        <PhotoPackSelector formData={formData} updateForm={updateForm} />
+                                    )}
                                 </aside>
 
-                                <section className="relative z-10 flex flex-col min-h-0 overflow-hidden">
+                                <section className="relative z-10 flex flex-col min-h-0 min-w-0 overflow-hidden">
                                     <AnimatePresence mode="wait">
                                         <motion.div
                                             key={`${flowType}-${step}`}
@@ -199,7 +205,7 @@ function CreatorContent() {
                                         </motion.div>
                                     </AnimatePresence>
 
-                                    <div className="md:hidden mt-12 mb-8">
+                                    <div className="mt-6">
                                         <SummaryCard formData={formData} dynamicLabel={dynamicLabel} />
                                     </div>
                                 </section>
@@ -220,7 +226,7 @@ function CreatorContent() {
 
 export default function SceneMeCreator() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <Suspense fallback={<div className="min-h-screen bg-[hsl(var(--sm-bg-base))]" />}>
             <CreatorContent />
         </Suspense>
     );
