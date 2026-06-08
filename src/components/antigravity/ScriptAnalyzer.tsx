@@ -610,7 +610,7 @@ export default function ScriptAnalyzer() {
                 <div className="max-w-[98vw] mx-auto p-4 md:p-8 relative z-10 font-sans text-stone-900 selection:bg-stone-200">
                     <ChartNotesSystem chartId={currentUser?.date || 'default'} />
                     
-                    <header className="flex flex-col lg:flex-row justify-between items-center mb-16 gap-10 bg-white/70 backdrop-blur-2xl p-6 md:p-8 rounded-none border border-[#1a1a1a]/10 shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-[100] w-full overflow-hidden">
+                    <header className="flex flex-col lg:flex-row lg:flex-wrap justify-between items-center mb-16 gap-6 lg:gap-8 bg-white/70 backdrop-blur-2xl p-6 md:p-8 rounded-none border border-[#1a1a1a]/10 shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-[100] w-full">
                         <div className="flex flex-col items-center md:items-start gap-1">
                             <div className="flex items-center gap-6">
                                 <button
@@ -629,22 +629,22 @@ export default function ScriptAnalyzer() {
                             </p>
                         </div>
 
-                    <nav className="flex w-full lg:w-auto min-w-0 gap-2 bg-stone-100 p-1 border border-black/5 overflow-x-auto rounded-none scrollbar-hide">
+                    <nav className="flex w-full lg:w-auto gap-1 bg-stone-100 p-1 border border-black/5 rounded-none">
                         {[
                             { id: 'COSMOS', icon: Atom, label: 'EL COSMOS' },
                             { id: 'BODY', icon: Fingerprint, label: 'EL CUERPO' },
                             { id: 'SPIRIT', icon: Users, label: 'EL ESPÍRITU' },
-                            { id: 'ALCHIMESTRY', icon: () => <span className="text-2xl pt-1">⚂</span>, label: 'ALQUIMIA' }
+                            { id: 'ALCHIMESTRY', icon: () => <span className="text-lg md:text-xl leading-none">⚂</span>, label: 'ALQUIMIA' }
                         ].map(m => (
                             <button
                                 key={m.id}
                                 onClick={() => handleViewModeChange(m.id as ViewMode)}
-                                className={`flex-shrink-0 flex items-center gap-4 px-6 py-4 md:px-10 md:py-5 transition-all duration-300 border rounded-none ${viewMode === m.id ? 'bg-black text-white border-black shadow-xl scale-105' : 'bg-transparent text-gray-400 border-transparent hover:text-gray-900 hover:bg-white'}`}
+                                className={`flex-1 lg:flex-initial min-w-0 flex flex-col lg:flex-row items-center justify-center gap-1 lg:gap-3 px-1.5 py-2.5 md:px-6 md:py-4 transition-all duration-300 border rounded-none ${viewMode === m.id ? 'bg-black text-white border-black shadow-lg' : 'bg-transparent text-gray-400 border-transparent hover:text-gray-900 hover:bg-white'}`}
                             >
-                                <div className="scale-100">
-                                    {typeof m.icon === 'function' ? <m.icon /> : React.createElement(m.icon as any, { size: 22 })}
+                                <div className="shrink-0 flex items-center justify-center">
+                                    {typeof m.icon === 'function' ? <m.icon /> : React.createElement(m.icon as any, { size: 18 })}
                                 </div>
-                                <span className="text-xs font-black uppercase tracking-[0.2em]">{m.label}</span>
+                                <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.06em] md:tracking-[0.2em] text-center leading-tight whitespace-nowrap">{m.label}</span>
                             </button>
                         ))}
                     </nav>
