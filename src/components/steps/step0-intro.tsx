@@ -186,7 +186,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                 {/* Scroll Container (Desktop/Tablet) */}
                 <div
                     ref={scrollContainerRef}
-                    className="flex flex-row items-stretch gap-4 lg:gap-6 w-full max-w-[78rem] mx-auto px-4 lg:px-6 pb-3 pt-2 overflow-x-auto snap-x scrollbar-hide"
+                    className="hidden md:flex flex-row items-stretch gap-4 lg:gap-6 w-full max-w-[78rem] mx-auto px-4 lg:px-6 pb-3 pt-2 overflow-x-auto snap-x scrollbar-hide"
                 >
                     {/* CARD 1: BOOK */}
                     <div
@@ -336,8 +336,8 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                     </div>
                 </div>
 
-                {/* MOBILE VIEW — editorial (oculto; en móvil usamos el carrusel de cards de arriba) */}
-                <div className="hidden">
+                {/* MOBILE VIEW — 3 apilados que llenan la pantalla (sin scroll lateral) */}
+                <div className="md:hidden flex flex-col w-full px-4 gap-3 pt-2 pb-4 min-h-[calc(100dvh-13rem)]">
                     {/* CARD 1: BOOK */}
                     <div className="relative flex-1 min-h-0 rounded-2xl overflow-hidden border border-white/10 shadow-xl bg-[hsl(var(--sm-bg-surface))]">
                         <div className="relative z-10 h-full p-4 flex flex-col">
