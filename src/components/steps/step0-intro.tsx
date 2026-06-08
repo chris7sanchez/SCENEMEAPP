@@ -191,7 +191,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                     {/* CARD 1: BOOK */}
                     <div
                         style={{ backgroundColor: 'hsla(220, 30%, 10%, 0.7)' }}
-                        className="flex-1 snap-center min-w-[300px] md:min-w-[280px] md:max-w-[400px] backdrop-blur-xl border-2 border-white/10 rounded-[2rem] p-6 flex flex-col md:min-h-[440px] relative shadow-2xl transition-all duration-500 hover:shadow-[var(--sm-shadow-glow)] hover:border-primary/30 group justify-between overflow-hidden"
+                        className="flex-1 snap-center min-w-[88vw] sm:min-w-[300px] md:min-w-[280px] md:max-w-[400px] backdrop-blur-xl border-2 border-white/10 rounded-[2rem] p-6 flex flex-col md:min-h-[440px] relative shadow-2xl transition-all duration-500 hover:shadow-[var(--sm-shadow-glow)] hover:border-primary/30 group justify-between overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
                         <div className="w-full bg-white/5 py-3 text-center border-b border-white/10 -mt-6 -mx-6 mb-6">
@@ -200,8 +200,6 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                             </span>
                         </div>
                         <div className="text-center space-y-1 relative z-10 pt-0 font-sans">
-                            <p className="text-lg font-bold text-white uppercase tracking-tight">Levántate del sofá,</p>
-                            <p className="text-lg font-bold text-white uppercase tracking-tight">busca una buena luz</p>
                             <div className="relative inline-block py-1">
                                 <span className="absolute inset-0 bg-primary skew-x-[-12deg] transform rotate-[-1deg]" />
                                 <p className="relative text-2xl font-black text-black px-4 uppercase tracking-tighter italic">"REVÉLATE" AL MUNDO!</p>
@@ -258,7 +256,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                     </div>
 
                     {/* CARD 2: SCENE ME */}
-                    <div className="flex-1 snap-center min-w-[300px] md:min-w-[280px] md:max-w-[400px] bg-primary/5 backdrop-blur-2xl border-2 border-primary/30 rounded-[2rem] p-6 flex flex-col md:min-h-[440px] relative shadow-[0_0_50px_rgba(251,191,36,0.15)] transition-all duration-500 z-10 justify-between group overflow-hidden">
+                    <div className="flex-1 snap-center min-w-[88vw] sm:min-w-[300px] md:min-w-[280px] md:max-w-[400px] bg-primary/5 backdrop-blur-2xl border-2 border-primary/30 rounded-[2rem] p-6 flex flex-col md:min-h-[440px] relative shadow-[0_0_50px_rgba(251,191,36,0.15)] transition-all duration-500 z-10 justify-between group overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-t from-primary/[0.05] to-transparent pointer-events-none" />
                         <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl animate-pulse" />
 
@@ -275,30 +273,6 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                             <p className="text-xs text-white font-bold pt-1">
                                 y <span className="text-primary font-black">Rueda</span> cuando quieras!
                             </p>
-                        </div>
-
-                        <div className="bg-white/[0.03] p-3 rounded-2xl border border-white/5 shadow-inner space-y-2 text-xs text-left backdrop-blur-sm mt-3 relative z-10 font-sans">
-                            <div className="flex items-start gap-3 group/item">
-                                <div className="bg-primary text-black w-5 h-5 rounded-lg flex items-center justify-center font-black text-[11px] shrink-0 group-hover/item:scale-110 transition-transform">1</div>
-                                <div className="leading-tight">
-                                    <span className="text-white font-black uppercase tracking-wider block text-xs">Elige tu Pack</span>
-                                    <span className="text-zinc-300 font-medium">Contrata 1 o 2 escenas de máxima calidad.</span>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3 group/item">
-                                <div className="bg-primary text-black w-5 h-5 rounded-lg flex items-center justify-center font-black text-[11px] shrink-0 group-hover/item:scale-110 transition-transform">2</div>
-                                <div className="leading-tight">
-                                    <span className="text-white font-black uppercase tracking-wider block text-xs">Personaliza</span>
-                                    <span className="text-zinc-300 font-medium">Género, ubicación, vestuario y guion a medida.</span>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3 group/item">
-                                <div className="bg-primary text-black w-5 h-5 rounded-lg flex items-center justify-center font-black text-[11px] shrink-0 group-hover/item:scale-110 transition-transform">3</div>
-                                <div className="leading-tight">
-                                    <span className="text-white font-black uppercase tracking-wider block text-xs">Reserva y Rueda</span>
-                                    <span className="text-zinc-300 font-medium">Cierra fecha al instante y recibe material listo para triunfar.</span>
-                                </div>
-                            </div>
                         </div>
 
                         <div className="text-center space-y-2 pt-3 relative z-10">
@@ -325,7 +299,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                     {/* CARD 3: SELF-TAPES */}
                     <div
                         style={{ backgroundColor: 'hsla(220, 30%, 10%, 0.7)' }}
-                        className="flex-1 snap-center min-w-[300px] md:min-w-[280px] md:max-w-[400px] backdrop-blur-xl border-2 border-blue-500/20 rounded-[2rem] p-6 flex flex-col md:min-h-[440px] relative shadow-2xl hover:border-blue-500/40 transition-all duration-500 group justify-between overflow-hidden"
+                        className="flex-1 snap-center min-w-[88vw] sm:min-w-[300px] md:min-w-[280px] md:max-w-[400px] backdrop-blur-xl border-2 border-blue-500/20 rounded-[2rem] p-6 flex flex-col md:min-h-[440px] relative shadow-2xl hover:border-blue-500/40 transition-all duration-500 group justify-between overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.04] to-transparent pointer-events-none" />
                         <div className="w-full bg-white/5 py-3 text-center border-b border-white/10 -mt-6 -mx-6 mb-6">
@@ -341,12 +315,6 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                             <p className="text-xs text-white font-bold pt-1">
                                 con <span className="text-blue-400 font-black">Self-Tapes</span> de cine!
                             </p>
-                        </div>
-                        <div className="bg-white/[0.03] p-4 rounded-2xl border border-white/5 shadow-inner space-y-2 text-xs text-left backdrop-blur-sm mt-2 relative z-10 text-white font-sans">
-                            <p className="font-bold text-blue-400 text-[10px] uppercase tracking-wide mb-2">Exprime cada oportunidad:</p>
-                            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" /> Iluminación Profesional</div>
-                            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" /> Sonido Perfecto</div>
-                            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" /> Calidad de Imagen</div>
                         </div>
                         <div className="text-center space-y-2 relative z-10 pt-1">
                             <div className="flex justify-center">
@@ -368,72 +336,57 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                     </div>
                 </div>
 
-                {/* MOBILE VIEW */}
-                <div className="hidden flex-col items-center w-full px-4 space-y-4 mb-0">
-                    <div className="sticky top-[56px] z-[60] bg-[hsl(var(--sm-bg-base))/0.9] backdrop-blur-md py-1 w-full flex justify-center border-b border-white/5 -mx-4 px-4 shadow-sm">
-                        <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
-                            {[
-                                { id: 0, Icon: Camera, label: "FOTO" },
-                                { id: 1, Icon: Clapperboard, label: "ESCENA" },
-                                { id: 2, Icon: Film, label: "TAPES" }
-                            ].map(({ id, Icon, label }) => (
-                                <button key={id} onClick={() => { setSelectedIndex(null); const card = document.getElementById(`mobile-card-${id}`); card?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} className="flex flex-col items-center gap-1 group active:scale-95 transition-transform">
-                                    <div className="relative w-9 h-9 rounded-xl flex items-center justify-center border-2 border-white/5 shadow-sm bg-white/5 hover:border-primary/40 transition-colors">
-                                        <Icon className="w-5 h-5 text-primary" />
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-primary text-lg font-black">{id + 1}</span>
-                                        <span className="text-[8px] font-black tracking-widest uppercase text-white">{label}</span>
-                                    </div>
-                                </button>
-                            ))}
+                {/* MOBILE VIEW — editorial (oculto; en móvil usamos el carrusel de cards de arriba) */}
+                <div className="hidden">
+                    {/* CARD 1: BOOK */}
+                    <div className="relative flex-1 min-h-0 rounded-2xl overflow-hidden border border-white/10 shadow-xl bg-[hsl(var(--sm-bg-surface))]">
+                        <div className="relative z-10 h-full p-4 flex flex-col">
+                            <div className="flex items-center justify-between">
+                                <span className="bg-white/10 px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-widest uppercase text-white/80">Paso 1 · Book</span>
+                                <Camera className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1 flex flex-col items-center justify-center text-center gap-2">
+                                <h3 className="text-2xl font-black text-white uppercase leading-none tracking-tighter">Tu Book Actoral</h3>
+                                <p className="text-xs text-white/70 font-medium">Tu mejor carta de presentación.</p>
+                                <div className="flex gap-2 mt-1">
+                                    <button onClick={() => { setIsGalleryOpen(true); setVisibleCount(4); }} className="bg-white/15 text-white h-8 px-4 text-[10px] font-black tracking-widest rounded-full uppercase">Ver trabajos</button>
+                                    <button onClick={() => { if (setFlowType) setFlowType('photo'); if (updateForm) updateForm({ serviceType: 'photo' }); setStep(1); }} className="bg-primary text-[hsl(var(--sm-bg-base))] h-8 px-4 text-[10px] font-black tracking-widest rounded-full uppercase shadow-lg">Empezar</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="w-full space-y-1.5 pt-2 pb-4">
-                        {/* MOBILE CARD 1: BOOK */}
-                        <div id="mobile-card-0" className="bg-[hsl(var(--sm-bg-surface))] border border-white/5 rounded-2xl p-2.5 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
-                            <div className="flex justify-between items-center mb-2">
-                                <div className="bg-white/5 px-3 py-1 rounded-full border border-white/10"><span className="text-[hsl(var(--sm-text-muted))] font-bold uppercase tracking-widest text-[9px]">PASO 1</span></div>
-                                <Camera className="w-6 h-6 text-primary opacity-80" />
-                            </div>
-                            <p className="text-primary text-base font-black leading-none mb-0.5 uppercase">¡Prepárate!</p>
-                            <h3 className="text-lg font-black text-white uppercase leading-[0.95] tracking-tighter">TU BOOK ACTORAL</h3>
-                            <p className="text-[11px] text-[hsl(var(--sm-text-muted))] italic my-0.5 font-medium leading-snug">Levántate del sofá y "revélate" al mundo con <span className="font-bold not-italic text-white">un buen fotógrafo.</span></p>
-                            <div className="flex gap-2 mt-auto">
-                                <Button variant="outline" className="flex-1 bg-white/5 border-none text-[hsl(var(--sm-text-muted))] h-9 text-[9px] font-black tracking-widest rounded-full" onClick={() => { setIsGalleryOpen(true); setVisibleCount(4); }}>VER TRABAJOS</Button>
-                                <Button className="flex-1 bg-primary text-[hsl(var(--sm-bg-base))] h-9 text-[9px] font-black tracking-widest rounded-full shadow-lg" onClick={() => { if (setFlowType) setFlowType('photo'); if (updateForm) updateForm({ serviceType: 'photo' }); setStep(1); }}>EMPEZAR AHORA</Button>
-                            </div>
-                        </div>
-
-                        {/* MOBILE CARD 2: SCENE ME */}
-                        <div id="mobile-card-1" className="bg-primary/10 border border-primary/20 rounded-2xl p-2.5 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
-                            <div className="flex justify-between items-center mb-2">
-                                <div className="bg-primary text-[hsl(var(--sm-bg-base))] px-3 py-1 rounded-full border border-primary shadow-sm flex items-center gap-2">
-                                    <span className="font-black uppercase tracking-widest text-[9px]">EL CAMINO</span>
+                    {/* CARD 2: SCENE ME (héroe) */}
+                    <div className="relative flex-[1.7] min-h-0 rounded-[1.4rem] overflow-hidden border-2 border-primary shadow-[0_0_30px_rgba(251,191,36,0.18)] bg-primary/10">
+                        <div className="relative z-10 h-full p-5 flex flex-col">
+                            <div className="flex items-center justify-between">
+                                <span className="bg-primary text-[hsl(var(--sm-bg-base))] px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-widest uppercase">2º Paso</span>
+                                <div className="relative">
+                                    <Clapperboard className="w-9 h-9 text-primary animate-clapper" />
+                                    <Sparkles className="absolute -top-1.5 -right-1.5 w-4 h-4 text-primary animate-pulse" />
                                 </div>
-                                <Clapperboard className="w-6 h-6 text-primary opacity-80" />
                             </div>
-                            <p className="text-primary text-base font-black leading-none mb-0.5 uppercase">¡Crea y rueda!</p>
-                            <h3 className="text-lg font-black text-white uppercase leading-tight tracking-tighter">TU MEJOR ESCENA</h3>
-                            <div className="mt-1 mb-2"><span className="bg-primary/20 text-primary text-[9px] font-bold px-2 py-0.5 rounded-full border border-primary/20 uppercase tracking-wide">5 PLAZAS DISPONIBLES</span></div>
-                            <div className="space-y-2 mt-auto">
-                                <button className="w-full bg-primary text-[hsl(var(--sm-bg-base))] h-9 text-[9px] font-black tracking-widest rounded-full shadow-lg" onClick={() => { if (updateForm) updateForm({ serviceType: 'scene' }); setStep(1); }}>EMPEZAR AHORA</button>
-                                <button onClick={() => router.push('/booking?service=scene')} className="w-full bg-[#E11D48] text-white rounded-full h-9 flex items-center justify-center gap-2 font-black text-[9px] tracking-widest uppercase shadow-lg"><AlertTriangle className="w-3 h-3 text-white" /> OFERTA LIMITADA: MÁS INFO AQUÍ</button>
+                            <div className="flex-1 flex flex-col items-center justify-center text-center">
+                                <p className="text-sm font-bold text-white/80 uppercase tracking-wide leading-none mb-1">Diseña</p>
+                                <h2 className="text-4xl font-black text-primary uppercase leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(251,191,36,0.4)] py-1">Tu Mejor Escena</h2>
+                                <p className="text-xs text-white/70 font-medium mb-4">Y <span className="text-primary font-bold">rueda</span> cuando quieras · 5 plazas</p>
+                                <button onClick={() => { if (setFlowType) setFlowType('scene'); if (updateForm) updateForm({ serviceType: 'scene' }); setStep(1); }} className="w-full bg-primary text-[hsl(var(--sm-bg-base))] h-11 text-sm font-black tracking-[0.2em] rounded-xl uppercase shadow-xl flex items-center justify-center gap-2">Empezar ahora <ArrowRight className="w-4 h-4" /></button>
                             </div>
                         </div>
+                    </div>
 
-                        {/* MOBILE CARD 3: SELF-TAPES */}
-                        <div id="mobile-card-2" className="bg-[hsl(var(--sm-bg-surface))] border border-white/5 rounded-2xl p-2.5 flex flex-col shadow-xl relative scroll-mt-20 overflow-hidden">
-                            <div className="flex justify-between items-center mb-2">
-                                <div className="bg-white/5 text-[hsl(var(--sm-text-muted))] px-3 py-1 rounded-full border border-white/10"><span className="font-bold uppercase tracking-widest text-[9px]">PASO 3</span></div>
-                                <Film className="w-6 h-6 text-primary opacity-80" />
+                    {/* CARD 3: SELF-TAPES */}
+                    <div className="relative flex-1 min-h-0 rounded-2xl overflow-hidden border border-blue-500/30 shadow-xl bg-[hsl(var(--sm-bg-surface))]">
+                        <div className="relative z-10 h-full p-4 flex flex-col">
+                            <div className="flex items-center justify-between">
+                                <span className="bg-white/10 px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-widest uppercase text-white/80">Paso 3</span>
+                                <Film className="w-5 h-5 text-blue-400" />
                             </div>
-                            <p className="text-primary text-base font-black leading-none mb-1 uppercase">¡Asegúrate!</p>
-                            <p className="text-xs font-bold text-[hsl(var(--sm-text-muted))] leading-tight">¡PREPÁRATE para recibir <span className="text-lg font-black text-blue-400 animate-shine-text">EL SÍ!</span></p>
-                            <h3 className="text-lg font-black text-white uppercase leading-[0.95] tracking-tighter mt-1">TUS MEJORES SELF-TAPES</h3>
-                            <p className="text-[11px] text-[hsl(var(--sm-text-muted))] italic my-0.5 font-medium leading-snug">"La suerte es ciega. El Director de Casting, no."</p>
-                            <Button variant="outline" className="w-full border-2 border-primary text-primary hover:bg-primary/5 font-black h-9 text-[10px] tracking-widest rounded-xl shadow-sm mt-auto" onClick={() => { if (setFlowType) setFlowType('photo'); if (updateForm) updateForm({ serviceType: 'photo', photoType: 'event' }); setStep(1); }}>RESERVAR ASESORÍA</Button>
+                            <div className="flex-1 flex flex-col items-center justify-center text-center gap-2">
+                                <p className="text-xs font-bold text-white/80 uppercase leading-none">Prepárate para <span className="text-blue-400 font-black animate-shine-text">El Sí</span></p>
+                                <h3 className="text-2xl font-black text-white uppercase leading-none tracking-tighter">Tus Self-Tapes</h3>
+                                <button onClick={() => router.push('/booking?service=selftape')} className="bg-blue-500 text-white h-8 px-4 text-[10px] font-black tracking-widest rounded-full uppercase shadow-lg mt-1">Reservar asesoría</button>
+                            </div>
                         </div>
                     </div>
                 </div>
