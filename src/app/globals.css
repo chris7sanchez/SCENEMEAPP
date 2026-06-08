@@ -1,3 +1,4 @@
+@import "../theme/tokens.css";
 @import "../styles/premium-effects.css";
 @tailwind base;
 @tailwind components;
@@ -33,26 +34,27 @@
   }
 
   .dark {
-    --background: 0 0% 0%;
-    --foreground: 45 20% 95%;
-    --card: 0 0% 5%;
-    --card-foreground: 45 20% 95%;
-    --popover: 0 0% 5%;
-    --popover-foreground: 45 20% 95%;
-    --primary: 45 93% 58%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 72%;
-    --accent: 45 93% 47%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 0 62.8% 30.6%;
+    /* Deep cinematic blue — NO negro puro */
+    --background: 222 36% 7%;
+    --foreground: 45 20% 93%;
+    --card: 220 30% 10%;
+    --card-foreground: 45 20% 93%;
+    --popover: 220 30% 10%;
+    --popover-foreground: 45 20% 93%;
+    --primary: 42 90% 58%;
+    --primary-foreground: 222 36% 7%;
+    --secondary: 220 20% 16%;
+    --secondary-foreground: 45 15% 92%;
+    --muted: 220 20% 16%;
+    --muted-foreground: 220 12% 68%;
+    --accent: 42 90% 55%;
+    --accent-foreground: 222 36% 7%;
+    --destructive: 0 62.8% 40%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 45 93% 47%;
-    --radius: 0.1rem;
+    --border: 220 18% 22%;
+    --input: 220 18% 20%;
+    --ring: 42 90% 55%;
+    --radius: 0.5rem;
   }
 }
 
@@ -210,17 +212,17 @@
 
   /* Cinematic & Photography Studio Utilities */
   .bg-studio-matte {
-    background: radial-gradient(circle at 50% -20%, #18181b 0%, #09090b 100%);
+    background: radial-gradient(circle at 50% -20%, hsl(220, 30%, 12%) 0%, hsl(222, 36%, 7%) 100%);
   }
 
   .studio-rim-light {
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 20px 50px rgba(0, 0, 0, 0.5);
+    box-shadow: inset 0 1px 1px hsla(220, 30%, 50%, 0.08), 0 20px 50px hsla(222, 36%, 3%, 0.5);
   }
 
   .glass-studio {
-    background: rgba(9, 9, 11, 0.8);
+    background: hsla(220, 30%, 10%, 0.8);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    border: 1px solid hsla(220, 20%, 30%, 0.15);
   }
 
   .text-phosphor {

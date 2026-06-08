@@ -38,6 +38,7 @@ export const metadata: Metadata = {
 import { SplashScreen } from '@/components/pwa/splash-screen';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { SceneMeProviders } from '@/components/SceneMeProviders';
 
 export default function RootLayout({
     children,
@@ -45,20 +46,22 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="es">
+        <html lang="es" className="dark" data-theme="dark">
             <head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Contrail+One&family=Encode+Sans+SC:wght@400;700&family=Faster+One&family=Limelight&family=Roboto+Condensed:wght@400;700&family=Trocchi&family=Caveat:wght@400;700&family=Cinzel:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+                <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Contrail+One&family=Encode+Sans+SC:wght@400;700&family=Faster+One&family=Limelight&family=Roboto+Condensed:wght@400;700&family=Trocchi&family=Caveat:wght@400;700&family=Cinzel:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet" />
             </head>
-            <body className="font-body antialiased flex flex-col min-h-screen">
-                <SplashScreen />
-                <GlobalErrorBoundary>
-                    <main className="flex-1 pb-16 md:pb-0">
-                        {children}
-                    </main>
-                </GlobalErrorBoundary>
-                <BottomTabBar />
+            <body className="font-body antialiased flex flex-col min-h-screen" style={{ backgroundColor: 'var(--sm-bg-base)', color: 'var(--sm-text-primary)' }}>
+                <SceneMeProviders>
+                    <SplashScreen />
+                    <GlobalErrorBoundary>
+                        <main className="flex-1 pb-16 md:pb-0">
+                            {children}
+                        </main>
+                    </GlobalErrorBoundary>
+                    <BottomTabBar />
+                </SceneMeProviders>
             </body>
         </html>
     );
