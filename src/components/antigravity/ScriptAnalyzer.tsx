@@ -595,10 +595,8 @@ export default function ScriptAnalyzer() {
     };
 
     const renderQuantumSynastrySection = () => {
-        if (!currentUser) return null;
-        
         const getIdentity = (id: string) => {
-            if (id === 'user') return { name: currentUser.name || "Yo", date: currentUser.date };
+            if (id === 'user') return currentUser ? { name: currentUser.name || "Yo", date: currentUser.date } : null;
             if (id.startsWith('char-')) {
                 const char = characterProfiles[parseInt(id.split('-')[1])];
                 return char ? { name: char.name, date: char.birthData.date } : null;
@@ -610,7 +608,7 @@ export default function ScriptAnalyzer() {
         const source = getIdentity(spiritSourceId);
         const target = getIdentity(spiritTargetId);
 
-        if (!source || !target) return <div className="p-8 text-center text-zinc-500 text-xs italic">Selecciona una Base y un Objetivo.</div>;
+        if (!source || !target) return <div className="p-8 text-center text-zinc-500 text-xs italic">Elige el Alma A y el Alma B en "Mi Red" para revelar su sinergia.</div>;
         
         const { date: sDate, name: sName } = source;
         const { date: tDate, name: tName } = target;
@@ -814,6 +812,26 @@ export default function ScriptAnalyzer() {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn pb-12">
                             <div className="lg:col-span-1 glass-panel p-6 rounded-none shadow-xl">
                                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Users size={18} /> Mi Red</h3>
+                                <p className="text-[10px] text-gray-400 mb-3 leading-relaxed">Los personajes que analizas en <b>EL CUERPO</b> aparecen aquí automáticamente. Elige <b>dos almas</b> para ver su sinergia:</p>
+                                <div className="space-y-2 mb-5">
+                                    <div>
+                                        <label className="text-[9px] uppercase font-black text-gray-400 block mb-1">Alma A ☉</label>
+                                        <select value={spiritSourceId} onChange={e => setSpiritSourceId(e.target.value)} className="w-full bg-white border border-black/10 p-2 text-xs font-bold uppercase rounded outline-none focus:border-black">
+                                            <option value="user">Yo Mismo</option>
+                                            {characterProfiles.map((c, i) => (<option key={i} value={'char-' + i}>{c.name}</option>))}
+                                            {friends.map(f => (<option key={f.id} value={f.id}>{f.name}</option>))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[9px] uppercase font-black text-gray-400 block mb-1">Alma B ☾</label>
+                                        <select value={spiritTargetId} onChange={e => setSpiritTargetId(e.target.value)} className="w-full bg-white border border-black/10 p-2 text-xs font-bold uppercase rounded outline-none focus:border-[#5B7C99]">
+                                            <option value="">— Elige —</option>
+                                            {characterProfiles.map((c, i) => (<option key={i} value={'char-' + i}>{c.name}</option>))}
+                                            {friends.map(f => (<option key={f.id} value={f.id}>{f.name}</option>))}
+                                            <option value="user">Yo Mismo</option>
+                                        </select>
+                                    </div>
+                                </div>
                                  <div className="flex gap-1 mb-4 p-1 bg-gray-100 rounded-lg">
                                     <button 
                                         onClick={() => setSelectionPriority('source')} 
@@ -893,7 +911,7 @@ export default function ScriptAnalyzer() {
 
                             <div className="lg:col-span-2 glass-panel p-8 rounded-none shadow-2xl flex flex-col items-center">
                                 <h2 className="text-2xl font-serif text-[#1a1a1a] mb-8 w-full">Sinergia de Almas</h2>
-                                {currentUser ? (
+                                {(spiritSourceId && spiritTargetId) ? (
                                     <div className="w-full max-w-2xl aspect-square relative mb-8">
                                         <ChartZoomWrapper title="Vínculo Cuántico" theme={chartTheme} onThemeChange={setChartTheme}>
                                             <div className="relative w-full h-full">
@@ -942,7 +960,7 @@ export default function ScriptAnalyzer() {
                                             </button>
                                         </div>
                                     </div>
-                                ) : <p className="p-20 text-gray-300 uppercase text-xs tracking-widest">Introduce tus datos primero.</p>}
+                                ) : <p className="p-20 text-gray-300 uppercase text-xs tracking-widest text-center">Elige el Alma A y el Alma B<br/>para ver su sinergia.</p>}
                                 <div className="w-full bg-black/5 border border-black/5 overflow-hidden">{renderQuantumSynastrySection()}</div>
                             </div>
                         </div>
