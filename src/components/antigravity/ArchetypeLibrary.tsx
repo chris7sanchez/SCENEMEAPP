@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
 import { assimilateKnowledge } from '@/ai/assimilate-knowledge';
 import { parsePdfAction } from '@/ai/parse-pdf';
+import { loadCustomKnowledge, saveCustomKnowledge } from '@/lib/custom-knowledge';
 import { Loader2, Plus, Book, Upload, FileText, BookOpen, X, Sun, BrainCircuit, Sparkles } from 'lucide-react';
 
 export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
@@ -21,11 +22,8 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
         const storedDate = localStorage.getItem('archetypeLastUpdateDate');
         if (storedDate) setLastUpdated(storedDate);
 
-        fetch('/api/knowledge')
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) setCustomKnowledge(data);
-            })
+        loadCustomKnowledge()
+            .then(data => { if (Array.isArray(data)) setCustomKnowledge(data); })
             .catch(err => console.error("Failed to load knowledge", err));
     }, []);
 
@@ -36,11 +34,7 @@ export default function ArchetypeLibrary({ onClose }: { onClose: () => void }) {
 
     const saveToApi = async (newData: any[]) => {
         setCustomKnowledge(newData);
-        await fetch('/api/knowledge', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newData)
-        });
+        await saveCustomKnowledge(newData);
         const now = new Date().toLocaleString();
         setLastUpdated(now);
         localStorage.setItem('archetypeLastUpdateDate', now);

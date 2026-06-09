@@ -36,6 +36,7 @@ import MiniCalculator from './MiniCalculator';
 import ChartNotesSystem from './ChartNotesSystem';
 import { auth } from '@/lib/auth';
 import { loadAntigravityState, saveAntigravityState } from '@/lib/antigravity-db';
+import { loadCustomKnowledge } from '@/lib/custom-knowledge';
 
 export default function ScriptAnalyzer() {
     const searchParams = useSearchParams();
@@ -228,6 +229,12 @@ export default function ScriptAnalyzer() {
         const d = new Date(dateStr);
         setDateParts({ day: d.getDate().toString(), month: (d.getMonth() + 1).toString(), year: d.getFullYear().toString() });
     };
+
+    // Cargar el "conocimiento propio" (Bibliotheca) para que alimente el análisis de personajes
+    const loadKnowledge = () => {
+        loadCustomKnowledge().then(k => { if (Array.isArray(k)) setCustomKnowledge(k); }).catch(() => { });
+    };
+    useEffect(() => { loadKnowledge(); }, []);
 
     // Parallax
     useEffect(() => {
@@ -912,7 +919,7 @@ export default function ScriptAnalyzer() {
             </div>
         )}
 
-        {showLibrary && <ArchetypeLibrary onClose={() => setShowLibrary(false)} />}
+        {showLibrary && <ArchetypeLibrary onClose={() => { setShowLibrary(false); loadKnowledge(); }} />}
     </div>
     );
 }

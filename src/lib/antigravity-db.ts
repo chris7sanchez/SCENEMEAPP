@@ -9,6 +9,7 @@ export interface AntigravityState {
     friends?: any[];
     scriptLibrary?: any[];
     themeSettings?: any;
+    customKnowledge?: any[];
 }
 
 const COLLECTION = 'users';
