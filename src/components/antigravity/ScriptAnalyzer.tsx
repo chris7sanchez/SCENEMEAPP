@@ -405,10 +405,42 @@ export default function ScriptAnalyzer() {
                     okCount++;
                 }
 
-                const approxDate = getApproxDateForSign(analysis.sunSign);
+                // Carta PROPIA y distinta por personaje: buscar una fecha REAL que cumpla su
+                // Sol + Luna + Ascendente (y su edad), no una fecha fija por signo solar.
+                const sun = analysis.sunSign;
+                const moon = analysis.moonSign || sun;
+                const asc = analysis.ascendant || sun;
+                // Anclar Luna y Ascendente del análisis para que la carta los respete siempre
+                analysis.knownMoon = moon;
+                analysis.knownAscendant = asc;
+
+                const nowYear = new Date().getFullYear();
+                // La IA puede devolver la edad como número o como texto ("30-40 años"): extraer el número
+                let estAge: number | null = null;
+                const rawAge: any = analysis.estimatedAge;
+                if (typeof rawAge === 'number' && rawAge > 0 && rawAge < 110) {
+                    estAge = Math.round(rawAge);
+                } else if (typeof rawAge === 'string') {
+                    const am = rawAge.match(/\d{1,3}/);
+                    if (am) { const a = parseInt(am[0], 10); if (a > 0 && a < 110) estAge = a; }
+                }
+                analysis.estimatedAge = estAge; // normalizado para el editor
+                const yearsToTry = estAge
+                    ? [nowYear - estAge, nowYear - estAge - 1]
+                    : [1990, 1985];
+
+                let bornISO: string | null = null;
+                for (const y of yearsToTry) {
+                    try {
+                        const matches = findPossibleBirthDates(y, sun, moon, asc);
+                        if (matches && matches.length > 0) { bornISO = matches[0].toISOString(); break; }
+                    } catch (e) { /* sigue probando */ }
+                }
+                const finalDate = bornISO || getApproxDateForSign(sun);
+
                 const profile: CharacterProfile = {
                     id: name, name: name,
-                    birthData: { date: approxDate, time: '12:00', latitude: 40.4168, longitude: -3.7038 },
+                    birthData: { date: finalDate, time: finalDate.split('T')[1]?.substring(0, 5) || '12:00', latitude: 40.4168, longitude: -3.7038 },
                     fullAnalysis: analysis,
                     elements: analysis.elements
                 };

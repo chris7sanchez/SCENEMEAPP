@@ -80,6 +80,13 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
         return getSomaticAnalysis(finalPlanets);
     }, [selectedCharacterId, characterProfiles]);
 
+    // Sembrar la edad del editor con la edad estimada del personaje seleccionado
+    React.useEffect(() => {
+        if (selectedCharacterId === null) return;
+        const a = characterProfiles[selectedCharacterId]?.fullAnalysis?.estimatedAge;
+        if (typeof a === 'number' && a > 0 && a < 110) setTargetAge(a);
+    }, [selectedCharacterId, characterProfiles]);
+
     const findBirthDatesByAge = () => {
         if (selectedCharacterId === null) return;
         const char = characterProfiles[selectedCharacterId];
