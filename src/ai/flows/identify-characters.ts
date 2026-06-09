@@ -8,20 +8,24 @@ const IdentifyCharactersSchema = z.object({
 });
 
 export async function identifyCharacters(scriptText: string): Promise<string[]> {
-    const apiKey = process.env.GOOGLE_GENAI_API_KEY;
+    const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.GENAI_API_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) return [];
 
     const promptText = `
-    Analyze the following script segment and identify the names of the MAIN characters (speaking roles).
-    Return ONLY a JSON array of strings, e.g. ["JUAN", "MARIA", "DETECTIVE"].
-    Ignore minor characters with 1 line.
-    
-    SCRIPT:
-    "${scriptText.substring(0, 10000)}..."
+    Eres un asistente de guion. Identifica los PERSONAJES del siguiente texto (roles con diálogo o foco narrativo).
+    Devuelve SOLO un array JSON de nombres en mayúsculas, p. ej. ["JUAN", "MARIA", "DETECTIVE"].
+    Reglas:
+    - Ignora personajes con una sola línea irrelevante.
+    - Si el texto es prosa, un monólogo o una descripción de un solo personaje, devuelve al menos al protagonista.
+    - Si no hay nombres propios, usa un descriptor breve (ej. ["PROTAGONISTA"]).
+    - No expliques nada, solo el array JSON.
+
+    TEXTO:
+    "${scriptText.substring(0, 10000)}"
     `;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

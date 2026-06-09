@@ -2,6 +2,7 @@
 
 import { AnalyzeCharacterInput, AnalyzeCharacterOutput } from './schemas';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
+import { CHARACTER_RUBRIC, STYLE_CUES, OUTPUT_RULES, formatCustomKnowledge } from './character-rubric';
 
 // ============================================
 // CHARACTER ANALYZER v3.13.0 — ULTRA RESILIENT
@@ -11,7 +12,7 @@ const PRIMARY_MODEL = 'gemini-flash-lite-latest'; // El mas estable para tu cuen
 
 export async function analyzeCharacter(input: AnalyzeCharacterInput): Promise<AnalyzeCharacterOutput> {
     const { scriptSegment, characterName, otherCharacters } = input;
-    const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.GENAI_API_KEY || process.env.GOOGLE_API_KEY;
 
     if (!apiKey) return generateCharacterFallback(characterName, scriptSegment, 'Falta API Key');
 
@@ -47,14 +48,36 @@ export async function analyzeCharacter(input: AnalyzeCharacterInput): Promise<An
 }
 
 async function callGeminiAPI(model: string, apiKey: string, input: AnalyzeCharacterInput): Promise<AnalyzeCharacterOutput> {
-    const { scriptSegment, characterName, otherCharacters } = input;
+    const { scriptSegment, characterName, otherCharacters, customKnowledge } = input;
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-    const systemPrompt = `Eres un perfilador astrologico. Analiza a ${characterName.toUpperCase()} y diferencia de ${otherCharacters?.join(', ') || 'nadie'}.
-    JSON structure: sunSign, moonSign, ascendant, elements:{fire,earth,air,water}, archetype, essence, analysis, threePillars:{sunReasoning,moonReasoning,ascendantReasoning}, methodActing:{psychologicalGesture,voiceQuality,animalTotem,physicalCenter,emotionalLandscape}.
-    Reglas: Muy breve. Elementos suman 100. Solo JSON.`;
+    const jsonSpec = `
+ESTRUCTURA JSON EXACTA A DEVOLVER:
+{
+  "sunSign": "<signo en español>",
+  "moonSign": "<signo en español>",
+  "ascendant": "<signo en español>",
+  "elements": { "fire": <0-100>, "earth": <0-100>, "air": <0-100>, "water": <0-100> },
+  "archetype": "<arquetipo breve, ej. 'El Estratega', 'La Rebelde'>",
+  "essence": "<aforismo de menos de 15 palabras que capture su verdad nuclear>",
+  "analysis": "<1 frase, máx 20 palabras: por qué estas posiciones capturan al personaje>",
+  "threePillars": {
+    "sunReasoning": "<por qué ese Sol + la pista textual que lo justifica>",
+    "moonReasoning": "<por qué esa Luna + la pista textual (reacción bajo estrés)>",
+    "ascendantReasoning": "<por qué ese Ascendente + la pista textual (cómo aparece)>"
+  },
+  "methodActing": {
+    "psychologicalGesture": "<un gesto físico, 1 frase>",
+    "voiceQuality": "<tempo, tono y textura de voz, 1 frase>",
+    "animalTotem": "<un animal y su vibra>",
+    "physicalCenter": "<Cabeza | Corazón | Plexo Solar | Pelvis | Pies (2-3 palabras)>",
+    "emotionalLandscape": "<1 metáfora del paisaje interior>"
+  }
+}`;
 
-    const userPrompt = `GUION:\n${scriptSegment.substring(0, 3000)}\n\nPERFIL DE ${characterName}:`;
+    const systemPrompt = `${CHARACTER_RUBRIC}\n${STYLE_CUES}\n${OUTPUT_RULES}\n${jsonSpec}\n\nPersonaje a perfilar: ${characterName.toUpperCase()}. Diferéncialo de: ${otherCharacters && otherCharacters.length ? otherCharacters.join(', ') : 'nadie'}.`;
+
+    const userPrompt = `${formatCustomKnowledge(customKnowledge)}\nGUION / ESCENA:\n${scriptSegment.substring(0, 5000)}\n\nDevuelve el JSON del PERFIL DE ${characterName.toUpperCase()} aplicando el método y citando la evidencia textual:`;
 
     const response = await fetch(url, {
         method: 'POST',
@@ -62,7 +85,7 @@ async function callGeminiAPI(model: string, apiKey: string, input: AnalyzeCharac
         body: JSON.stringify({
             system_instruction: { parts: [{ text: systemPrompt }] },
             contents: [{ parts: [{ text: userPrompt }] }],
-            generationConfig: { responseMimeType: 'application/json', temperature: 0.7 }
+            generationConfig: { responseMimeType: 'application/json', temperature: 0.35 }
         })
     });
 

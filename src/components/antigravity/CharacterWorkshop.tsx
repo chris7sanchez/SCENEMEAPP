@@ -24,7 +24,7 @@ interface CharacterWorkshopProps {
     setSelectedCharacterId: (id: number | null) => void;
     scriptText: string;
     setScriptText: (text: string) => void;
-    analyzeScript: () => void;
+    analyzeScript: () => Promise<number> | void;
     isAnalyzing: boolean;
     isRefining: boolean;
     setIsRefining: (val: boolean) => void;
@@ -319,9 +319,9 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                 <div className="absolute bottom-10 right-10 z-20">
                                     <button
                                         onClick={async () => {
-                                            await analyzeScript();
-                                            if (characterProfiles.length > 0) {
-                                                setSelectedCharacterId(0);
+                                            const count = await analyzeScript();
+                                            if (typeof count === 'number' && count > 0) {
+                                                setSelectedCharacterId(count - 1);
                                                 setActiveStep(1);
                                             }
                                         }}

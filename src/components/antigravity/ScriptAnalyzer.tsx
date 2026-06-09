@@ -7,6 +7,7 @@ import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
 import SynastryOverlay from '@/components/antigravity/SynastryOverlay';
 import NatalChart2D from '@/components/antigravity/NatalChart2D';
 import { analyzeCharacter } from '@/ai/analyze-character';
+import { identifyCharacters } from '@/ai/flows/identify-characters';
 import { analyzeSynastry } from '@/ai/analyze-synastry';
 import { refineCharacter } from '@/ai/refine-character';
 import { generateDailyReading } from '@/ai/daily-reading';
@@ -343,29 +344,60 @@ export default function ScriptAnalyzer() {
         });
     };
 
-    const handleAnalyzeScript = async () => {
-        if (!script) return;
+    const handleAnalyzeScript = async (): Promise<number> => {
+        if (!script || !script.trim()) {
+            alert('Pega o sube un guion primero.');
+            return characterProfiles.length;
+        }
         setIsAnalyzing(true);
         try {
-            const names = parseScript(script);
+            // 1) Detección rápida por formato de guion (regex, sin IA)
+            let names = parseScript(script);
+
+            // 2) Si el formato no encaja, la IA identifica los personajes a partir del texto
+            if (names.length === 0) {
+                try {
+                    names = await identifyCharacters(script);
+                } catch (e) {
+                    console.error('[invocar] identifyCharacters falló:', e);
+                }
+            }
+
+            // 3) Último recurso: analizar todo el texto como un único protagonista
+            if (names.length === 0) {
+                names = ['PROTAGONISTA'];
+            }
+
             let charsToAnalyze = names;
             if (!forceReanalysis) charsToAnalyze = names.filter(n => !characterProfiles.find(p => p.name === n));
-            if (charsToAnalyze.length === 0) { setIsAnalyzing(false); return; }
+            if (charsToAnalyze.length === 0) { setIsAnalyzing(false); return characterProfiles.length; }
 
             const newProfiles = [...characterProfiles];
+            let okCount = 0;
+            let errCount = 0;
+            let lastError = '';
+
             for (const name of charsToAnalyze) {
                 // Determine other characters in the scene for relational context
                 const otherCharacters = names.filter(n => n !== name);
 
-                // KEY FIX: extract ONLY this character's lines, not the whole script
-                const characterSpecificText = extractCharacterLines(script, name);
+                // Extraer SOLO las líneas de este personaje; si no hay (prosa/monólogo), usar todo el texto
+                const characterSpecificText = extractCharacterLines(script, name) || script;
 
-                const analysis: any = await analyzeCharacter({ 
-                    scriptSegment: characterSpecificText.substring(0, 6000), 
-                    characterName: name, 
+                const analysis: any = await analyzeCharacter({
+                    scriptSegment: characterSpecificText.substring(0, 6000),
+                    characterName: name,
                     otherCharacters: otherCharacters,
-                    customKnowledge: [] 
+                    customKnowledge: customKnowledge
                 });
+
+                if (analysis?.archetype === 'Error de Conexion') {
+                    errCount++;
+                    lastError = analysis?.analysis || 'Sin detalle';
+                } else {
+                    okCount++;
+                }
+
                 const approxDate = getApproxDateForSign(analysis.sunSign);
                 const profile: CharacterProfile = {
                     id: name, name: name,
@@ -376,9 +408,22 @@ export default function ScriptAnalyzer() {
                 const existingIdx = newProfiles.findIndex(p => p.name === name);
                 if (existingIdx >= 0) newProfiles[existingIdx] = profile; else newProfiles.push(profile);
             }
+
             setCharacterProfiles(newProfiles);
             localStorage.setItem('lastSessionData', JSON.stringify({ script, profiles: newProfiles }));
-        } catch (e) { } finally { setIsAnalyzing(false); }
+
+            // No fallar en silencio: avisar si la IA no pudo conectar
+            if (okCount === 0 && errCount > 0) {
+                alert('La IA no pudo conectar para definir la carta astral de los personajes.\nRevisa la API key / la cuota de Gemini.\n\nDetalle: ' + lastError);
+            }
+            return newProfiles.length;
+        } catch (e: any) {
+            console.error('[invocar] handleAnalyzeScript error:', e);
+            alert('Hubo un error analizando el guion: ' + (e?.message || String(e)));
+            return characterProfiles.length;
+        } finally {
+            setIsAnalyzing(false);
+        }
     };
 
     const parseScript = (text: string) => {
