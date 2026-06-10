@@ -9,38 +9,22 @@ export function SplashScreen() {
     const [videoReady, setVideoReady] = useState(false);
 
     useEffect(() => {
-        // Check if splash has already been shown in this session
+        // Solo una vez por sesión.
         const hasShownSplash = sessionStorage.getItem('sceneme_splash_shown');
         if (hasShownSplash) {
             setIsVisible(false);
             return;
         }
-
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
-        
-        // Si ya está listo el video o han pasado mas de 6 segundos de seguridad
-        if (videoReady) {
-            const timer1 = setTimeout(() => setIsFading(true), 4000); 
-            const timer2 = setTimeout(() => {
-                setIsVisible(false);
-                sessionStorage.setItem('sceneme_splash_shown', 'true');
-            }, 5000);
-            return () => {
-                clearTimeout(timer1);
-                clearTimeout(timer2);
-            };
-        }
-
-        // Timer de seguridad por si el video no carga nunca
-        const safetyTimer = setTimeout(() => {
-            if (!videoReady) {
-                setIsFading(true);
-                sessionStorage.setItem('sceneme_splash_shown', 'true');
-            }
-        }, 6000);
-
-        return () => clearTimeout(safetyTimer);
-    }, [videoReady]);
+        // Splash breve y FIJO (no depende de que cargue el vídeo): nunca deja la
+        // app "colgada" en negro. Funde a ~1,2s y se oculta del todo a ~1,9s.
+        sessionStorage.setItem('sceneme_splash_shown', 'true');
+        const fadeTimer = setTimeout(() => setIsFading(true), 1200);
+        const hideTimer = setTimeout(() => setIsVisible(false), 1900);
+        return () => {
+            clearTimeout(fadeTimer);
+            clearTimeout(hideTimer);
+        };
+    }, []);
 
     if (!isVisible) return null;
 
