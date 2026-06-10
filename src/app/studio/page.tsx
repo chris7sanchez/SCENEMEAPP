@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { dailyKey } from '@/lib/daily-scene';
 import DailyScene from '@/components/studio/DailyScene';
+import RehearsalSection from '@/components/studio/RehearsalSection';
 import MyTasks from '@/components/studio/MyTasks';
 
 export default function StudioPage() {
@@ -34,6 +35,8 @@ export default function StudioPage() {
 
                 <div className="space-y-6">
                     <DailyScene dateKey={dateKey} />
+
+                    <RehearsalSection dateKey={dateKey} />
 
                     {!checked ? (
                         <p className="text-center text-sm text-zinc-500">Cargando…</p>
