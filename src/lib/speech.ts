@@ -36,22 +36,33 @@ class BrowserSpeechProvider implements SpeechProvider {
 
     speak(text: string, opts?: { voiceId?: string; rate?: number; pitch?: number }): Promise<void> {
         return new Promise((resolve) => {
-            if (!this.isSupported() || !text || !text.trim()) return resolve();
+            if (!text || !text.trim()) return resolve();
+            let done = false;
+            const finish = () => { if (!done) { done = true; resolve(); } };
+            // Tiempo estimado de lectura: garantiza el avance aunque la voz del
+            // navegador no dispare onend (sin motor/voz instalada) o falle el audio.
+            const rate = opts?.rate ?? 1;
+            const estimateMs = Math.min(26000, Math.max(2200, (text.length / (rate || 1)) * 95)) + 1200;
+            if (!this.isSupported()) { setTimeout(finish, estimateMs); return; }
             try {
                 const u = new SpeechSynthesisUtterance(text);
                 u.lang = 'es-ES';
-                u.rate = opts?.rate ?? 1;
+                u.rate = rate;
                 u.pitch = opts?.pitch ?? 1;
                 if (opts?.voiceId) {
                     const v = this.rawVoices().find(vv => vv.voiceURI === opts.voiceId || vv.name === opts.voiceId);
                     if (v) u.voice = v;
                 }
-                u.onend = () => resolve();
-                u.onerror = () => resolve();
+                u.onend = finish;
+                u.onerror = finish;
                 window.speechSynthesis.cancel();
                 window.speechSynthesis.speak(u);
+                // Chrome a veces deja la cola "en pausa": forzar reanudación.
+                try { window.speechSynthesis.resume(); } catch { /* */ }
+                // Red de seguridad: si nunca llega onend/onerror, avanzar igual.
+                setTimeout(finish, estimateMs);
             } catch {
-                resolve();
+                setTimeout(finish, estimateMs);
             }
         });
     }
