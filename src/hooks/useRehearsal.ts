@@ -7,6 +7,7 @@ import { getSpeechProvider, type VoiceProfile } from '@/lib/speech';
 
 interface RehearsalOpts {
     profiles?: Record<string, VoiceProfile>;
+    engine?: 'browser' | 'ai';
 }
 
 /**
@@ -16,7 +17,7 @@ interface RehearsalOpts {
  */
 export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: RehearsalOpts) {
     const [state, dispatch] = useReducer(rehearsalReducer, undefined, () => initRehearsal(turns, myRole));
-    const provider = useRef(getSpeechProvider());
+    const provider = useRef(getSpeechProvider(opts?.engine));
     const [paused, setPaused] = useState(false);
 
     useEffect(() => {
@@ -27,7 +28,7 @@ export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: Rehearsa
             let cancelled = false;
             let timer: ReturnType<typeof setTimeout>;
             provider.current
-                .speak(turn.text, { voiceId: p?.voiceId, rate: p?.rate ?? 1, pitch: p?.pitch ?? 1 })
+                .speak(turn.text, { voiceId: p?.voiceId, rate: p?.rate ?? 1, pitch: p?.pitch ?? 1, instructions: p?.instructions })
                 .then(() => {
                     if (cancelled) return;
                     timer = setTimeout(() => { if (!cancelled) dispatch({ type: 'PARTNER_DONE' }); }, p?.pauseMs ?? 300);

@@ -14,7 +14,7 @@ export interface SpeechProvider {
     isSupported(): boolean;
     listVoices(): SpeechVoice[];
     /** Resuelve cuando termina de hablar (o si no hay soporte/texto). */
-    speak(text: string, opts?: { voiceId?: string; rate?: number; pitch?: number }): Promise<void>;
+    speak(text: string, opts?: { voiceId?: string; rate?: number; pitch?: number; instructions?: string }): Promise<void>;
     cancel(): void;
 }
 
@@ -74,12 +74,65 @@ class BrowserSpeechProvider implements SpeechProvider {
     }
 }
 
-let instance: SpeechProvider | null = null;
+// Motor IA: pide el audio a /api/tts (OpenAI) y lo reproduce. Cachea por sesión.
+// Si la generación falla (p. ej. sin clave), cae a la voz del navegador.
+class AiSpeechProvider implements SpeechProvider {
+    private fallback = new BrowserSpeechProvider();
+    private cache = new Map<string, string>();
+    private current: HTMLAudioElement | null = null;
 
-/** Devuelve el proveedor de voz activo (navegador por defecto). */
-export function getSpeechProvider(): SpeechProvider {
-    if (!instance) instance = new BrowserSpeechProvider();
-    return instance;
+    isSupported(): boolean { return typeof window !== 'undefined' && typeof Audio !== 'undefined'; }
+    listVoices(): SpeechVoice[] { return OPENAI_TTS_VOICES; }
+
+    async speak(text: string, opts?: { voiceId?: string; rate?: number; instructions?: string }): Promise<void> {
+        if (!text || !text.trim()) return;
+        const voice = opts?.voiceId || 'alloy';
+        const instructions = opts?.instructions || '';
+        const key = `${voice}|${instructions}|${text}`;
+        try {
+            let url = this.cache.get(key);
+            if (!url) {
+                const res = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, voice, instructions }),
+                });
+                if (!res.ok) throw new Error('tts_' + res.status);
+                const blob = await res.blob();
+                url = URL.createObjectURL(blob);
+                this.cache.set(key, url);
+            }
+            await new Promise<void>((resolve) => {
+                const audio = new Audio(url);
+                if (opts?.rate) audio.playbackRate = opts.rate;
+                this.current = audio;
+                audio.onended = () => resolve();
+                audio.onerror = () => resolve();
+                audio.play().catch(() => resolve());
+            });
+        } catch {
+            // Sin clave o error de red -> voz del navegador para no bloquear.
+            await this.fallback.speak(text, { voiceId: undefined, rate: opts?.rate });
+        }
+    }
+
+    cancel(): void {
+        try { if (this.current) { this.current.pause(); this.current.currentTime = 0; } } catch { /* */ }
+        this.fallback.cancel();
+    }
+}
+
+let browserInstance: SpeechProvider | null = null;
+let aiInstance: SpeechProvider | null = null;
+
+/** Devuelve el proveedor de voz: 'browser' (def.) o 'ai' (OpenAI). */
+export function getSpeechProvider(mode: 'browser' | 'ai' = 'browser'): SpeechProvider {
+    if (mode === 'ai') {
+        if (!aiInstance) aiInstance = new AiSpeechProvider();
+        return aiInstance;
+    }
+    if (!browserInstance) browserInstance = new BrowserSpeechProvider();
+    return browserInstance;
 }
 
 /** Asigna una voz distinta a cada personaje (round-robin sobre las disponibles). */
@@ -98,8 +151,23 @@ export interface VoiceProfile {
     rate: number;   // velocidad 0.5–1.6
     pitch: number;  // gravedad/tono 0.5–1.6
     pauseMs: number; // pausa tras la frase, en ms
-    manner: string;  // preset de "manera de hablar"
+    manner: string;  // preset de "manera de hablar" (motor navegador)
+    instructions?: string; // "cómo habla" para la voz IA (OpenAI)
 }
+
+// Voces de OpenAI gpt-4o-mini-tts (para el motor IA).
+export const OPENAI_TTS_VOICES: SpeechVoice[] = [
+    { id: 'alloy', label: 'Alloy (neutra)', lang: 'multi' },
+    { id: 'ash', label: 'Ash (grave)', lang: 'multi' },
+    { id: 'ballad', label: 'Ballad (cálida)', lang: 'multi' },
+    { id: 'coral', label: 'Coral (femenina)', lang: 'multi' },
+    { id: 'echo', label: 'Echo (masculina)', lang: 'multi' },
+    { id: 'fable', label: 'Fable (expresiva)', lang: 'multi' },
+    { id: 'onyx', label: 'Onyx (profunda)', lang: 'multi' },
+    { id: 'nova', label: 'Nova (joven)', lang: 'multi' },
+    { id: 'sage', label: 'Sage (serena)', lang: 'multi' },
+    { id: 'shimmer', label: 'Shimmer (luminosa)', lang: 'multi' },
+];
 
 export const DEFAULT_PROFILE: VoiceProfile = { rate: 1, pitch: 1, pauseMs: 350, manner: 'neutro' };
 

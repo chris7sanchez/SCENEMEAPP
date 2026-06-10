@@ -3,13 +3,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { parseScriptTurns, speakersOf, cueOf, type SceneTurn } from '@/lib/scene-script';
 import {
-    getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE,
+    getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES,
     type VoiceProfile, type SpeechVoice,
 } from '@/lib/speech';
 import { useRehearsal } from '@/hooks/useRehearsal';
 
 type LineMode = 'full' | 'cue' | 'hidden';
 type AdvanceMode = 'tap' | 'voice';
+type Engine = 'browser' | 'ai';
 
 export default function RehearsalPlayer({ script, onClose }: { script: string; onClose: () => void }) {
     const turns = useMemo(() => parseScriptTurns(script), [script]);
@@ -18,32 +19,39 @@ export default function RehearsalPlayer({ script, onClose }: { script: string; o
     const [role, setRole] = useState('');
     const [mode, setMode] = useState<LineMode>('full');
     const [advance, setAdvance] = useState<AdvanceMode>('tap');
+    const [engine, setEngine] = useState<Engine>('browser');
     const [started, setStarted] = useState(false);
-    const [voices, setVoices] = useState<SpeechVoice[]>([]);
+    const [browserVoices, setBrowserVoices] = useState<SpeechVoice[]>([]);
     const [profiles, setProfiles] = useState<Record<string, VoiceProfile>>({});
+
+    const voices = engine === 'ai' ? OPENAI_TTS_VOICES : browserVoices;
 
     useEffect(() => { if (speakers.length && !role) setRole(speakers[0]); }, [speakers, role]);
 
+    // Carga voces del navegador (para el motor 'browser').
     useEffect(() => {
-        const load = () => {
-            const v = getSpeechProvider().listVoices();
-            setVoices(v);
-            setProfiles(prev => {
-                const next: Record<string, VoiceProfile> = {};
-                speakers.forEach((s, i) => {
-                    const vid = v.length ? v[i % v.length].id : undefined;
-                    const ex = prev[s];
-                    next[s] = ex ? { ...ex, voiceId: ex.voiceId ?? vid } : { ...DEFAULT_PROFILE, voiceId: vid };
-                });
-                return next;
-            });
-        };
+        const load = () => setBrowserVoices(getSpeechProvider('browser').listVoices());
         load();
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
             window.speechSynthesis.onvoiceschanged = load;
             return () => { window.speechSynthesis.onvoiceschanged = null; };
         }
-    }, [speakers]);
+    }, []);
+
+    // Asegura un perfil por personaje y una voz válida para el motor actual.
+    useEffect(() => {
+        const list = engine === 'ai' ? OPENAI_TTS_VOICES : browserVoices;
+        setProfiles(prev => {
+            const next: Record<string, VoiceProfile> = {};
+            speakers.forEach((s, i) => {
+                const base = prev[s] ? { ...prev[s] } : { ...DEFAULT_PROFILE };
+                const ok = base.voiceId && list.some(v => v.id === base.voiceId);
+                if (!ok) base.voiceId = list.length ? list[i % list.length].id : undefined;
+                next[s] = base;
+            });
+            return next;
+        });
+    }, [engine, browserVoices, speakers]);
 
     return (
         <div className="fixed inset-0 z-[200] flex flex-col bg-black/95 backdrop-blur-sm p-4 sm:p-6 text-white overflow-y-auto">
@@ -59,13 +67,14 @@ export default function RehearsalPlayer({ script, onClose }: { script: string; o
                     <Config
                         speakers={speakers} role={role} setRole={setRole}
                         mode={mode} setMode={setMode} advance={advance} setAdvance={setAdvance}
+                        engine={engine} setEngine={setEngine}
                         voices={voices} profiles={profiles} setProfiles={setProfiles}
                         onStart={() => setStarted(true)}
                     />
                 ) : (
                     <ActivePlayer
-                        key={role} turns={turns} role={role}
-                        mode={mode} advanceMode={advance} profiles={profiles}
+                        key={role + engine} turns={turns} role={role}
+                        mode={mode} advanceMode={advance} engine={engine} profiles={profiles}
                         onBack={() => setStarted(false)} onClose={onClose}
                     />
                 )}
@@ -86,11 +95,12 @@ function Config(props: {
     speakers: string[]; role: string; setRole: (s: string) => void;
     mode: LineMode; setMode: (m: LineMode) => void;
     advance: AdvanceMode; setAdvance: (a: AdvanceMode) => void;
+    engine: Engine; setEngine: (e: Engine) => void;
     voices: SpeechVoice[]; profiles: Record<string, VoiceProfile>;
     setProfiles: (fn: (p: Record<string, VoiceProfile>) => Record<string, VoiceProfile>) => void;
     onStart: () => void;
 }) {
-    const { speakers, role, setRole, mode, setMode, advance, setAdvance, voices, profiles, setProfiles, onStart } = props;
+    const { speakers, role, setRole, mode, setMode, advance, setAdvance, engine, setEngine, voices, profiles, setProfiles, onStart } = props;
     const update = (s: string, p: VoiceProfile) => setProfiles(prev => ({ ...prev, [s]: p }));
 
     return (
@@ -101,6 +111,18 @@ function Config(props: {
                     {speakers.map(s => <Chip key={s} active={role === s} onClick={() => setRole(s)}>{s}</Chip>)}
                 </div>
             </div>
+
+            <div>
+                <p className="mb-2 text-xs uppercase tracking-widest text-zinc-400">Motor de voz</p>
+                <div className="flex flex-wrap gap-2">
+                    <Chip active={engine === 'browser'} onClick={() => setEngine('browser')}>Navegador (gratis)</Chip>
+                    <Chip active={engine === 'ai'} onClick={() => setEngine('ai')}>Voz IA (OpenAI)</Chip>
+                </div>
+                {engine === 'ai' && (
+                    <p className="mt-2 text-xs text-zinc-500">Voz actuada con emoción. Requiere clave de OpenAI en el servidor; si no, usa la del navegador.</p>
+                )}
+            </div>
+
             <div>
                 <p className="mb-2 text-xs uppercase tracking-widest text-zinc-400">Tus líneas</p>
                 <div className="flex flex-wrap gap-2">
@@ -119,11 +141,11 @@ function Config(props: {
 
             <div>
                 <p className="mb-1 text-xs uppercase tracking-widest text-zinc-400">Voz de cada personaje</p>
-                <p className="mb-3 text-xs text-zinc-500">Ajusta voz, manera de hablar, velocidad, tono y pausa. (Tu personaje no se lee en voz alta.)</p>
+                <p className="mb-3 text-xs text-zinc-500">Ajusta cada personaje. (Tu personaje no se lee en voz alta.)</p>
                 <div className="space-y-3">
                     {speakers.map(s => (
                         <VoiceEditor
-                            key={s} speaker={s} isMine={s === role} voices={voices}
+                            key={s} speaker={s} isMine={s === role} engine={engine} voices={voices}
                             profile={profiles[s] ?? DEFAULT_PROFILE}
                             onChange={(p) => update(s, p)}
                         />
@@ -138,9 +160,11 @@ function Config(props: {
     );
 }
 
-function VoiceEditor(props: { speaker: string; isMine: boolean; voices: SpeechVoice[]; profile: VoiceProfile; onChange: (p: VoiceProfile) => void; }) {
-    const { speaker, isMine, voices, profile, onChange } = props;
-    const test = () => getSpeechProvider().speak(`Hola, soy ${speaker}.`, { voiceId: profile.voiceId, rate: profile.rate, pitch: profile.pitch });
+const AI_TONE_CHIPS = ['Tono frío y cortante', 'Con rabia contenida', 'Cálido y cercano', 'Nervioso, al borde del llanto', 'Irónico', 'Susurrando, íntimo'];
+
+function VoiceEditor(props: { speaker: string; isMine: boolean; engine: Engine; voices: SpeechVoice[]; profile: VoiceProfile; onChange: (p: VoiceProfile) => void; }) {
+    const { speaker, isMine, engine, voices, profile, onChange } = props;
+    const test = () => getSpeechProvider(engine).speak(`Hola, soy ${speaker}.`, { voiceId: profile.voiceId, rate: profile.rate, pitch: profile.pitch, instructions: profile.instructions });
 
     return (
         <div className={`rounded-xl border p-3 ${isMine ? 'border-zinc-800 bg-zinc-900/30 opacity-70' : 'border-zinc-700 bg-zinc-900/60'}`}>
@@ -155,42 +179,69 @@ function VoiceEditor(props: { speaker: string; isMine: boolean; voices: SpeechVo
                     onChange={e => onChange({ ...profile, voiceId: e.target.value || undefined })}
                     className="w-full rounded-lg border border-zinc-700 bg-black/40 p-2 text-sm text-zinc-200"
                 >
-                    {voices.length === 0 && <option value="">(voz por defecto del sistema)</option>}
-                    {voices.map(v => <option key={v.id} value={v.id}>{v.label} ({v.lang})</option>)}
+                    {voices.length === 0 && <option value="">(voz por defecto)</option>}
+                    {voices.map(v => <option key={v.id} value={v.id}>{v.label}{v.lang !== 'multi' ? ` (${v.lang})` : ''}</option>)}
                 </select>
             </div>
 
-            <div className="mt-2 flex flex-wrap gap-1.5">
-                {MANNER_PRESETS.map(m => (
-                    <button key={m.id} onClick={() => onChange(applyManner(profile, m.id))}
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${profile.manner === m.id ? 'bg-amber-500/90 text-black' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}>
-                        {m.label}
-                    </button>
-                ))}
-            </div>
-
-            <div className="mt-3 grid grid-cols-3 gap-3 text-[11px] text-zinc-400">
-                <label>Velocidad {profile.rate.toFixed(2)}
-                    <input type="range" min={0.6} max={1.5} step={0.05} value={profile.rate} onChange={e => onChange({ ...profile, rate: parseFloat(e.target.value), manner: 'custom' })} className="w-full accent-amber-500" />
-                </label>
-                <label>Tono {profile.pitch.toFixed(2)}
-                    <input type="range" min={0.6} max={1.4} step={0.05} value={profile.pitch} onChange={e => onChange({ ...profile, pitch: parseFloat(e.target.value), manner: 'custom' })} className="w-full accent-amber-500" />
-                </label>
-                <label>Pausa {profile.pauseMs}ms
-                    <input type="range" min={0} max={1500} step={50} value={profile.pauseMs} onChange={e => onChange({ ...profile, pauseMs: parseInt(e.target.value, 10) })} className="w-full accent-amber-500" />
-                </label>
-            </div>
+            {engine === 'ai' ? (
+                <div className="mt-3">
+                    <p className="mb-1 text-[11px] uppercase tracking-wide text-zinc-500">Cómo habla (instrucción de interpretación)</p>
+                    <textarea
+                        value={profile.instructions ?? ''}
+                        onChange={e => onChange({ ...profile, instructions: e.target.value })}
+                        placeholder="Ej.: habla con rabia contenida, voz grave, ritmo lento y amenazante"
+                        className="h-16 w-full resize-y rounded-lg border border-zinc-700 bg-black/40 p-2 text-sm text-zinc-100 placeholder:text-zinc-600"
+                    />
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                        {AI_TONE_CHIPS.map(c => (
+                            <button key={c} onClick={() => onChange({ ...profile, instructions: c })}
+                                className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-400 hover:bg-zinc-700">{c}</button>
+                        ))}
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-[11px] text-zinc-400">
+                        <label>Velocidad {profile.rate.toFixed(2)}
+                            <input type="range" min={0.7} max={1.3} step={0.05} value={profile.rate} onChange={e => onChange({ ...profile, rate: parseFloat(e.target.value) })} className="w-full accent-amber-500" />
+                        </label>
+                        <label>Pausa {profile.pauseMs}ms
+                            <input type="range" min={0} max={1500} step={50} value={profile.pauseMs} onChange={e => onChange({ ...profile, pauseMs: parseInt(e.target.value, 10) })} className="w-full accent-amber-500" />
+                        </label>
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                        {MANNER_PRESETS.map(m => (
+                            <button key={m.id} onClick={() => onChange(applyManner(profile, m.id))}
+                                className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${profile.manner === m.id ? 'bg-amber-500/90 text-black' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}>
+                                {m.label}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-3 text-[11px] text-zinc-400">
+                        <label>Velocidad {profile.rate.toFixed(2)}
+                            <input type="range" min={0.6} max={1.5} step={0.05} value={profile.rate} onChange={e => onChange({ ...profile, rate: parseFloat(e.target.value), manner: 'custom' })} className="w-full accent-amber-500" />
+                        </label>
+                        <label>Tono {profile.pitch.toFixed(2)}
+                            <input type="range" min={0.6} max={1.4} step={0.05} value={profile.pitch} onChange={e => onChange({ ...profile, pitch: parseFloat(e.target.value), manner: 'custom' })} className="w-full accent-amber-500" />
+                        </label>
+                        <label>Pausa {profile.pauseMs}ms
+                            <input type="range" min={0} max={1500} step={50} value={profile.pauseMs} onChange={e => onChange({ ...profile, pauseMs: parseInt(e.target.value, 10) })} className="w-full accent-amber-500" />
+                        </label>
+                    </div>
+                </>
+            )}
         </div>
     );
 }
 
 function ActivePlayer(props: {
     turns: SceneTurn[]; role: string; mode: LineMode; advanceMode: AdvanceMode;
-    profiles: Record<string, VoiceProfile>; onBack: () => void; onClose: () => void;
+    engine: Engine; profiles: Record<string, VoiceProfile>; onBack: () => void; onClose: () => void;
 }) {
-    const { turns, role, mode, advanceMode, profiles, onBack, onClose } = props;
+    const { turns, role, mode, advanceMode, engine, profiles, onBack, onClose } = props;
 
-    const r = useRehearsal(turns, role, { profiles });
+    const r = useRehearsal(turns, role, { profiles, engine });
     const { state, current } = r;
 
     useEffect(() => { r.start(); /* eslint-disable-next-line */ }, []);
@@ -253,7 +304,7 @@ function ActivePlayer(props: {
             {isMine ? (
                 <button onClick={r.advance} className="mt-5 w-full rounded-full bg-amber-500 py-5 text-lg font-black text-black transition hover:bg-amber-400">SIGUIENTE ▸</button>
             ) : (
-                <p className="mt-5 text-center text-sm text-zinc-500">{r.paused ? 'En pausa' : 'Leyendo la réplica…'}</p>
+                <p className="mt-5 text-center text-sm text-zinc-500">{r.paused ? 'En pausa' : (engine === 'ai' ? 'Generando voz IA…' : 'Leyendo la réplica…')}</p>
             )}
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm">
                 <button onClick={r.prev} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">◂ Anterior</button>
