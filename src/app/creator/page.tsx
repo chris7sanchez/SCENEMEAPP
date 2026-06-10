@@ -138,6 +138,12 @@ function CreatorContent() {
                         <h1 className="font-display text-3xl md:text-4xl tracking-[0.1em] leading-none text-primary uppercase group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_15px_hsla(42,90%,55%,0.3)]">SCENE ME</h1>
                         <p className="text-[8px] md:text-[10px] text-[hsl(var(--sm-text-primary)/0.6)] tracking-[0.4em] font-headline uppercase mt-1">the ACTOR'S STORE concept</p>
                     </div>
+                    <button
+                        onClick={() => router.push('/studio')}
+                        className="shrink-0 rounded-full border border-amber-400/50 bg-amber-500/10 px-4 py-2 text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-amber-300 hover:bg-amber-500/20 transition-all"
+                    >
+                        Studio
+                    </button>
                 </div>
             </header>
 
