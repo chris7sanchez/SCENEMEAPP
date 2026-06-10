@@ -57,7 +57,7 @@ ESTRUCTURA JSON EXACTA A DEVOLVER:
   "sunSign": "<signo en español>",
   "moonSign": "<signo en español>",
   "ascendant": "<signo en español>",
-  "estimatedAge": <SOLO un número entero (p. ej. 35), sin texto ni rangos: edad aproximada del personaje inferida del guion (madurez, vocabulario, referencias); si no hay pistas, estima una plausible>,
+  "estimatedAge": <SOLO un número entero (p. ej. 35), sin texto ni rangos. Si el guion indica una edad EXPLÍCITA del personaje (p. ej. "VÍCTOR (38)", "tiene 32 años", "47"), úsala EXACTAMENTE. Si no, infiérela del guion (madurez, vocabulario, referencias); como último recurso estima una plausible>,
   "elements": { "fire": <0-100>, "earth": <0-100>, "air": <0-100>, "water": <0-100> },
   "archetype": "<arquetipo breve, ej. 'El Estratega', 'La Rebelde'>",
   "essence": "<aforismo de menos de 15 palabras que capture su verdad nuclear>",
