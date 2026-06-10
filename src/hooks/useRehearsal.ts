@@ -3,11 +3,10 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { rehearsalReducer, initRehearsal } from '@/lib/rehearsal-reducer';
 import type { SceneTurn } from '@/lib/scene-script';
-import { getSpeechProvider } from '@/lib/speech';
+import { getSpeechProvider, type VoiceProfile } from '@/lib/speech';
 
 interface RehearsalOpts {
-    rate?: number;
-    voiceMap?: Record<string, string | undefined>;
+    profiles?: Record<string, VoiceProfile>;
 }
 
 /**
@@ -24,11 +23,16 @@ export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: Rehearsa
         if (paused) { provider.current.cancel(); return; }
         if (state.phase === 'speaking') {
             const turn = state.turns[state.index];
+            const p = opts?.profiles?.[turn.speaker];
             let cancelled = false;
+            let timer: ReturnType<typeof setTimeout>;
             provider.current
-                .speak(turn.text, { voiceId: opts?.voiceMap?.[turn.speaker], rate: opts?.rate ?? 1 })
-                .then(() => { if (!cancelled) dispatch({ type: 'PARTNER_DONE' }); });
-            return () => { cancelled = true; provider.current.cancel(); };
+                .speak(turn.text, { voiceId: p?.voiceId, rate: p?.rate ?? 1, pitch: p?.pitch ?? 1 })
+                .then(() => {
+                    if (cancelled) return;
+                    timer = setTimeout(() => { if (!cancelled) dispatch({ type: 'PARTNER_DONE' }); }, p?.pauseMs ?? 300);
+                });
+            return () => { cancelled = true; clearTimeout(timer); provider.current.cancel(); };
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.phase, state.index, state.seq, paused]);
