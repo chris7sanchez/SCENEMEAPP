@@ -244,17 +244,24 @@ function ActivePlayer(props: {
     const r = useRehearsal(turns, role, { profiles, engine });
     const { state, current } = r;
     const [micDenied, setMicDenied] = useState(false);
+    const micStreamRef = useRef<MediaStream | null>(null);
 
     useEffect(() => { r.start(); /* eslint-disable-next-line */ }, []);
 
-    // Pedir permiso de micrófono al entrar en modo voz (para que el navegador pregunte ya).
+    // Abrir el micrófono UNA vez y mantenerlo abierto todo el ensayo. Así no se
+    // apaga/enciende entre turnos y no suena el "clic" de activación en tu toma.
     useEffect(() => {
         if (advanceMode !== 'voice') return;
         const md = (typeof navigator !== 'undefined' ? navigator.mediaDevices : undefined) as MediaDevices | undefined;
         if (!md?.getUserMedia) { setMicDenied(true); return; }
+        let cancelled = false;
         md.getUserMedia({ audio: true })
-            .then(s => s.getTracks().forEach(t => t.stop()))
+            .then(s => { if (cancelled) { s.getTracks().forEach(t => t.stop()); return; } micStreamRef.current = s; })
             .catch(() => setMicDenied(true));
+        return () => {
+            cancelled = true;
+            if (micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null; }
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -294,10 +301,10 @@ function ActivePlayer(props: {
         rec.onerror = (e: any) => {
             if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') setMicDenied(true);
         };
-        // Mantener la escucha viva si el motor se corta sin que hayas hablado.
-        rec.onend = () => { if (!done) { try { rec.start(); } catch { /* */ } } };
+        // NO reiniciamos en onend para no encender/apagar el micro (eso causaba el
+        // clic). El micrófono se mantiene abierto aparte, en micStreamRef.
         try { rec.start(); } catch { /* */ }
-        return () => { done = true; clearTimeout(silenceTimer); try { rec.onend = null; rec.stop(); } catch { /* */ } };
+        return () => { done = true; clearTimeout(silenceTimer); try { rec.stop(); } catch { /* */ } };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [advanceMode, state.phase, state.index]);
 
