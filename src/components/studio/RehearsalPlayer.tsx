@@ -249,21 +249,40 @@ function ActivePlayer(props: {
     const { state, current } = r;
     const [micDenied, setMicDenied] = useState(false);
     const micStreamRef = useRef<MediaStream | null>(null);
+    const audioCtxRef = useRef<AudioContext | null>(null);
+    const analyserRef = useRef<AnalyserNode | null>(null);
 
     useEffect(() => { r.start(); /* eslint-disable-next-line */ }, []);
 
-    // Abrir el micrófono UNA vez y mantenerlo abierto todo el ensayo. Así no se
-    // apaga/enciende entre turnos y no suena el "clic" de activación en tu toma.
+    // Abrir el micrófono UNA vez y mantenerlo abierto todo el ensayo (sin clic),
+    // y montar un analizador de volumen (Web Audio) para detectar tu voz nosotros
+    // mismos — sin el reconocimiento de Chrome (que choca con el micro ya abierto).
     useEffect(() => {
         if (advanceMode !== 'voice') return;
         const md = (typeof navigator !== 'undefined' ? navigator.mediaDevices : undefined) as MediaDevices | undefined;
         if (!md?.getUserMedia) { setMicDenied(true); return; }
         let cancelled = false;
         md.getUserMedia({ audio: true })
-            .then(s => { if (cancelled) { s.getTracks().forEach(t => t.stop()); return; } micStreamRef.current = s; })
+            .then(s => {
+                if (cancelled) { s.getTracks().forEach(t => t.stop()); return; }
+                micStreamRef.current = s;
+                try {
+                    const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+                    const ctx: AudioContext = new AC();
+                    ctx.resume?.();
+                    const src = ctx.createMediaStreamSource(s);
+                    const analyser = ctx.createAnalyser();
+                    analyser.fftSize = 1024;
+                    src.connect(analyser);
+                    audioCtxRef.current = ctx;
+                    analyserRef.current = analyser;
+                } catch { /* */ }
+            })
             .catch(() => setMicDenied(true));
         return () => {
             cancelled = true;
+            try { audioCtxRef.current?.close(); } catch { /* */ }
+            audioCtxRef.current = null; analyserRef.current = null;
             if (micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null; }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -278,37 +297,32 @@ function ActivePlayer(props: {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.phase]);
 
+    // Avance por voz: medimos el VOLUMEN del micro (Web Audio). Cuando hablas y
+    // luego hay ~1,1s de silencio, avanzamos. Sin reconocimiento de Chrome, sin clic.
     useEffect(() => {
         if (advanceMode !== 'voice' || state.phase !== 'awaiting-user') return;
-        const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (!SR) { setMicDenied(true); return; }
-        const rec = new SR();
-        rec.lang = 'es-ES'; rec.continuous = true; rec.interimResults = true;
-        let done = false;
-        let spoke = false;
-        let silenceTimer: ReturnType<typeof setTimeout>;
-        const finish = () => {
+        const analyser = analyserRef.current;
+        if (!analyser) return;
+        try { audioCtxRef.current?.resume?.(); } catch { /* */ }
+        const buf = new Uint8Array(analyser.fftSize);
+        let raf = 0; let done = false; let hasSpoken = false; let silenceStart = 0;
+        const SPEAK = 0.03, SILENCE = 0.02, SILENCE_MS = 1100;
+        const tick = () => {
             if (done) return;
-            done = true;
-            clearTimeout(silenceTimer);
-            try { rec.stop(); } catch { /* */ }
-            r.advance();
+            analyser.getByteTimeDomainData(buf);
+            let sum = 0;
+            for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+            const rms = Math.sqrt(sum / buf.length);
+            const now = performance.now();
+            if (rms > SPEAK) { hasSpoken = true; silenceStart = 0; }
+            else if (hasSpoken && rms < SILENCE) {
+                if (!silenceStart) silenceStart = now;
+                else if (now - silenceStart > SILENCE_MS) { done = true; r.advance(); return; }
+            }
+            raf = requestAnimationFrame(tick);
         };
-        // Cada vez que detecta habla, reinicia un temporizador: avanza ~1,2s
-        // después de tu última palabra (cuando terminas tu frase).
-        rec.onresult = () => {
-            spoke = true;
-            clearTimeout(silenceTimer);
-            silenceTimer = setTimeout(finish, 1200);
-        };
-        rec.onspeechend = () => { if (spoke) finish(); };
-        rec.onerror = (e: any) => {
-            if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') setMicDenied(true);
-        };
-        // NO reiniciamos en onend para no encender/apagar el micro (eso causaba el
-        // clic). El micrófono se mantiene abierto aparte, en micStreamRef.
-        try { rec.start(); } catch { /* */ }
-        return () => { done = true; clearTimeout(silenceTimer); try { rec.stop(); } catch { /* */ } };
+        raf = requestAnimationFrame(tick);
+        return () => { done = true; cancelAnimationFrame(raf); };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [advanceMode, state.phase, state.index]);
 
