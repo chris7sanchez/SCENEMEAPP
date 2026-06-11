@@ -768,20 +768,15 @@ export default function ScriptAnalyzer() {
                         <div className="h-12 w-px bg-black/10 hidden md:block"></div>
 
                         {isLoggedIn ? (
-                            <div className="flex items-center gap-5 bg-[#C55959]/5 px-8 py-5 border border-[#C55959]/10 shadow-[inner_0_2px_4px_rgba(0,0,0,0.05)] group/user transition-all hover:bg-[#C55959]/10">
-                                <div className="flex flex-col items-end">
-                                    <span className="text-[10px] font-black text-[#C55959]/60 uppercase tracking-[0.3em] leading-none mb-2">Operador Activo</span>
-                                    <span className="text-sm font-serif text-[#1a1a1a] flex items-center gap-3">
-                                        <Fingerprint size={14} className="opacity-40 group-hover/user:animate-pulse" />
-                                        {userEmail.split('@')[0]}
-                                    </span>
-                                </div>
+                            <div className="flex items-center gap-2 text-[11px] text-[#1a1a1a]/50">
+                                <Fingerprint size={12} className="opacity-40" />
+                                <span className="font-serif">{userEmail.split('@')[0]}</span>
                                 <button
                                     onClick={handleLogout}
-                                    className="p-3 text-[#1a1a1a]/20 hover:text-[#ef4444] transition-all hover:bg-red-50"
-                                    title="Desconectar Sesión"
+                                    className="p-1 text-[#1a1a1a]/25 hover:text-[#ef4444] transition-all"
+                                    title="Desconectar sesión"
                                 >
-                                    <Trash2 size={22} />
+                                    <Trash2 size={14} />
                                 </button>
                             </div>
                         ) : (
