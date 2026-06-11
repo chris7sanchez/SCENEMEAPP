@@ -27,6 +27,11 @@ export async function POST(req: NextRequest) {
 
     if (!text.trim()) return Response.json({ error: 'empty_text' }, { status: 400 });
 
+    // Estilo base para mayor naturalidad en español; se combina con la
+    // instrucción de interpretación de cada personaje.
+    const baseStyle = 'Habla en español de España con voz humana y natural, ritmo conversacional realista, entonación expresiva y emoción acorde a la escena; nada de tono de locutor de anuncio.';
+    const fullInstructions = instructions ? `${baseStyle} ${instructions}` : baseStyle;
+
     try {
         const r = await fetch('https://api.openai.com/v1/audio/speech', {
             method: 'POST',
@@ -38,7 +43,7 @@ export async function POST(req: NextRequest) {
                 model: 'gpt-4o-mini-tts',
                 voice,
                 input: text,
-                instructions: instructions || undefined,
+                instructions: fullInstructions,
                 response_format: 'mp3',
             }),
         });

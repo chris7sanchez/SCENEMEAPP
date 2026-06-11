@@ -243,8 +243,20 @@ function ActivePlayer(props: {
 
     const r = useRehearsal(turns, role, { profiles, engine });
     const { state, current } = r;
+    const [micDenied, setMicDenied] = useState(false);
 
     useEffect(() => { r.start(); /* eslint-disable-next-line */ }, []);
+
+    // Pedir permiso de micrófono al entrar en modo voz (para que el navegador pregunte ya).
+    useEffect(() => {
+        if (advanceMode !== 'voice') return;
+        const md = (typeof navigator !== 'undefined' ? navigator.mediaDevices : undefined) as MediaDevices | undefined;
+        if (!md?.getUserMedia) { setMicDenied(true); return; }
+        md.getUserMedia({ audio: true })
+            .then(s => s.getTracks().forEach(t => t.stop()))
+            .catch(() => setMicDenied(true));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -258,14 +270,34 @@ function ActivePlayer(props: {
     useEffect(() => {
         if (advanceMode !== 'voice' || state.phase !== 'awaiting-user') return;
         const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (!SR) return;
+        if (!SR) { setMicDenied(true); return; }
         const rec = new SR();
-        rec.lang = 'es-ES'; rec.continuous = false; rec.interimResults = false;
+        rec.lang = 'es-ES'; rec.continuous = true; rec.interimResults = true;
         let done = false;
-        const finish = () => { if (!done) { done = true; try { rec.stop(); } catch { /* */ } r.advance(); } };
-        rec.onspeechend = finish; rec.onresult = finish; rec.onerror = () => { try { rec.stop(); } catch { /* */ } };
+        let spoke = false;
+        let silenceTimer: ReturnType<typeof setTimeout>;
+        const finish = () => {
+            if (done) return;
+            done = true;
+            clearTimeout(silenceTimer);
+            try { rec.stop(); } catch { /* */ }
+            r.advance();
+        };
+        // Cada vez que detecta habla, reinicia un temporizador: avanza ~1,2s
+        // después de tu última palabra (cuando terminas tu frase).
+        rec.onresult = () => {
+            spoke = true;
+            clearTimeout(silenceTimer);
+            silenceTimer = setTimeout(finish, 1200);
+        };
+        rec.onspeechend = () => { if (spoke) finish(); };
+        rec.onerror = (e: any) => {
+            if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') setMicDenied(true);
+        };
+        // Mantener la escucha viva si el motor se corta sin que hayas hablado.
+        rec.onend = () => { if (!done) { try { rec.start(); } catch { /* */ } } };
         try { rec.start(); } catch { /* */ }
-        return () => { done = true; try { rec.stop(); } catch { /* */ } };
+        return () => { done = true; clearTimeout(silenceTimer); try { rec.onend = null; rec.stop(); } catch { /* */ } };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [advanceMode, state.phase, state.index]);
 
@@ -302,7 +334,14 @@ function ActivePlayer(props: {
                 <p className={isMine && mode === 'hidden' ? 'text-zinc-500 italic' : 'text-white'}>{lineText}</p>
             </div>
             {isMine ? (
-                <button onClick={r.advance} className="mt-5 w-full rounded-full bg-amber-500 py-5 text-lg font-black text-black transition hover:bg-amber-400">SIGUIENTE ▸</button>
+                <>
+                    <button onClick={r.advance} className="mt-5 w-full rounded-full bg-amber-500 py-5 text-lg font-black text-black transition hover:bg-amber-400">SIGUIENTE ▸</button>
+                    {advanceMode === 'voice' && (
+                        <p className="mt-2 text-center text-xs text-zinc-500">
+                            {micDenied ? '⚠️ Micrófono bloqueado — actívalo en el candado de la barra, o pulsa SIGUIENTE.' : '🎤 Escuchando… avanza solo al terminar tu frase (o pulsa SIGUIENTE).'}
+                        </p>
+                    )}
+                </>
             ) : (
                 <p className="mt-5 text-center text-sm text-zinc-500">{r.paused ? 'En pausa' : (engine === 'ai' ? 'Generando voz IA…' : 'Leyendo la réplica…')}</p>
             )}
