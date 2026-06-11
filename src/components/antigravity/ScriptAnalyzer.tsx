@@ -424,9 +424,14 @@ export default function ScriptAnalyzer() {
                     const am = rawAge.match(/\d{1,3}/);
                     if (am) { const a = parseInt(am[0], 10); if (a > 0 && a < 110) estAge = a; }
                 }
-                analysis.estimatedAge = estAge; // normalizado para el editor
-                const yearsToTry = estAge
-                    ? [nowYear - estAge, nowYear - estAge - 1]
+                // La edad EXPLÍCITA del guion (acotación/descripción: "VÍCTOR (60)",
+                // "60 años", "edad: 60") MANDA sobre la estimación de la IA, que solo ve
+                // las líneas de diálogo y no la descripción.
+                const explicitAge = findExplicitAge(script, name);
+                const finalAge = (explicitAge != null) ? explicitAge : estAge;
+                analysis.estimatedAge = finalAge; // normalizado para el editor
+                const yearsToTry = finalAge
+                    ? [nowYear - finalAge, nowYear - finalAge - 1]
                     : [1990, 1985];
 
                 let bornISO: string | null = null;
@@ -463,6 +468,27 @@ export default function ScriptAnalyzer() {
         } finally {
             setIsAnalyzing(false);
         }
+    };
+
+    // Busca una edad EXPLÍCITA del personaje en TODO el guion (no solo en sus
+    // líneas de diálogo): "VÍCTOR (60)", "60 años", "edad: 60" en una línea que
+    // mencione al personaje. Devuelve el número o null.
+    const findExplicitAge = (text: string, characterName: string): number | null => {
+        const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+        const target = norm(characterName).trim();
+        if (!target) return null;
+        const valid = (n: number) => (n > 0 && n < 110 ? n : null);
+        for (const raw of text.split('\n')) {
+            const nl = norm(raw);
+            if (!nl.includes(target)) continue;
+            let m = raw.match(/\((\d{1,3})\)/);                 // VÍCTOR (60)
+            if (m) { const a = valid(parseInt(m[1], 10)); if (a) return a; }
+            m = nl.match(/(\d{1,3})\s*A[NÑ]OS/);                 // 60 AÑOS / ANOS
+            if (m) { const a = valid(parseInt(m[1], 10)); if (a) return a; }
+            m = nl.match(/EDAD[:\s]+(\d{1,3})/);                 // EDAD: 60
+            if (m) { const a = valid(parseInt(m[1], 10)); if (a) return a; }
+        }
+        return null;
     };
 
     const parseScript = (text: string) => {
