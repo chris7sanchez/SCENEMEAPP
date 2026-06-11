@@ -3,14 +3,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { parseScriptTurns, speakersOf, cueOf, type SceneTurn } from '@/lib/scene-script';
 import {
-    getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES,
+    getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES, ELEVENLABS_VOICES,
     type VoiceProfile, type SpeechVoice,
 } from '@/lib/speech';
 import { useRehearsal } from '@/hooks/useRehearsal';
 
 type LineMode = 'full' | 'cue' | 'hidden';
 type AdvanceMode = 'tap' | 'voice';
-type Engine = 'browser' | 'ai';
+type Engine = 'browser' | 'ai' | 'eleven';
 
 export default function RehearsalPlayer({ script, onClose }: { script: string; onClose: () => void }) {
     const turns = useMemo(() => parseScriptTurns(script), [script]);
@@ -24,7 +24,7 @@ export default function RehearsalPlayer({ script, onClose }: { script: string; o
     const [browserVoices, setBrowserVoices] = useState<SpeechVoice[]>([]);
     const [profiles, setProfiles] = useState<Record<string, VoiceProfile>>({});
 
-    const voices = engine === 'ai' ? OPENAI_TTS_VOICES : browserVoices;
+    const voices = engine === 'ai' ? OPENAI_TTS_VOICES : engine === 'eleven' ? ELEVENLABS_VOICES : browserVoices;
 
     useEffect(() => { if (speakers.length && !role) setRole(speakers[0]); }, [speakers, role]);
 
@@ -40,7 +40,7 @@ export default function RehearsalPlayer({ script, onClose }: { script: string; o
 
     // Asegura un perfil por personaje y una voz válida para el motor actual.
     useEffect(() => {
-        const list = engine === 'ai' ? OPENAI_TTS_VOICES : browserVoices;
+        const list = engine === 'ai' ? OPENAI_TTS_VOICES : engine === 'eleven' ? ELEVENLABS_VOICES : browserVoices;
         setProfiles(prev => {
             const next: Record<string, VoiceProfile> = {};
             speakers.forEach((s, i) => {
@@ -117,9 +117,13 @@ function Config(props: {
                 <div className="flex flex-wrap gap-2">
                     <Chip active={engine === 'browser'} onClick={() => setEngine('browser')}>Navegador (gratis)</Chip>
                     <Chip active={engine === 'ai'} onClick={() => setEngine('ai')}>Voz IA (OpenAI)</Chip>
+                    <Chip active={engine === 'eleven'} onClick={() => setEngine('eleven')}>Voz IA Pro (ElevenLabs)</Chip>
                 </div>
                 {engine === 'ai' && (
-                    <p className="mt-2 text-xs text-zinc-500">Voz actuada con emoción. Requiere clave de OpenAI en el servidor; si no, usa la del navegador.</p>
+                    <p className="mt-2 text-xs text-zinc-500">Voz actuada con emoción. Requiere clave de OpenAI; si no, usa la del navegador.</p>
+                )}
+                {engine === 'eleven' && (
+                    <p className="mt-2 text-xs text-zinc-500">La más natural. Requiere clave de ElevenLabs; si no, usa la del navegador. La emoción depende sobre todo de la voz elegida.</p>
                 )}
             </div>
 
@@ -184,7 +188,7 @@ function VoiceEditor(props: { speaker: string; isMine: boolean; engine: Engine; 
                 </select>
             </div>
 
-            {engine === 'ai' ? (
+            {engine !== 'browser' ? (
                 <div className="mt-3">
                     <p className="mb-1 text-[11px] uppercase tracking-wide text-zinc-500">Cómo habla (instrucción de interpretación)</p>
                     <textarea

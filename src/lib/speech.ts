@@ -80,22 +80,24 @@ class AiSpeechProvider implements SpeechProvider {
     private fallback = new BrowserSpeechProvider();
     private cache = new Map<string, string>();
     private current: HTMLAudioElement | null = null;
+    private provider: 'openai' | 'elevenlabs';
+    constructor(provider: 'openai' | 'elevenlabs' = 'openai') { this.provider = provider; }
 
     isSupported(): boolean { return typeof window !== 'undefined' && typeof Audio !== 'undefined'; }
-    listVoices(): SpeechVoice[] { return OPENAI_TTS_VOICES; }
+    listVoices(): SpeechVoice[] { return this.provider === 'elevenlabs' ? ELEVENLABS_VOICES : OPENAI_TTS_VOICES; }
 
     async speak(text: string, opts?: { voiceId?: string; rate?: number; instructions?: string }): Promise<void> {
         if (!text || !text.trim()) return;
-        const voice = opts?.voiceId || 'alloy';
+        const voice = opts?.voiceId || (this.provider === 'elevenlabs' ? ELEVENLABS_VOICES[0].id : 'alloy');
         const instructions = opts?.instructions || '';
-        const key = `${voice}|${instructions}|${text}`;
+        const key = `${this.provider}|${voice}|${instructions}|${text}`;
         try {
             let url = this.cache.get(key);
             if (!url) {
                 const res = await fetch('/api/tts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, voice, instructions }),
+                    body: JSON.stringify({ text, voice, instructions, provider: this.provider }),
                 });
                 if (!res.ok) throw new Error('tts_' + res.status);
                 const blob = await res.blob();
@@ -124,12 +126,17 @@ class AiSpeechProvider implements SpeechProvider {
 
 let browserInstance: SpeechProvider | null = null;
 let aiInstance: SpeechProvider | null = null;
+let elevenInstance: SpeechProvider | null = null;
 
-/** Devuelve el proveedor de voz: 'browser' (def.) o 'ai' (OpenAI). */
-export function getSpeechProvider(mode: 'browser' | 'ai' = 'browser'): SpeechProvider {
+/** Devuelve el proveedor de voz: 'browser' (def.), 'ai' (OpenAI) o 'eleven' (ElevenLabs). */
+export function getSpeechProvider(mode: 'browser' | 'ai' | 'eleven' = 'browser'): SpeechProvider {
     if (mode === 'ai') {
-        if (!aiInstance) aiInstance = new AiSpeechProvider();
+        if (!aiInstance) aiInstance = new AiSpeechProvider('openai');
         return aiInstance;
+    }
+    if (mode === 'eleven') {
+        if (!elevenInstance) elevenInstance = new AiSpeechProvider('elevenlabs');
+        return elevenInstance;
     }
     if (!browserInstance) browserInstance = new BrowserSpeechProvider();
     return browserInstance;
@@ -167,6 +174,19 @@ export const OPENAI_TTS_VOICES: SpeechVoice[] = [
     { id: 'nova', label: 'Nova (joven)', lang: 'multi' },
     { id: 'sage', label: 'Sage (serena)', lang: 'multi' },
     { id: 'shimmer', label: 'Shimmer (luminosa)', lang: 'multi' },
+];
+
+// Voces premade de ElevenLabs (multilingüe v2, hablan español). El id es el voice_id.
+export const ELEVENLABS_VOICES: SpeechVoice[] = [
+    { id: 'EXAVITQu4vr4xnSDxMaL', label: 'Bella (femenina, suave)', lang: 'multi' },
+    { id: '21m00Tcm4TlvDq8ikWAM', label: 'Rachel (femenina, serena)', lang: 'multi' },
+    { id: 'AZnzlk1XvdvUeBnXmlld', label: 'Domi (femenina, intensa)', lang: 'multi' },
+    { id: 'MF3mGyEYCl7XYWbV9V6O', label: 'Elli (femenina, joven)', lang: 'multi' },
+    { id: 'ErXwobaYiN019PkySvjV', label: 'Antoni (masculina, cálida)', lang: 'multi' },
+    { id: 'pNInz6obpgDQGcFmaJgB', label: 'Adam (masculina, profunda)', lang: 'multi' },
+    { id: 'TxGEqnHWrfWFTfGW9XjX', label: 'Josh (masculina, joven)', lang: 'multi' },
+    { id: 'VR6AewLTigWG4xSOukaG', label: 'Arnold (masculina, firme)', lang: 'multi' },
+    { id: 'yoZ06aMxZJJ28mfd3POQ', label: 'Sam (masculina, neutra)', lang: 'multi' },
 ];
 
 export const DEFAULT_PROFILE: VoiceProfile = { rate: 1, pitch: 1, pauseMs: 350, manner: 'neutro' };
