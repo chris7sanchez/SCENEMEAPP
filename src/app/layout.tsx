@@ -48,6 +48,13 @@ export default function RootLayout({
     return (
         <html lang="es" className="dark" data-theme="dark">
             <head>
+                {/* Limpia cualquier service worker/caché viejo (PWA) para que los
+                    despliegues nuevos lleguen siempre sin quedarse en versión cacheada. */}
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `try{if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}).catch(function(){});}if(window.caches&&caches.keys){caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});}).catch(function(){});}}catch(e){}`,
+                    }}
+                />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Contrail+One&family=Encode+Sans+SC:wght@400;700&family=Faster+One&family=Limelight&family=Roboto+Condensed:wght@400;700&family=Trocchi&family=Caveat:wght@400;700&family=Cinzel:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet" />
