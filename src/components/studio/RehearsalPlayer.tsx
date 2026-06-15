@@ -73,7 +73,7 @@ export default function RehearsalPlayer({ script, onClose }: { script: string; o
 
     return (
         <div className="fixed inset-0 z-[200] flex flex-col bg-black/95 backdrop-blur-sm p-4 sm:p-6 text-white overflow-y-auto">
-            <div className="mx-auto w-full max-w-2xl pb-10">
+            <div className={`mx-auto w-full pb-10 ${started && turns.length > 0 ? 'max-w-6xl' : 'max-w-2xl'}`}>
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-black uppercase tracking-wide">Ensayar con réplicas</h2>
                     <button onClick={onClose} className="rounded-full px-3 py-1 text-zinc-400 hover:text-white" aria-label="Cerrar">✕</button>
