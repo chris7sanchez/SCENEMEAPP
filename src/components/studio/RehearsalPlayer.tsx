@@ -377,45 +377,48 @@ function ActivePlayer(props: {
     }
 
     return (
-        <div className="mt-6">
-            <div className="mb-3 flex items-center justify-between text-xs text-zinc-500">
-                <span>{progress}</span>
-                <span>{isMine ? 'TU TURNO' : 'RÉPLICA'}</span>
+        <div className="mt-6 lg:grid lg:grid-cols-[1fr_26rem] lg:gap-8 lg:items-start">
+            <div>
+                <div className="mb-3 flex items-center justify-between text-xs text-zinc-500">
+                    <span>{progress}</span>
+                    <span>{isMine ? 'TU TURNO' : 'RÉPLICA'}</span>
+                </div>
+                <div className={`min-h-[180px] rounded-2xl border p-6 text-center text-xl leading-relaxed sm:text-2xl ${isMine ? 'border-amber-500/50 bg-amber-500/5' : 'border-zinc-700 bg-zinc-900/60'}`}>
+                    <p className={`mb-3 text-sm font-bold uppercase tracking-widest ${isMine ? 'text-amber-400' : 'text-zinc-400'}`}>{current?.speaker}</p>
+                    <p className={isMine && mode === 'hidden' ? 'text-zinc-500 italic' : 'text-white'}>{lineText}</p>
+                </div>
+                {isMine ? (
+                    <>
+                        <button onClick={r.advance} className="mt-5 w-full rounded-full bg-amber-500 py-5 text-lg font-black text-black transition hover:bg-amber-400">SIGUIENTE ▸</button>
+                        {advanceMode === 'voice' && (
+                            <p className="mt-2 text-center text-xs text-zinc-500">
+                                {micDenied ? '⚠️ Micrófono bloqueado — actívalo en el candado de la barra, o pulsa SIGUIENTE.' : '🎤 Escuchando… avanza solo al terminar tu frase (o pulsa SIGUIENTE).'}
+                            </p>
+                        )}
+                    </>
+                ) : (
+                    <p className="mt-5 text-center text-sm text-zinc-500">{r.paused ? 'En pausa' : (engine === 'ai' ? 'Generando voz IA…' : 'Leyendo la réplica…')}</p>
+                )}
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm">
+                    <button onClick={r.prev} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">◂ Anterior</button>
+                    <button onClick={r.repeat} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">⟲ Repetir</button>
+                    <button onClick={r.togglePause} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">{r.paused ? '▶ Reanudar' : '⏸ Pausa'}</button>
+                    <button onClick={r.skip} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">Saltar ▸</button>
+                    <button onClick={r.restart} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">Reiniciar</button>
+                </div>
             </div>
-            <div className={`min-h-[180px] rounded-2xl border p-6 text-center text-xl leading-relaxed sm:text-2xl ${isMine ? 'border-amber-500/50 bg-amber-500/5' : 'border-zinc-700 bg-zinc-900/60'}`}>
-                <p className={`mb-3 text-sm font-bold uppercase tracking-widest ${isMine ? 'text-amber-400' : 'text-zinc-400'}`}>{current?.speaker}</p>
-                <p className={isMine && mode === 'hidden' ? 'text-zinc-500 italic' : 'text-white'}>{lineText}</p>
-            </div>
-            {isMine ? (
-                <>
-                    <button onClick={r.advance} className="mt-5 w-full rounded-full bg-amber-500 py-5 text-lg font-black text-black transition hover:bg-amber-400">SIGUIENTE ▸</button>
-                    {advanceMode === 'voice' && (
-                        <p className="mt-2 text-center text-xs text-zinc-500">
-                            {micDenied ? '⚠️ Micrófono bloqueado — actívalo en el candado de la barra, o pulsa SIGUIENTE.' : '🎤 Escuchando… avanza solo al terminar tu frase (o pulsa SIGUIENTE).'}
-                        </p>
-                    )}
-                </>
-            ) : (
-                <p className="mt-5 text-center text-sm text-zinc-500">{r.paused ? 'En pausa' : (engine === 'ai' ? 'Generando voz IA…' : 'Leyendo la réplica…')}</p>
-            )}
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm">
-                <button onClick={r.prev} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">◂ Anterior</button>
-                <button onClick={r.repeat} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">⟲ Repetir</button>
-                <button onClick={r.togglePause} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">{r.paused ? '▶ Reanudar' : '⏸ Pausa'}</button>
-                <button onClick={r.skip} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">Saltar ▸</button>
-                <button onClick={r.restart} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">Reiniciar</button>
-            </div>
-            <div className="mt-6">
-                <p className="mb-2 text-[10px] uppercase tracking-widest text-zinc-500">La escena (separata) — tus líneas en ámbar</p>
-                <div className="max-h-56 space-y-1 overflow-y-auto rounded-xl border border-zinc-800 bg-black/30 p-3">
+
+            <div className="mt-8 lg:mt-0 lg:sticky lg:top-4">
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-amber-400/80">La escena · tú = ámbar</p>
+                <div className="max-h-72 space-y-1.5 overflow-y-auto rounded-xl border border-zinc-700 bg-zinc-900/70 p-4 lg:max-h-[68vh]">
                     {turns.map((t, i) => {
                         const mine = t.speaker === role;
                         const active = i === state.index;
                         return (
                             <div key={t.id} ref={active ? currentLineRef : undefined}
-                                className={`rounded-md px-2 py-1 text-sm leading-snug ${active ? 'bg-amber-500/20 ring-1 ring-amber-500/40' : ''}`}>
-                                <span className={`font-bold ${mine ? 'text-amber-400' : 'text-zinc-400'}`}>{t.speaker}{mine ? ' (TÚ)' : ''}: </span>
-                                <span className={mine ? 'text-amber-100' : 'text-zinc-300'}>{t.text}</span>
+                                className={`rounded-md px-2 py-1.5 text-[15px] leading-snug ${active ? 'bg-amber-500/25 ring-1 ring-amber-400/60' : ''}`}>
+                                <span className={`font-bold ${mine ? 'text-amber-300' : 'text-zinc-300'}`}>{t.speaker}{mine ? ' (TÚ)' : ''}: </span>
+                                <span className={mine ? 'text-amber-100' : 'text-zinc-100'}>{t.text}</span>
                             </div>
                         );
                     })}
