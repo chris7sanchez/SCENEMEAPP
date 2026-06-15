@@ -57,11 +57,13 @@ class BrowserSpeechProvider implements SpeechProvider {
                 if (v) u.voice = v;
                 u.onend = finish;
                 u.onerror = finish;
-                window.speechSynthesis.cancel();
-                window.speechSynthesis.speak(u);
-                // Chrome a veces deja la cola "en pausa": forzar reanudación y mantenerla viva.
-                try { window.speechSynthesis.resume(); } catch { /* */ }
-                keepAlive = setInterval(() => { try { window.speechSynthesis.resume(); } catch { /* */ } }, 4000);
+                const ss = window.speechSynthesis;
+                const fire = () => { try { ss.speak(u); ss.resume(); } catch { /* */ } };
+                // Bug de Chrome: cancel() justo antes de speak() puede "tragarse" la
+                // locución (Safari no lo sufre). Solo cancelamos si ya hay algo sonando,
+                // y damos un respiro antes de hablar.
+                if (ss.speaking || ss.pending) { ss.cancel(); setTimeout(fire, 140); } else { fire(); }
+                keepAlive = setInterval(() => { try { ss.resume(); } catch { /* */ } }, 4000);
                 // Red de seguridad: si nunca llega onend/onerror, avanzar igual.
                 setTimeout(finish, estimateMs);
             } catch {
