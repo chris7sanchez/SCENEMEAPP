@@ -413,7 +413,10 @@ function ActivePlayer(props: {
                         )}
                     </>
                 ) : (
-                    <p className="mt-5 text-center text-sm text-zinc-500">{r.paused ? 'En pausa' : (engine === 'ai' ? 'Generando voz IA…' : 'Leyendo la réplica…')}</p>
+                    <div className="mt-5 text-center">
+                        <p className="text-sm text-zinc-500">{r.paused ? 'En pausa' : (engine === 'browser' ? 'Leyendo la réplica…' : 'Generando voz IA…')}</p>
+                        <button onClick={r.skip} className="mt-3 rounded-full bg-zinc-800 px-6 py-2.5 text-sm font-bold text-zinc-200 transition hover:bg-zinc-700">Continuar ▸ <span className="font-normal text-zinc-500">(si no se oye)</span></button>
+                    </div>
                 )}
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm">
                     <button onClick={r.prev} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">◂ Anterior</button>

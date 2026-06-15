@@ -26,14 +26,17 @@ export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: Rehearsa
             const turn = state.turns[state.index];
             const p = opts?.profiles?.[turn.speaker];
             let cancelled = false;
+            let advanced = false;
             let timer: ReturnType<typeof setTimeout>;
+            const goNext = () => { if (cancelled || advanced) return; advanced = true; dispatch({ type: 'PARTNER_DONE' }); };
+            // Red de seguridad: aunque la voz no suene o no resuelva (Chrome bloquea TTS,
+            // fetch colgado…), la réplica avanza igualmente y nunca te quedas atascado.
+            const safety = setTimeout(goNext, Math.max(6000, turn.text.length * 90) + 3000);
             provider.current
                 .speak(turn.text, { voiceId: p?.voiceId, rate: p?.rate ?? 1, pitch: p?.pitch ?? 1, instructions: p?.instructions })
-                .then(() => {
-                    if (cancelled) return;
-                    timer = setTimeout(() => { if (!cancelled) dispatch({ type: 'PARTNER_DONE' }); }, p?.pauseMs ?? 300);
-                });
-            return () => { cancelled = true; clearTimeout(timer); provider.current.cancel(); };
+                .then(() => { if (!cancelled) timer = setTimeout(goNext, p?.pauseMs ?? 300); })
+                .catch(() => { if (!cancelled) timer = setTimeout(goNext, 300); });
+            return () => { cancelled = true; clearTimeout(timer); clearTimeout(safety); provider.current.cancel(); };
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.phase, state.index, state.seq, paused]);
