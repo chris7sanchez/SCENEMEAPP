@@ -73,7 +73,7 @@ export default function RehearsalPlayer({ script, onClose }: { script: string; o
 
     return (
         <div className="fixed inset-0 z-[200] flex flex-col bg-black/95 backdrop-blur-sm p-4 sm:p-6 text-white overflow-y-auto">
-            <div className={`mx-auto w-full pb-10 ${started && turns.length > 0 ? 'max-w-6xl' : 'max-w-2xl'}`}>
+            <div className={`mx-auto w-full pb-10 ${started && turns.length > 0 ? 'max-w-5xl' : 'max-w-2xl'}`}>
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-black uppercase tracking-wide">Ensayar con réplicas</h2>
                     <button onClick={onClose} className="rounded-full px-3 py-1 text-zinc-400 hover:text-white" aria-label="Cerrar">✕</button>
@@ -270,6 +270,8 @@ function ActivePlayer(props: {
     const r = useRehearsal(turns, role, { profiles, engine });
     const { state, current } = r;
     const [micDenied, setMicDenied] = useState(false);
+    const [micError, setMicError] = useState('');
+    const [micAttempt, setMicAttempt] = useState(0);
     const micStreamRef = useRef<MediaStream | null>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -288,8 +290,10 @@ function ActivePlayer(props: {
     useEffect(() => {
         if (advanceMode !== 'voice') return;
         const md = (typeof navigator !== 'undefined' ? navigator.mediaDevices : undefined) as MediaDevices | undefined;
-        if (!md?.getUserMedia) { setMicDenied(true); return; }
+        if (!md?.getUserMedia) { setMicDenied(true); setMicError('sin-soporte'); return; }
+        setMicDenied(false); setMicError('');
         let cancelled = false;
+        const resumeCtx = () => { audioCtxRef.current?.resume?.().catch(() => {}); };
         md.getUserMedia({ audio: true })
             .then(s => {
                 if (cancelled) { s.getTracks().forEach(t => t.stop()); return; }
@@ -304,17 +308,22 @@ function ActivePlayer(props: {
                     src.connect(analyser);
                     audioCtxRef.current = ctx;
                     analyserRef.current = analyser;
+                    // Chrome suele dejar el AudioContext "suspended": reanúdalo al primer gesto.
+                    window.addEventListener('pointerdown', resumeCtx);
+                    window.addEventListener('keydown', resumeCtx);
                 } catch { /* */ }
             })
-            .catch(() => setMicDenied(true));
+            .catch((err: unknown) => { setMicDenied(true); setMicError(err instanceof Error ? err.name : 'error'); });
         return () => {
             cancelled = true;
+            window.removeEventListener('pointerdown', resumeCtx);
+            window.removeEventListener('keydown', resumeCtx);
             try { audioCtxRef.current?.close(); } catch { /* */ }
             audioCtxRef.current = null; analyserRef.current = null;
             if (micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null; }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [micAttempt]);
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -377,7 +386,7 @@ function ActivePlayer(props: {
     }
 
     return (
-        <div className="mt-6 lg:grid lg:grid-cols-[1fr_26rem] lg:gap-8 lg:items-start">
+        <div className="mt-6 lg:grid lg:grid-cols-[1fr_19rem] lg:gap-8 lg:items-start">
             <div>
                 <div className="mb-3 flex items-center justify-between text-xs text-zinc-500">
                     <span>{progress}</span>
@@ -391,9 +400,16 @@ function ActivePlayer(props: {
                     <>
                         <button onClick={r.advance} className="mt-5 w-full rounded-full bg-amber-500 py-5 text-lg font-black text-black transition hover:bg-amber-400">SIGUIENTE ▸</button>
                         {advanceMode === 'voice' && (
-                            <p className="mt-2 text-center text-xs text-zinc-500">
-                                {micDenied ? '⚠️ Micrófono bloqueado — actívalo en el candado de la barra, o pulsa SIGUIENTE.' : '🎤 Escuchando… avanza solo al terminar tu frase (o pulsa SIGUIENTE).'}
-                            </p>
+                            <div className="mt-2 text-center text-xs text-zinc-500">
+                                {micDenied ? (
+                                    <p>
+                                        ⚠️ Micrófono no disponible{micError ? ` (${micError})` : ''} — permítelo en el candado de la barra (y en macOS → Ajustes → Privacidad → Micrófono → Chrome).{' '}
+                                        <button onClick={() => setMicAttempt(n => n + 1)} className="font-bold text-amber-400 underline hover:text-amber-300">Reintentar</button>{' '}o pulsa SIGUIENTE.
+                                    </p>
+                                ) : (
+                                    <p>🎤 Escuchando… avanza solo al terminar tu frase (o pulsa SIGUIENTE).</p>
+                                )}
+                            </div>
                         )}
                     </>
                 ) : (
@@ -409,16 +425,17 @@ function ActivePlayer(props: {
             </div>
 
             <div className="mt-8 lg:mt-0 lg:sticky lg:top-4">
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-amber-400/80">La escena · tú = ámbar</p>
-                <div className="max-h-72 space-y-1.5 overflow-y-auto rounded-xl border border-zinc-700 bg-zinc-900/70 p-4 lg:max-h-[68vh]">
+                <p className="mb-2 text-[10px] uppercase tracking-[0.3em] text-zinc-500">Separata</p>
+                <div className="max-h-72 overflow-y-auto rounded-md bg-[#f4efe2] px-4 py-3 text-zinc-900 shadow-md ring-1 ring-black/10 lg:max-h-[64vh]"
+                    style={{ fontFamily: '"Courier New", Courier, monospace' }}>
                     {turns.map((t, i) => {
                         const mine = t.speaker === role;
                         const active = i === state.index;
                         return (
                             <div key={t.id} ref={active ? currentLineRef : undefined}
-                                className={`rounded-md px-2 py-1.5 text-[15px] leading-snug ${active ? 'bg-amber-500/25 ring-1 ring-amber-400/60' : ''}`}>
-                                <span className={`font-bold ${mine ? 'text-amber-300' : 'text-zinc-300'}`}>{t.speaker}{mine ? ' (TÚ)' : ''}: </span>
-                                <span className={mine ? 'text-amber-100' : 'text-zinc-100'}>{t.text}</span>
+                                className={`mb-2.5 rounded-sm px-1 ${active ? 'bg-amber-300/60' : ''}`}>
+                                <p className={`pl-10 text-[11px] font-bold uppercase ${mine ? 'text-amber-800' : 'text-zinc-600'}`}>{t.speaker}{mine ? ' (TÚ)' : ''}</p>
+                                <p className={`pl-4 text-[12px] leading-snug ${mine ? 'text-amber-950 font-semibold' : 'text-zinc-800'}`}>{t.text}</p>
                             </div>
                         );
                     })}
