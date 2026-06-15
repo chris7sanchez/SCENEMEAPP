@@ -38,7 +38,8 @@ class BrowserSpeechProvider implements SpeechProvider {
         return new Promise((resolve) => {
             if (!text || !text.trim()) return resolve();
             let done = false;
-            const finish = () => { if (!done) { done = true; resolve(); } };
+            let keepAlive: ReturnType<typeof setInterval> | undefined;
+            const finish = () => { if (!done) { done = true; if (keepAlive) clearInterval(keepAlive); resolve(); } };
             // Tiempo estimado de lectura: garantiza el avance aunque la voz del
             // navegador no dispare onend (sin motor/voz instalada) o falle el audio.
             const rate = opts?.rate ?? 1;
@@ -49,16 +50,18 @@ class BrowserSpeechProvider implements SpeechProvider {
                 u.lang = 'es-ES';
                 u.rate = rate;
                 u.pitch = opts?.pitch ?? 1;
-                if (opts?.voiceId) {
-                    const v = this.rawVoices().find(vv => vv.voiceURI === opts.voiceId || vv.name === opts.voiceId);
-                    if (v) u.voice = v;
-                }
+                const voices = this.rawVoices();
+                let v: SpeechSynthesisVoice | undefined;
+                if (opts?.voiceId) v = voices.find(vv => vv.voiceURI === opts.voiceId || vv.name === opts.voiceId);
+                if (!v) v = voices.find(vv => /^es/i.test(vv.lang)); // por defecto, una voz española
+                if (v) u.voice = v;
                 u.onend = finish;
                 u.onerror = finish;
                 window.speechSynthesis.cancel();
                 window.speechSynthesis.speak(u);
-                // Chrome a veces deja la cola "en pausa": forzar reanudación.
+                // Chrome a veces deja la cola "en pausa": forzar reanudación y mantenerla viva.
                 try { window.speechSynthesis.resume(); } catch { /* */ }
+                keepAlive = setInterval(() => { try { window.speechSynthesis.resume(); } catch { /* */ } }, 4000);
                 // Red de seguridad: si nunca llega onend/onerror, avanzar igual.
                 setTimeout(finish, estimateMs);
             } catch {
@@ -152,6 +155,23 @@ export function getSpeechProvider(mode: 'browser' | 'ai' | 'eleven' | 'cartesia'
     }
     if (!browserInstance) browserInstance = new BrowserSpeechProvider();
     return browserInstance;
+}
+
+/**
+ * Desbloquea la síntesis de voz DENTRO de un gesto del usuario (pulsar EMPEZAR).
+ * Chrome silencia la voz si el primer speak() ocurre fuera de un gesto (en un
+ * efecto); este "calentamiento" silencioso la habilita para todo el ensayo.
+ * Safari no lo necesita, pero llamarlo no molesta.
+ */
+export function primeSpeech(): void {
+    try {
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(' ');
+        u.volume = 0;
+        window.speechSynthesis.speak(u);
+        window.speechSynthesis.resume();
+    } catch { /* */ }
 }
 
 /** Asigna una voz distinta a cada personaje (round-robin sobre las disponibles). */

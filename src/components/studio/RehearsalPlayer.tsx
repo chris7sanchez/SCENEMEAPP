@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { parseScriptTurns, speakersOf, cueOf, type SceneTurn } from '@/lib/scene-script';
 import {
-    getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES, ELEVENLABS_VOICES,
+    getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES, ELEVENLABS_VOICES, primeSpeech,
     type VoiceProfile, type SpeechVoice,
 } from '@/lib/speech';
 import { useRehearsal } from '@/hooks/useRehearsal';
@@ -179,7 +179,7 @@ function Config(props: {
                 </div>
             </div>
 
-            <button onClick={onStart} disabled={!role} className="w-full rounded-full bg-amber-500 py-4 text-base font-black text-black transition hover:bg-amber-400 disabled:opacity-50">
+            <button onClick={() => { primeSpeech(); onStart(); }} disabled={!role} className="w-full rounded-full bg-amber-500 py-4 text-base font-black text-black transition hover:bg-amber-400 disabled:opacity-50">
                 EMPEZAR
             </button>
         </div>
