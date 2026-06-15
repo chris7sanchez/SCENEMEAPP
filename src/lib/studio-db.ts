@@ -37,9 +37,17 @@ export async function getOrCreateDailyScene(dateKey: string): Promise<DailyScene
     }
 
     const scene = await generateDailyScene(dateKey);
-    // Cachear para los demás usuarios del día (mejor esfuerzo; si falla, no rompe).
+    // Cachear para que sea LA MISMA para todos ese día. Firestore rechaza valores
+    // undefined, así que saneamos la escena antes de guardarla (esto era lo que
+    // hacía que el guardado fallara y se regenerara una escena distinta cada vez).
     try {
-        await setDoc(sceneRef, { scene, createdAt: Date.now() });
+        const clean = {
+            title: scene.title || '',
+            synopsis: scene.synopsis || '',
+            characters: Array.isArray(scene.characters) ? scene.characters : [],
+            lines: (scene.lines || []).map(l => ({ character: l.character || '', text: l.text || '' })),
+        };
+        await setDoc(sceneRef, { scene: clean, createdAt: Date.now() });
     } catch (e) {
         console.warn('[studio] no se pudo cachear la escena del día:', e);
     }
