@@ -273,6 +273,12 @@ function ActivePlayer(props: {
     const micStreamRef = useRef<MediaStream | null>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
+    const currentLineRef = useRef<HTMLDivElement | null>(null);
+
+    // Desplaza la separata para que la línea actual quede siempre visible.
+    useEffect(() => {
+        currentLineRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, [state.index]);
 
     useEffect(() => { r.start(); /* eslint-disable-next-line */ }, []);
 
@@ -398,6 +404,22 @@ function ActivePlayer(props: {
                 <button onClick={r.togglePause} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">{r.paused ? '▶ Reanudar' : '⏸ Pausa'}</button>
                 <button onClick={r.skip} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">Saltar ▸</button>
                 <button onClick={r.restart} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">Reiniciar</button>
+            </div>
+            <div className="mt-6">
+                <p className="mb-2 text-[10px] uppercase tracking-widest text-zinc-500">La escena (separata) — tus líneas en ámbar</p>
+                <div className="max-h-56 space-y-1 overflow-y-auto rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    {turns.map((t, i) => {
+                        const mine = t.speaker === role;
+                        const active = i === state.index;
+                        return (
+                            <div key={t.id} ref={active ? currentLineRef : undefined}
+                                className={`rounded-md px-2 py-1 text-sm leading-snug ${active ? 'bg-amber-500/20 ring-1 ring-amber-500/40' : ''}`}>
+                                <span className={`font-bold ${mine ? 'text-amber-400' : 'text-zinc-400'}`}>{t.speaker}{mine ? ' (TÚ)' : ''}: </span>
+                                <span className={mine ? 'text-amber-100' : 'text-zinc-300'}>{t.text}</span>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
             <div className="mt-6 text-center">
                 <button onClick={onClose} className="text-xs text-zinc-500 hover:text-white">Cerrar ensayo</button>
