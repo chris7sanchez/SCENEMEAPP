@@ -7,7 +7,7 @@ import { getSpeechProvider, type VoiceProfile } from '@/lib/speech';
 
 interface RehearsalOpts {
     profiles?: Record<string, VoiceProfile>;
-    engine?: 'browser' | 'ai' | 'eleven';
+    engine?: 'browser' | 'ai' | 'eleven' | 'cartesia';
 }
 
 /**

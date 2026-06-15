@@ -80,24 +80,30 @@ class AiSpeechProvider implements SpeechProvider {
     private fallback = new BrowserSpeechProvider();
     private cache = new Map<string, string>();
     private current: HTMLAudioElement | null = null;
-    private provider: 'openai' | 'elevenlabs';
-    constructor(provider: 'openai' | 'elevenlabs' = 'openai') { this.provider = provider; }
+    private provider: 'openai' | 'elevenlabs' | 'cartesia';
+    constructor(provider: 'openai' | 'elevenlabs' | 'cartesia' = 'openai') { this.provider = provider; }
 
     isSupported(): boolean { return typeof window !== 'undefined' && typeof Audio !== 'undefined'; }
-    listVoices(): SpeechVoice[] { return this.provider === 'elevenlabs' ? ELEVENLABS_VOICES : OPENAI_TTS_VOICES; }
+    listVoices(): SpeechVoice[] {
+        if (this.provider === 'elevenlabs') return ELEVENLABS_VOICES;
+        if (this.provider === 'cartesia') return []; // dinámicas: las trae el reproductor de /api/tts/voices
+        return OPENAI_TTS_VOICES;
+    }
 
     async speak(text: string, opts?: { voiceId?: string; rate?: number; instructions?: string }): Promise<void> {
         if (!text || !text.trim()) return;
-        const voice = opts?.voiceId || (this.provider === 'elevenlabs' ? ELEVENLABS_VOICES[0].id : 'alloy');
+        const defaultVoice = this.provider === 'elevenlabs' ? ELEVENLABS_VOICES[0].id : (this.provider === 'cartesia' ? '' : 'alloy');
+        const voice = opts?.voiceId || defaultVoice;
         const instructions = opts?.instructions || '';
-        const key = `${this.provider}|${voice}|${instructions}|${text}`;
+        const rate = opts?.rate ?? 1;
+        const key = `${this.provider}|${voice}|${instructions}|${rate}|${text}`;
         try {
             let url = this.cache.get(key);
             if (!url) {
                 const res = await fetch('/api/tts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, voice, instructions, provider: this.provider }),
+                    body: JSON.stringify({ text, voice, instructions, provider: this.provider, rate }),
                 });
                 if (!res.ok) throw new Error('tts_' + res.status);
                 const blob = await res.blob();
@@ -106,7 +112,8 @@ class AiSpeechProvider implements SpeechProvider {
             }
             await new Promise<void>((resolve) => {
                 const audio = new Audio(url);
-                if (opts?.rate) audio.playbackRate = opts.rate;
+                // Cartesia ya aplica la velocidad en el servidor; no la dupliques aquí.
+                if (opts?.rate && this.provider !== 'cartesia') audio.playbackRate = opts.rate;
                 this.current = audio;
                 audio.onended = () => resolve();
                 audio.onerror = () => resolve();
@@ -127,9 +134,10 @@ class AiSpeechProvider implements SpeechProvider {
 let browserInstance: SpeechProvider | null = null;
 let aiInstance: SpeechProvider | null = null;
 let elevenInstance: SpeechProvider | null = null;
+let cartesiaInstance: SpeechProvider | null = null;
 
-/** Devuelve el proveedor de voz: 'browser' (def.), 'ai' (OpenAI) o 'eleven' (ElevenLabs). */
-export function getSpeechProvider(mode: 'browser' | 'ai' | 'eleven' = 'browser'): SpeechProvider {
+/** Proveedor de voz: 'browser' (def.), 'ai' (OpenAI), 'eleven' (ElevenLabs) o 'cartesia'. */
+export function getSpeechProvider(mode: 'browser' | 'ai' | 'eleven' | 'cartesia' = 'browser'): SpeechProvider {
     if (mode === 'ai') {
         if (!aiInstance) aiInstance = new AiSpeechProvider('openai');
         return aiInstance;
@@ -137,6 +145,10 @@ export function getSpeechProvider(mode: 'browser' | 'ai' | 'eleven' = 'browser')
     if (mode === 'eleven') {
         if (!elevenInstance) elevenInstance = new AiSpeechProvider('elevenlabs');
         return elevenInstance;
+    }
+    if (mode === 'cartesia') {
+        if (!cartesiaInstance) cartesiaInstance = new AiSpeechProvider('cartesia');
+        return cartesiaInstance;
     }
     if (!browserInstance) browserInstance = new BrowserSpeechProvider();
     return browserInstance;

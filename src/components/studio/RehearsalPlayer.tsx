@@ -10,7 +10,7 @@ import { useRehearsal } from '@/hooks/useRehearsal';
 
 type LineMode = 'full' | 'cue' | 'hidden';
 type AdvanceMode = 'tap' | 'voice';
-type Engine = 'browser' | 'ai' | 'eleven';
+type Engine = 'browser' | 'ai' | 'eleven' | 'cartesia';
 
 export default function RehearsalPlayer({ script, onClose }: { script: string; onClose: () => void }) {
     const turns = useMemo(() => parseScriptTurns(script), [script]);
@@ -22,11 +22,26 @@ export default function RehearsalPlayer({ script, onClose }: { script: string; o
     const [engine, setEngine] = useState<Engine>('browser');
     const [started, setStarted] = useState(false);
     const [browserVoices, setBrowserVoices] = useState<SpeechVoice[]>([]);
+    const [cartesiaVoices, setCartesiaVoices] = useState<SpeechVoice[]>([]);
     const [profiles, setProfiles] = useState<Record<string, VoiceProfile>>({});
 
-    const voices = engine === 'ai' ? OPENAI_TTS_VOICES : engine === 'eleven' ? ELEVENLABS_VOICES : browserVoices;
+    const voices = engine === 'ai' ? OPENAI_TTS_VOICES
+        : engine === 'eleven' ? ELEVENLABS_VOICES
+        : engine === 'cartesia' ? cartesiaVoices
+        : browserVoices;
 
     useEffect(() => { if (speakers.length && !role) setRole(speakers[0]); }, [speakers, role]);
+
+    // Carga las voces de Cartesia (incluidas las clonadas) al elegir ese motor.
+    useEffect(() => {
+        if (engine !== 'cartesia') return;
+        let cancelled = false;
+        fetch('/api/tts/voices?provider=cartesia')
+            .then(r => r.json())
+            .then(d => { if (!cancelled) setCartesiaVoices(Array.isArray(d?.voices) ? d.voices : []); })
+            .catch(() => { if (!cancelled) setCartesiaVoices([]); });
+        return () => { cancelled = true; };
+    }, [engine]);
 
     // Carga voces del navegador (para el motor 'browser').
     useEffect(() => {
@@ -40,7 +55,10 @@ export default function RehearsalPlayer({ script, onClose }: { script: string; o
 
     // Asegura un perfil por personaje y una voz válida para el motor actual.
     useEffect(() => {
-        const list = engine === 'ai' ? OPENAI_TTS_VOICES : engine === 'eleven' ? ELEVENLABS_VOICES : browserVoices;
+        const list = engine === 'ai' ? OPENAI_TTS_VOICES
+            : engine === 'eleven' ? ELEVENLABS_VOICES
+            : engine === 'cartesia' ? cartesiaVoices
+            : browserVoices;
         setProfiles(prev => {
             const next: Record<string, VoiceProfile> = {};
             speakers.forEach((s, i) => {
@@ -51,7 +69,7 @@ export default function RehearsalPlayer({ script, onClose }: { script: string; o
             });
             return next;
         });
-    }, [engine, browserVoices, speakers]);
+    }, [engine, browserVoices, cartesiaVoices, speakers]);
 
     return (
         <div className="fixed inset-0 z-[200] flex flex-col bg-black/95 backdrop-blur-sm p-4 sm:p-6 text-white overflow-y-auto">
@@ -118,12 +136,16 @@ function Config(props: {
                     <Chip active={engine === 'browser'} onClick={() => setEngine('browser')}>Navegador (gratis)</Chip>
                     <Chip active={engine === 'ai'} onClick={() => setEngine('ai')}>Voz IA (OpenAI)</Chip>
                     <Chip active={engine === 'eleven'} onClick={() => setEngine('eleven')}>Voz IA Pro (ElevenLabs)</Chip>
+                    <Chip active={engine === 'cartesia'} onClick={() => setEngine('cartesia')}>Voz IA Pro (Cartesia)</Chip>
                 </div>
                 {engine === 'ai' && (
                     <p className="mt-2 text-xs text-zinc-500">Voz actuada con emoción. Requiere clave de OpenAI; si no, usa la del navegador.</p>
                 )}
                 {engine === 'eleven' && (
                     <p className="mt-2 text-xs text-zinc-500">La más natural. Requiere clave de ElevenLabs; si no, usa la del navegador. La emoción depende sobre todo de la voz elegida.</p>
+                )}
+                {engine === 'cartesia' && (
+                    <p className="mt-2 text-xs text-zinc-500">Muy natural y barata. Usa tus voces de Cartesia (incluidas las que clones, p. ej. una voz castellana). El &quot;cómo habla&quot; ajusta la emoción. Requiere clave de Cartesia.</p>
                 )}
             </div>
 
