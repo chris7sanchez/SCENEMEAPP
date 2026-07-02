@@ -31,9 +31,11 @@ Para que todo esto funcione en tu web pública, **es obligatorio** que añadas e
 
 | Clave (Key) | Valor (Value) |
 | :--- | :--- |
-| `RESEND_API_KEY` | `re_K6QaRdcc_BCMsuNeRHxeC2MoQz5MZk3KU` |
-| `NEXT_PUBLIC_ADMIN_EMAIL` | `chris.7sanchez@gmail.com` |
-| `ADMIN_PASSWORD` | `Masterchris123` |
+| `RESEND_API_KEY` | *(tu clave de Resend — cópiala del panel de Resend, NUNCA la escribas en este repositorio)* |
+| `NEXT_PUBLIC_ADMIN_EMAIL` | *(tu email de administrador)* |
+| `ADMIN_PASSWORD` | *(tu contraseña maestra — solo en Vercel, NUNCA en este repositorio)* |
+
+> ⚠️ **Seguridad:** los valores reales de estas variables viven ÚNICAMENTE en Vercel (Settings → Environment Variables). Este repositorio es público: cualquier clave escrita aquí queda expuesta y hay que rotarla inmediatamente.
 
 3. **Redesplegar:** Si Vercel no lo hace automáticamente, ve a "Deployments" y fuerza un redeploy para que los cambios surtan efecto.
 
