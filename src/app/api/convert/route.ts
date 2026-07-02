@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     console.log(`🚀 Iniciando conversión: ${file.name} -> MP4`);
 
-    return new Promise((resolve) => {
+    return new Promise<NextResponse>((resolve) => {
       ffmpeg(inputPath)
         .output(outputPath)
         .videoCodec('libx264')
