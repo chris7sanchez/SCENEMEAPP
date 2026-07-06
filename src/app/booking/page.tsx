@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -19,11 +19,43 @@ function BookingContent() {
     const [date, setDate] = useState<Date | undefined>(new Date());
     const [time, setTime] = useState<string | null>(null);
     const [step, setStep] = useState(1); // 1: Date/Time, 2: Details, 3: Success
+    const [duration, setDuration] = useState<60 | 120>(60);
 
-    // Mock time slots
-    const timeSlots = [
-        "10:00", "11:30", "13:00", "16:00", "17:30", "19:00"
-    ];
+    // Huecos libres reales, leídos del calendario de Google
+    const [timeSlots, setTimeSlots] = useState<string[]>([]);
+    const [loadingSlots, setLoadingSlots] = useState(false);
+    const [slotsError, setSlotsError] = useState<string | null>(null);
+
+    // Datos del cliente
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [sending, setSending] = useState(false);
+    const [sendError, setSendError] = useState<string | null>(null);
+
+    const toDateStr = (d: Date) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    const loadSlots = useCallback(async (d: Date, dur: number) => {
+        setLoadingSlots(true);
+        setSlotsError(null);
+        setTimeSlots([]);
+        try {
+            const res = await fetch(`/api/bookings/slots?date=${toDateStr(d)}&duration=${dur}`);
+            const json = await res.json();
+            if (!json.success) throw new Error(json.error);
+            setTimeSlots(json.slots);
+        } catch {
+            setSlotsError('No se pudo consultar la disponibilidad. Reintenta en un momento.');
+        } finally {
+            setLoadingSlots(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (date) loadSlots(date, duration);
+    }, [date, duration, loadSlots]);
 
     const handleDateSelect = (newDate: Date | undefined) => {
         setDate(newDate);
@@ -34,9 +66,41 @@ function BookingContent() {
         if (date && time) setStep(2);
     };
 
-    const handleConfirm = () => {
-        // Here we would send the data to the backend/email
-        setStep(3);
+    const formValid = firstName.trim() && email.includes('@') && phone.trim();
+
+    const handleConfirm = async () => {
+        if (!date || !time || !formValid || sending) return;
+        setSending(true);
+        setSendError(null);
+        try {
+            const res = await fetch('/api/bookings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+                    email: email.trim(),
+                    phone: phone.trim(),
+                    service: serviceType,
+                    date: toDateStr(date),
+                    time,
+                    duration,
+                }),
+            });
+            const json = await res.json();
+            if (!json.success) {
+                if (res.status === 409) {
+                    setStep(1);
+                    setTime(null);
+                    loadSlots(date, duration);
+                }
+                throw new Error(json.error || 'Error desconocido');
+            }
+            setStep(3);
+        } catch (err: any) {
+            setSendError(err.message || 'No se pudo enviar la solicitud.');
+        } finally {
+            setSending(false);
+        }
     };
 
     return (
@@ -101,7 +165,28 @@ function BookingContent() {
                                             Hora
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent className="grid grid-cols-2 md:grid-cols-1 gap-2">
+                                    <CardContent className="space-y-2">
+                                        <div className="grid grid-cols-2 gap-2 pb-2 border-b border-zinc-800">
+                                            {[60, 120].map((d) => (
+                                                <Button
+                                                    key={d}
+                                                    size="sm"
+                                                    variant={duration === d ? "default" : "outline"}
+                                                    className={duration === d
+                                                        ? "bg-white text-black hover:bg-zinc-200 font-bold"
+                                                        : "bg-transparent border-zinc-700 text-zinc-400 hover:bg-zinc-800"}
+                                                    onClick={() => { setDuration(d as 60 | 120); setTime(null); }}
+                                                >
+                                                    {d === 60 ? '1 h' : '2 h'}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                        {loadingSlots && <p className="text-zinc-500 text-xs text-center py-4">Consultando agenda…</p>}
+                                        {slotsError && <p className="text-red-400 text-xs text-center py-4">{slotsError}</p>}
+                                        {!loadingSlots && !slotsError && timeSlots.length === 0 && (
+                                            <p className="text-zinc-500 text-xs text-center py-4">Sin huecos libres este día. Prueba otra fecha.</p>
+                                        )}
+                                        <div className="grid grid-cols-2 md:grid-cols-1 gap-2">
                                         {timeSlots.map((slot) => (
                                             <Button
                                                 key={slot}
@@ -115,6 +200,7 @@ function BookingContent() {
                                                 {slot}
                                             </Button>
                                         ))}
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </div>
@@ -130,21 +216,22 @@ function BookingContent() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label className="text-zinc-300">Nombre</Label>
-                                            <Input placeholder="Tu nombre" className="bg-zinc-950 border-zinc-800 text-white" />
+                                            <Input placeholder="Tu nombre" value={firstName} onChange={e => setFirstName(e.target.value)} className="bg-zinc-950 border-zinc-800 text-white" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label className="text-zinc-300">Apellido</Label>
-                                            <Input placeholder="Tu apellido" className="bg-zinc-950 border-zinc-800 text-white" />
+                                            <Input placeholder="Tu apellido" value={lastName} onChange={e => setLastName(e.target.value)} className="bg-zinc-950 border-zinc-800 text-white" />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-zinc-300">Email</Label>
-                                        <Input type="email" placeholder="tu@email.com" className="bg-zinc-950 border-zinc-800 text-white" />
+                                        <Input type="email" placeholder="tu@email.com" value={email} onChange={e => setEmail(e.target.value)} className="bg-zinc-950 border-zinc-800 text-white" />
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-zinc-300">Teléfono</Label>
-                                        <Input type="tel" placeholder="+34 600 000 000" className="bg-zinc-950 border-zinc-800 text-white" />
+                                        <Input type="tel" placeholder="+34 600 000 000" value={phone} onChange={e => setPhone(e.target.value)} className="bg-zinc-950 border-zinc-800 text-white" />
                                     </div>
+                                    {sendError && <p className="text-red-400 text-sm">{sendError}</p>}
                                     <div className="space-y-2">
                                         <Label className="text-zinc-300">Tipo de Sesión</Label>
                                         <Select
@@ -174,7 +261,7 @@ function BookingContent() {
                                 <p className="text-zinc-400 max-w-md mx-auto mb-8">
                                     Hemos recibido tu solicitud de reserva para el <strong>{date?.toLocaleDateString()}</strong> a las <strong>{time}</strong>.
                                     <br /><br />
-                                    Te contactaremos en breve para confirmar la disponibilidad y finalizar el pago.
+                                    Está pendiente de confirmación: recibirás un email en cuanto quede confirmada.
                                 </p>
                                 <Button asChild className="bg-white text-black hover:bg-zinc-200 font-bold">
                                     <Link href="/creator">VOLVER AL INICIO</Link>
@@ -206,7 +293,7 @@ function BookingContent() {
                                     <div className="flex justify-between items-center border-b border-zinc-800 pb-2">
                                         <span className="text-zinc-400 text-sm">Hora</span>
                                         <span className="text-white font-bold text-sm">
-                                            {time || '-'}
+                                            {time ? `${time} (${duration === 60 ? '1 h' : '2 h'})` : '-'}
                                         </span>
                                     </div>
 
@@ -240,8 +327,9 @@ function BookingContent() {
                                             <Button
                                                 className="flex-[2] bg-primary text-black hover:bg-primary/90 font-black tracking-widest"
                                                 onClick={handleConfirm}
+                                                disabled={!formValid || sending}
                                             >
-                                                CONFIRMAR
+                                                {sending ? 'ENVIANDO…' : 'CONFIRMAR'}
                                             </Button>
                                         </div>
                                     )}
