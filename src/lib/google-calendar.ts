@@ -62,3 +62,79 @@ export const getBusyDates = async (start: Date, end: Date) => {
         return [];
     }
 };
+
+// --- Reservas (Scene Me booking) ---
+
+const getCalendar = () => {
+    const auth = getAuthClient();
+    if (!auth) return null;
+    return google.calendar({ version: 'v3', auth });
+};
+
+const CALENDAR_ID = () => process.env.GOOGLE_CALENDAR_ID || 'primary';
+
+export interface BookingEventInput {
+    name: string;
+    email: string;
+    phone: string;
+    service: string;
+    startISO: string;
+    endISO: string;
+}
+
+// Crea la solicitud como evento PROVISIONAL: visible en el calendario
+// pero 'transparent' (no bloquea la fecha hasta que Chris la acepte).
+export const createPendingBooking = async (b: BookingEventInput) => {
+    const calendar = getCalendar();
+    if (!calendar) throw new Error('Calendario no configurado (faltan credenciales)');
+    const res = await calendar.events.insert({
+        calendarId: CALENDAR_ID(),
+        requestBody: {
+            summary: `⏳ PENDIENTE · ${b.service} · ${b.name}`,
+            description: `Solicitud de reserva desde Scene Me\n\nNombre: ${b.name}\nEmail: ${b.email}\nTeléfono: ${b.phone}\nServicio: ${b.service}\n\nAcepta o rechaza desde el email que has recibido.`,
+            start: { dateTime: b.startISO, timeZone: 'Europe/Madrid' },
+            end: { dateTime: b.endISO, timeZone: 'Europe/Madrid' },
+            transparency: 'transparent',
+            extendedProperties: {
+                private: { sceneMe: 'booking', clientName: b.name, clientEmail: b.email, service: b.service },
+            },
+        },
+    });
+    return res.data;
+};
+
+export const getBookingEvent = async (eventId: string) => {
+    const calendar = getCalendar();
+    if (!calendar) throw new Error('Calendario no configurado (faltan credenciales)');
+    const res = await calendar.events.get({ calendarId: CALENDAR_ID(), eventId });
+    // Solo tratamos eventos creados por la app
+    if (res.data.extendedProperties?.private?.sceneMe !== 'booking') return null;
+    return res.data;
+};
+
+// Confirmar: el evento pasa a bloquear la fecha y cambia el título.
+export const confirmBooking = async (eventId: string) => {
+    const calendar = getCalendar();
+    if (!calendar) throw new Error('Calendario no configurado (faltan credenciales)');
+    const event = await getBookingEvent(eventId);
+    if (!event) throw new Error('Reserva no encontrada');
+    const res = await calendar.events.patch({
+        calendarId: CALENDAR_ID(),
+        eventId,
+        requestBody: {
+            summary: (event.summary || '').replace('⏳ PENDIENTE', '✅ RESERVADO'),
+            transparency: 'opaque',
+        },
+    });
+    return res.data;
+};
+
+// Rechazar: se elimina el evento provisional del calendario.
+export const rejectBooking = async (eventId: string) => {
+    const calendar = getCalendar();
+    if (!calendar) throw new Error('Calendario no configurado (faltan credenciales)');
+    const event = await getBookingEvent(eventId);
+    if (!event) throw new Error('Reserva no encontrada');
+    await calendar.events.delete({ calendarId: CALENDAR_ID(), eventId });
+    return event;
+};
