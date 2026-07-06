@@ -1,0 +1,49 @@
+# CI — chequeos automáticos de calidad en cada push y pull request.
+# Si algo se rompe, GitHub te avisa por email antes de que llegue a producción.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    name: Tests y tipos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Comprobar tipos (TypeScript)
+        run: npm run typecheck
+
+      - name: Ejecutar tests
+        run: npm test
+
+  lint:
+    # Informativo por ahora: hay ~95 avisos históricos pendientes de limpiar.
+    # Cuando se limpien, quitar continue-on-error para que bloquee.
+    name: Lint (informativo)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint

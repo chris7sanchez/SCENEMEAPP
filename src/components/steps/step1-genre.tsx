@@ -48,26 +48,30 @@ export default function Step1Genre({ formData, updateForm, setStep }: Step1Genre
     };
 
     const GenreSelection = ({ sceneIndex, currentGenre }: { sceneIndex: 0 | 1, currentGenre: string }) => (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-2">
             {GENRES.map((g: any) => {
                 const Icon = GENRE_ICONS[g.id] || Clapperboard;
+                const selected = currentGenre === g.label;
                 return (
-                    <div
+                    <button
                         key={g.id}
+                        type="button"
+                        aria-pressed={selected}
                         onClick={() => updateScene(sceneIndex, { genre: g.label })}
                         className={cn(
-                            "cursor-pointer rounded-xl border-2 p-4 transition-all hover:border-primary/50 hover:bg-gray-100",
-                            currentGenre === g.label
-                                ? "border-primary border-[3px] bg-primary/20 shadow-[0_0_20px_rgba(234,179,8,0.2)]"
-                                : "border-transparent bg-gray-50"
+                            "group relative flex flex-col items-start gap-1 cursor-pointer rounded-2xl border p-4 text-left transition-all",
+                            selected
+                                ? "border-primary bg-primary/15 shadow-[0_0_24px_hsla(42,90%,55%,0.18)]"
+                                : "border-border bg-secondary hover:border-primary/50 hover:bg-primary/5"
                         )}
                     >
-                        <div className="mb-3 flex justify-center md:justify-start">
-                            <Icon className={cn("w-8 h-8", currentGenre === g.label ? "text-primary fill-primary/20" : "text-black")} />
-                        </div>
-                        <div className="font-bold text-black">{g.label}</div>
-                        <div className="text-xs text-gray-600 mt-1">{g.desc}</div>
-                    </div>
+                        <Icon className={cn(
+                            "w-9 h-9 mb-2 transition-colors",
+                            selected ? "text-primary" : "text-primary/70 group-hover:text-primary"
+                        )} />
+                        <div className="font-bold text-foreground leading-tight">{g.label}</div>
+                        <div className="text-xs text-muted-foreground">{g.desc}</div>
+                    </button>
                 );
             })}
         </div>

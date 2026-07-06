@@ -50,7 +50,7 @@ const improveAISceneFlow = ai.defineFlow(
         inputSchema: ImproveAISceneInputSchema,
         outputSchema: ImproveAISceneOutputSchema,
     },
-    async input => {
+    async (input: ImproveAISceneInput) => {
         const { output } = await prompt(input);
         return output!;
     }

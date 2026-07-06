@@ -13,7 +13,7 @@ const TABS = [
 ] as const;
 
 // Rutas donde NO mostrar la barra
-const HIDDEN_ROUTES = ['/admin', '/exquisit', '/hub', '/astro-lab', '/astrologia', '/alquimia', '/xalvaje'];
+const HIDDEN_ROUTES = ['/admin', '/exquisit', '/hub', '/login', '/astro-lab', '/astrologia', '/alquimia', '/xalvaje'];
 
 export function BottomTabBar() {
     const pathname = usePathname();

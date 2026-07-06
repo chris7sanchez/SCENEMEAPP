@@ -1,0 +1,17 @@
+# Dependabot — agente automático de GitHub que vigila las dependencias.
+# Cada semana abre pull requests con actualizaciones (incluidas las de
+# seguridad) para que solo tengas que revisarlas y pulsar "Merge".
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-// Initialize Resend with API Key from env
-// If no key is present, it will throw an error when trying to send, which we catch.
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Resend se inicializa de forma perezosa dentro del handler
+// (evita romper el build de producción cuando no hay clave configurada).
 
 export async function POST(req: Request) {
     try {
@@ -61,6 +60,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: true, mock: true });
         }
 
+        const resend = new Resend(process.env.RESEND_API_KEY);
         const dataRes = await resend.emails.send({
             from: 'Scene Me <onboarding@resend.dev>', // Update this with your domain later
             to: [to],

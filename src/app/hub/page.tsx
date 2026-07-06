@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { MoveRight } from "lucide-react";
+import { MoveRight, CalendarDays } from "lucide-react";
 
 export default function XperimentalHubPage() {
   const router = useRouter();
@@ -92,11 +92,39 @@ export default function XperimentalHubPage() {
           </div>
         </div>
 
+        {/* Accesos rápidos (no impresos en la claqueta) */}
+        <div className="flex flex-wrap items-center justify-center gap-3 -mt-6 animate-in fade-in duration-1000 delay-500">
+            <button
+                onClick={() => router.push('/tools/agenda')}
+                className="group/agenda flex items-center gap-2 px-5 py-2.5 rounded-full border border-orange-600/30 bg-orange-600/5 hover:bg-orange-600/10 hover:border-orange-600/60 transition-all duration-300"
+                title="Abrir tu Agenda"
+            >
+                <CalendarDays className="w-4 h-4 text-orange-600" />
+                <span className="text-[11px] font-black uppercase tracking-[0.3em] text-orange-200/90">Agenda</span>
+            </button>
+            <button
+                onClick={() => router.push('/tools/convert')}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-zinc-800 hover:border-zinc-600 hover:bg-white/5 transition-all duration-300"
+                title="Convertir material"
+            >
+                <span className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400">Convert</span>
+            </button>
+        </div>
+
         {/* Footer info text */}
         <div className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.3em] mt-16 animate-in fade-in duration-1000 delay-700">
             XPERIMENTAL ACTING STUDIO // CENTRAL SERVER // ACTIVE CONNECT
         </div>
       </div>
+
+      {/* Acceso discreto al área de actores (login SCENE ME) */}
+      <button
+        onClick={() => router.push('/login')}
+        className="absolute bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-mono uppercase tracking-[0.3em] text-zinc-700 hover:text-zinc-400 transition-colors z-20"
+        title="Acceso actores"
+      >
+        acceso actores
+      </button>
     </div>
   );
 }

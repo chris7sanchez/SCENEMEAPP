@@ -86,11 +86,11 @@ export default function VideoProcessorPage() {
           fileName,
           preset,
           suffix,
-          targetFolder,
           situation,
-          tags.split(',').map(t => t.trim()).filter(t => t)
+          tags.split(',').map(t => t.trim()).filter(t => t),
+          targetFolder
         );
-        if (result.success) successCount++;
+        if (result) successCount++;
       }
 
       toast({

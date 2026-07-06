@@ -1,19 +1,22 @@
 import { NextResponse } from 'next/server';
 import * as admin from 'firebase-admin';
 
-// Initialize firebase-admin only once
-if (!admin.apps.length) {
+// firebase-admin se inicializa de forma perezosa dentro del handler
+// (evita romper el build cuando no hay service account configurado).
+function ensureAdmin(): boolean {
+    if (admin.apps.length) return true;
     const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
-    // Replace \n string with actual newline if needed
-    const formattedPrivateKey = privateKey ? privateKey.replace(/\\n/g, '\n') : undefined;
-
+    const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    if (!privateKey || !clientEmail || !projectId) return false;
     admin.initializeApp({
         credential: admin.credential.cert({
-            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-            clientEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-            privateKey: formattedPrivateKey,
+            projectId,
+            clientEmail,
+            privateKey: privateKey.replace(/\\n/g, '\n'),
         }),
     });
+    return true;
 }
 
 export async function POST(req: Request) {
@@ -28,8 +31,10 @@ export async function POST(req: Request) {
         }
 
         if (password === masterPassword) {
-            // Generar un token personalizado para Firebase
-            // Esto permite que el cliente se autentique en Firestore con permisos
+            if (!ensureAdmin()) {
+                return NextResponse.json({ error: 'Firebase admin no configurado' }, { status: 500 });
+            }
+            // Token personalizado para que el cliente se autentique en Firestore con permisos
             const customToken = await admin.auth().createCustomToken('admin-dashboard');
             return NextResponse.json({ success: true, token: customToken });
         } else {

@@ -24,7 +24,7 @@ export async function GET(req: Request) {
         return NextResponse.json({
             success: true,
             script: result.script,
-            length: result.script.length
+            length: result.script?.length ?? 0
         });
 
     } catch (error: any) {

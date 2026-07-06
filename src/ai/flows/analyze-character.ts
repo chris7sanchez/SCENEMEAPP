@@ -14,11 +14,19 @@ function generateMockProfile(name: string, error?: string): AnalyzeCharacterOutp
         ascendant: randomSign(),
         elements: { fire: 25, earth: 25, air: 25, water: 25 },
         archetype: "El Superviviente (Simulación)",
+        essence: "En la simulación, el alma encuentra su forma provisional.",
         analysis: `[MODO SIMULACIÓN] No se pudo conectar con la IA Real (${error || 'Clave API faltante o error interno'}). Se ha generado un perfil arquetípico basado en la estructura del guion para permitirte continuar trabajando.`,
         threePillars: {
             sunReasoning: "Energía proyectada simulada.",
             moonReasoning: "Respuesta emocional inferida por el sistema.",
             ascendantReasoning: "Máscara social predeterminada."
+        },
+        methodActing: {
+            psychologicalGesture: "Un puño cerrado que se abre lentamente.",
+            voiceQuality: "Tempo medido, tono neutro y textura serena.",
+            animalTotem: "Un lobo paciente a la espera.",
+            physicalCenter: "Plexo solar",
+            emotionalLandscape: "Un mar en calma sobre una corriente profunda."
         }
     };
 }
