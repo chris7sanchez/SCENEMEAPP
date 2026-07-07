@@ -13,11 +13,11 @@ export default function FeedbackPage() {
         <h1 className="text-4xl font-serif italic mb-4">Feedback & Registro</h1>
         <p className="text-zinc-600 uppercase tracking-widest text-[10px] font-black mb-12">PRODUCTION LOGS SYNC // PENDING INTEGRATION</p>
         
-        <button 
-          onClick={() => router.push('/hub')}
+        <button
+          onClick={() => router.push('/creator')}
           className="inline-flex items-center gap-2 text-xs font-black uppercase text-white hover:text-zinc-400 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" /> Volver al Hub
+          <ArrowLeft className="w-4 h-4" /> Volver
         </button>
       </div>
     </div>

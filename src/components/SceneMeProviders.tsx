@@ -20,7 +20,6 @@ export function SceneMeProviders({ children }: { children: React.ReactNode }) {
     { id: "astrologia", label: "Astrología", run: () => router.push("/astrologia"), group: "Astrología" },
     { id: "exquisit", label: "Exquisit Lab", run: () => router.push("/exquisit"), group: "Labs" },
     { id: "alquimia", label: "Alquimia", run: () => router.push("/alquimia"), group: "Labs" },
-    { id: "hub", label: "Hub", run: () => router.push("/hub"), group: "Navegación" },
     { id: "talents", label: "Talents", run: () => router.push("/talents"), group: "Navegación" },
   ];
 

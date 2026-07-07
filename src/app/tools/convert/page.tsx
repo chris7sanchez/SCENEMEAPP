@@ -58,12 +58,12 @@ export default function VideoConverterPage() {
       
       {/* Header / Nav */}
       <div className="absolute top-8 left-8">
-        <Button 
-            variant="ghost" 
-            onClick={() => router.push('/hub')}
+        <Button
+            variant="ghost"
+            onClick={() => router.push('/creator')}
             className="text-zinc-500 hover:text-white flex items-center gap-2 uppercase text-[10px] font-black tracking-widest"
         >
-            <MoveLeft className="w-4 h-4" /> Volver al Hub
+            <MoveLeft className="w-4 h-4" /> Volver
         </Button>
       </div>
 

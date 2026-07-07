@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
-// La app abre directamente en el Xperimental Hub.
-// El login de actores se movió a /login (sigue accesible desde el Hub).
+// La app abre en el login de actores (/login). El Hub (/hub) queda fuera del
+// flujo público: es material para alumnos y se vinculará desde otra entrada.
 export default function Home() {
-    redirect('/hub');
+    redirect('/login');
 }

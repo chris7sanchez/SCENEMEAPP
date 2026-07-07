@@ -48,7 +48,7 @@ function CreatorContent() {
                 if (isGuest) {
                     setIsLoading(false);
                 } else {
-                    router.push('/');
+                    router.push('/login');
                 }
             } else {
                 setCurrentUserEmail(user.email);
