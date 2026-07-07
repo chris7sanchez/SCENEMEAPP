@@ -37,6 +37,23 @@ export interface UserAccount {
 
 const NOT_CONFIGURED = "Firebase no está configurado en este entorno (faltan las claves NEXT_PUBLIC_FIREBASE_*).";
 
+// Errores de Firebase Auth en lenguaje humano (los códigos crudos en inglés
+// confunden al actor que solo quiere entrar).
+function humanAuthError(error: any, fallback: string): string {
+    const code: string = error?.code || "";
+    if (code.includes("invalid-credential") || code.includes("wrong-password") || code.includes("user-not-found"))
+        return "Email o contraseña incorrectos. Si te registraste con Google, usa «Continuar con Google».";
+    if (code.includes("too-many-requests"))
+        return "Demasiados intentos. Espera unos minutos o restablece tu contraseña.";
+    if (code.includes("invalid-email")) return "Ese email no tiene un formato válido.";
+    if (code.includes("email-already-in-use"))
+        return "Ese email ya tiene cuenta. Inicia sesión (o usa «Continuar con Google» si la creaste así).";
+    if (code.includes("weak-password")) return "La contraseña debe tener al menos 6 caracteres.";
+    if (code.includes("network-request-failed")) return "Sin conexión con el servidor. Revisa tu internet e inténtalo de nuevo.";
+    if (code.includes("user-disabled")) return "Esta cuenta está deshabilitada.";
+    return error?.message || fallback;
+}
+
 export const auth = {
     login: async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
         if (!firebaseAuth) return { success: false, error: NOT_CONFIGURED };
@@ -45,7 +62,7 @@ export const auth = {
             return { success: true };
         } catch (error: any) {
             console.error("Login error FULL:", error);
-            return { success: false, error: error.message || "Unknown login error" };
+            return { success: false, error: humanAuthError(error, "No se pudo iniciar sesión.") };
         }
     },
 
@@ -55,7 +72,7 @@ export const auth = {
             const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
             // Try to create user document, but don't fail registration if it fails (we can create it later)
             try {
-                await setDoc(doc(db, "users", userCredential.user.uid), {
+                if (db) await setDoc(doc(db, "users", userCredential.user.uid), {
                     email: email,
                     createdAt: new Date().toISOString()
                 });
@@ -65,7 +82,7 @@ export const auth = {
             return { success: true };
         } catch (error: any) {
             console.error("Registration error FULL:", error);
-            return { success: false, error: error.message || "Unknown registration error" };
+            return { success: false, error: humanAuthError(error, "No se pudo crear la cuenta.") };
         }
     },
 

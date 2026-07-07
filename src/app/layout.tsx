@@ -45,8 +45,12 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    // suppressHydrationWarning en <html>/<body>: extensiones del navegador (cupones,
+    // dark mode, gestores de contraseñas) inyectan atributos antes de que React
+    // hidrate; sin esto React aborta la hidratación (#418), re-monta la página y
+    // BORRA lo que el usuario ya había escrito (p. ej. en el login).
     return (
-        <html lang="es" className="dark" data-theme="dark">
+        <html lang="es" className="dark" data-theme="dark" suppressHydrationWarning>
             <head>
                 {/* Limpia cualquier service worker/caché viejo (PWA) para que los
                     despliegues nuevos lleguen siempre sin quedarse en versión cacheada. */}
@@ -59,7 +63,7 @@ export default function RootLayout({
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Contrail+One&family=Encode+Sans+SC:wght@400;700&family=Faster+One&family=Limelight&family=Roboto+Condensed:wght@400;700&family=Trocchi&family=Caveat:wght@400;700&family=Cinzel:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet" />
             </head>
-            <body className="font-body antialiased flex flex-col min-h-screen" style={{ backgroundColor: 'var(--sm-bg-base)', color: 'var(--sm-text-primary)' }}>
+            <body className="font-body antialiased flex flex-col min-h-screen" style={{ backgroundColor: 'var(--sm-bg-base)', color: 'var(--sm-text-primary)' }} suppressHydrationWarning>
                 <SceneMeProviders>
                     <SplashScreen />
                     <GlobalErrorBoundary>
