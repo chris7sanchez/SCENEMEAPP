@@ -13,7 +13,6 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { auth as firebaseAuth, db } from "./firebase";
-import { isMobileEnv } from "./auth-env";
 import { UserProfile } from "./types";
 
 // Crea el documento del usuario en Firestore si aún no existe (primer login social).
@@ -80,25 +79,28 @@ export const auth = {
         }
     },
 
-    // Login con Google. Popup en escritorio; redirección en móvil/PWA; si el popup
-    // se bloquea, cae a redirección. En redirección, el resultado se recoge al
-    // recargar con completeRedirectLogin().
+    // Login con Google. POPUP SIEMPRE primero, en todos los dispositivos:
+    // signInWithRedirect está roto en Safari/iOS 16.1+ (partición de almacenamiento
+    // de terceros: getRedirectResult vuelve null y el login falla EN SILENCIO)
+    // mientras el authDomain sea *.firebaseapp.com. El popup se comunica por
+    // postMessage y sí funciona. Redirección solo como último recurso.
     loginWithGoogle: async (): Promise<{ success: boolean; redirecting?: boolean; error?: string }> => {
         if (!firebaseAuth) return { success: false, error: NOT_CONFIGURED };
         const provider = new GoogleAuthProvider();
         try {
-            if (isMobileEnv()) {
-                await signInWithRedirect(firebaseAuth, provider);
-                return { success: true, redirecting: true };
-            }
             const cred = await signInWithPopup(firebaseAuth, provider);
             await ensureUserDoc(cred.user.uid, cred.user.email || "", "google");
             return { success: true };
         } catch (error: any) {
             const code: string = error?.code || "";
-            // Popup bloqueado o no soportado -> fallback a redirección
-            if (code.includes("popup-blocked") || code.includes("popup-closed") || code.includes("cancelled-popup") || code.includes("operation-not-supported")) {
+            // El usuario cerró la ventana: no es un fallo técnico, avisar y ya
+            if (code.includes("popup-closed") || code.includes("cancelled-popup")) {
+                return { success: false, error: "Ventana de Google cerrada antes de terminar. Vuelve a intentarlo." };
+            }
+            // Popup bloqueado o entorno sin popups (PWA instalada) -> redirección
+            if (code.includes("popup-blocked") || code.includes("operation-not-supported")) {
                 try {
+                    localStorage.setItem("auth_redirect_pending", String(Date.now()));
                     await signInWithRedirect(firebaseAuth, new GoogleAuthProvider());
                     return { success: true, redirecting: true };
                 } catch (e: any) {
@@ -108,24 +110,36 @@ export const auth = {
             if (code.includes("account-exists-with-different-credential")) {
                 return { success: false, error: "Ya existe una cuenta con ese email (creada con contraseña). Inicia sesión con tu email." };
             }
+            if (code.includes("unauthorized-domain")) {
+                return { success: false, error: "Este dominio no está autorizado en Firebase (Authentication → Dominios autorizados)." };
+            }
             console.error("loginWithGoogle error:", error);
             return { success: false, error: error?.message || "No se pudo iniciar con Google" };
         }
     },
 
-    // Completa el login tras volver de una redirección (móvil/PWA). Llamar al montar.
-    completeRedirectLogin: async (): Promise<boolean> => {
-        if (!firebaseAuth) return false;
+    // Completa el login tras volver de una redirección (fallback PWA). Llamar al montar.
+    // Si veníamos de una redirección (flag) y no hay resultado ni sesión, es el
+    // fallo silencioso de Safari/ITP: lo devolvemos como error visible.
+    completeRedirectLogin: async (): Promise<{ ok: boolean; error?: string }> => {
+        if (!firebaseAuth) return { ok: false };
+        const pending = localStorage.getItem("auth_redirect_pending");
         try {
             const res = await getRedirectResult(firebaseAuth);
+            localStorage.removeItem("auth_redirect_pending");
             if (res && res.user) {
                 await ensureUserDoc(res.user.uid, res.user.email || "", "google");
-                return true;
+                return { ok: true };
             }
-            return false;
-        } catch (e) {
+            // Redirección iniciada hace <5 min pero sin resultado NI usuario: Safari la bloqueó
+            if (pending && Date.now() - Number(pending) < 5 * 60 * 1000 && !firebaseAuth.currentUser) {
+                return { ok: false, error: "Safari bloqueó el acceso por redirección. Vuelve a pulsar «Continuar con Google» (se abrirá una ventana)." };
+            }
+            return { ok: false };
+        } catch (e: any) {
+            localStorage.removeItem("auth_redirect_pending");
             console.error("completeRedirectLogin error:", e);
-            return false;
+            return { ok: false, error: e?.message };
         }
     },
 

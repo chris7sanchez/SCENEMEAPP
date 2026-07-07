@@ -42,11 +42,14 @@ export default function LoginPage() {
 
     React.useEffect(() => {
         import('@/lib/auth').then(async ({ auth }) => {
-            await auth.completeRedirectLogin();
+            const redirect = await auth.completeRedirectLogin();
             const user = await auth.getCurrentUser();
             if (user) {
                 router.push('/creator');
+                return;
             }
+            // Fallo silencioso de la redirección (Safari/ITP): mostrarlo, no callarlo
+            if (redirect.error) setError(redirect.error);
         });
     }, [router]);
 
