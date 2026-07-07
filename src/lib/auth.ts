@@ -50,7 +50,8 @@ function humanAuthError(error: any, fallback: string): string {
     if (code.includes("email-already-in-use"))
         return "Ese email ya tiene cuenta. Inicia sesión (o usa «Continuar con Google» si la creaste así).";
     if (code.includes("weak-password")) return "La contraseña debe tener al menos 6 caracteres.";
-    if (code.includes("network-request-failed")) return "Sin conexión con el servidor. Revisa tu internet e inténtalo de nuevo.";
+    if (code.includes("network-request-failed"))
+        return "No se pudo conectar con el servidor de acceso. Si tu internet funciona, lo más probable es que un bloqueador de anuncios o de contenido (Safari, AdBlock, Coupert…) esté cortando la conexión con Google: desactívalo para scenemeapp.com e inténtalo de nuevo.";
     if (code.includes("user-disabled")) return "Esta cuenta está deshabilitada.";
     return error?.message || fallback;
 }
