@@ -86,7 +86,6 @@ export default function ScriptAnalyzer() {
     const [userLibrary, setUserLibrary] = useState<UserData[]>([]);
     const [showUserLibrary, setShowUserLibrary] = useState(false);
     const [userSigns, setUserSigns] = useState<{ sun: string, moon: string, ascendant: string } | null>(null);
-    const [dailyAspects, setDailyAspects] = useState<Aspect[]>([]);
     const [mundaneAspects, setMundaneAspects] = useState<Aspect[]>([]);
     const [dailyReading, setDailyReading] = useState<DailyReadingOutput | null>(null);
     const [isReadingLoading, setIsReadingLoading] = useState(false);
@@ -281,13 +280,11 @@ export default function ScriptAnalyzer() {
         const transits = calculateRealPlanets(transitDate.toISOString(), currentUser.latitude, currentUser.longitude);
         const natal = calculateRealPlanets(currentUser.date, currentUser.latitude, currentUser.longitude);
         const aspects = calculateAspects(transits.planets, natal.planets, 'NATAL');
-        setDailyAspects(aspects.slice(0, 5));
 
-        // Only fetch if the key is new (different user or different transit day)
         if (cacheKey === lastReadingKey.current) return;
         lastReadingKey.current = cacheKey;
 
-        const timer = setTimeout(() => fetchDailyReading(currentUser, aspects.slice(0, 5)), 500);
+        const timer = setTimeout(() => fetchDailyReading(currentUser, aspects), 500);
         return () => clearTimeout(timer);
     }, [transitDate, currentUser?.date, currentUser?.latitude, currentUser?.longitude]);
 
@@ -718,7 +715,7 @@ export default function ScriptAnalyzer() {
                 <div className="max-w-[98vw] mx-auto p-4 md:p-8 relative z-10 font-sans text-stone-900 selection:bg-stone-200">
                     <ChartNotesSystem chartId={currentUser?.date || 'default'} />
                     
-                    <header className="flex flex-col lg:flex-row lg:flex-wrap justify-between items-center mb-16 gap-6 lg:gap-8 bg-white/70 backdrop-blur-2xl p-6 md:p-8 rounded-none border border-[#1a1a1a]/10 shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-[100] w-full">
+                    <header className="flex flex-col lg:flex-row lg:flex-wrap justify-between items-center mb-8 gap-5 lg:gap-6 bg-white/70 backdrop-blur-2xl p-5 md:p-6 rounded-none border border-[#1a1a1a]/10 shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-[100] w-full">
                         <div className="flex flex-col items-center md:items-start gap-1">
                             <div className="flex items-center gap-6">
                                 <button
@@ -747,7 +744,7 @@ export default function ScriptAnalyzer() {
                             <button
                                 key={m.id}
                                 onClick={() => handleViewModeChange(m.id as ViewMode)}
-                                className={`flex-1 lg:flex-initial min-w-0 flex flex-col lg:flex-row items-center justify-center gap-1 lg:gap-3 px-1.5 py-2.5 md:px-6 md:py-4 transition-all duration-300 border rounded-none ${viewMode === m.id ? 'bg-black text-white border-black shadow-lg' : 'bg-transparent text-gray-400 border-transparent hover:text-gray-900 hover:bg-white'}`}
+                                className={`flex-1 lg:flex-initial min-w-0 flex flex-col lg:flex-row items-center justify-center gap-1 lg:gap-2 px-1.5 py-2 md:px-4 md:py-3 transition-all duration-300 border rounded-none ${viewMode === m.id ? 'bg-black text-white border-black shadow-lg' : 'bg-transparent text-gray-400 border-transparent hover:text-gray-900 hover:bg-white'}`}
                             >
                                 <div className="shrink-0 flex items-center justify-center">
                                     {typeof m.icon === 'function' ? <m.icon /> : React.createElement(m.icon as any, { size: 18 })}
@@ -760,39 +757,10 @@ export default function ScriptAnalyzer() {
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setShowLibrary(true)}
-                            className="flex items-center gap-3 px-8 py-5 border border-black/10 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-black hover:text-white transition-all shadow-sm rounded-none"
+                            className="flex items-center gap-2 px-5 py-3 border border-black/10 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all shadow-sm rounded-none"
                         >
-                            <BookOpen size={20} /> BIBLIOTHECA
+                            <BookOpen size={16} /> BIBLIOTHECA
                         </button>
-
-                        <div className="h-12 w-px bg-black/10 hidden md:block"></div>
-
-                        {isLoggedIn ? (
-                            <div className="flex items-center gap-2 text-[11px] text-[#1a1a1a]/50">
-                                <Fingerprint size={12} className="opacity-40" />
-                                <span className="font-serif">{userEmail.split('@')[0]}</span>
-                                <button
-                                    onClick={handleLogout}
-                                    className="p-1 text-[#1a1a1a]/25 hover:text-[#ef4444] transition-all"
-                                    title="Desconectar sesión"
-                                >
-                                    <Trash2 size={14} />
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-end group/auth">
-                                <button
-                                    onClick={() => {
-                                        const email = window.prompt("Introduce tu Email de Operador:");
-                                        if (email) handleLogin(email);
-                                    }}
-                                    className="bg-[#1a1a1a] text-white px-12 py-5 text-[11px] font-black uppercase tracking-[0.4em] shadow-[4px_4px_20px_rgba(0,0,0,0.2)] hover:bg-[#C55959] transition-all rounded-none"
-                                >
-                                    Acceso Operador
-                                </button>
-                                <span className="text-[9px] text-gray-400 uppercase tracking-widest mt-2 opacity-50 font-mono">Session ID Required</span>
-                            </div>
-                        )}
                     </div>
                 </header>
 
@@ -811,7 +779,6 @@ export default function ScriptAnalyzer() {
                             cosmosViewMode={cosmosViewMode} setCosmosViewMode={setCosmosViewMode}
                             chartTheme={chartTheme} setChartTheme={setChartTheme}
                             userSigns={userSigns} dailyReading={dailyReading} isReadingLoading={isReadingLoading}
-                            dailyAspects={dailyAspects}
                         />
                     )}
 

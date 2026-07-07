@@ -1,6 +1,7 @@
 "use client";
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { calculateRealPlanets, PlanetPosition } from '@/utils/astronomy';
+import { ASTEROID_DEFS, AsteroidPosition } from '@/utils/asteroids';
 
 const ZODIAC_SIGNS = [
     { symbol: '♈', name: 'Aries', color: '#FF4500' },
@@ -31,6 +32,7 @@ interface NatalChartProps {
     forceAriesZero?: boolean;
     theme?: 'classic' | 'modern' | 'alchemical';
     showTransits?: boolean;
+    showAsteroids?: boolean;
 }
 
 const THEMES = {
@@ -98,10 +100,25 @@ export default function NatalChart2D({
     timezone = 0, isDST = false, transitsDate,
     knownAscendant, knownMoon, customPlanets,
     transparent = false, forceAriesZero = false,
-    theme = 'classic'
+    theme = 'classic', showAsteroids = true
 }: NatalChartProps) {
     const style = THEMES[theme] || THEMES.classic;
     const [hoveredPlanet, setHoveredPlanet] = useState<string | null>(null);
+
+    // ── Asteroides (efemérides reales vía /api/asteroids, módulo aislado) ──
+    const [asteroids, setAsteroids] = useState<AsteroidPosition[]>([]);
+    const [astOn, setAstOn] = useState<Record<string, boolean>>(
+        Object.fromEntries(ASTEROID_DEFS.map(a => [a.name, true]))
+    );
+    useEffect(() => {
+        if (!date || !showAsteroids) { setAsteroids([]); return; }
+        let cancelled = false;
+        fetch(`/api/asteroids?date=${encodeURIComponent(date)}`)
+            .then(r => r.json())
+            .then(j => { if (!cancelled && j?.ok && Array.isArray(j.asteroids)) setAsteroids(j.asteroids); })
+            .catch(() => { /* aislado: si JPL falla, no se muestran asteroides */ });
+        return () => { cancelled = true; };
+    }, [date, showAsteroids]);
 
     const { natalPlanets, ascendant, houses, chartRotation } = useMemo(() => {
         if (!date) return { natalPlanets: [], ascendant: 0, houses: [], chartRotation: 0 };
@@ -160,6 +177,7 @@ export default function NatalChart2D({
     const R_ANCHOR = R_ZODIAC_INNER - 8; // Where the anchor line starts (near the degree mark)
     const R_HOUSE_LINE = R_ZODIAC_INNER;
     const R_ASPECT = R_OUTER * 0.82; // Aspect lines draw from here
+    const R_AST = R_OUTER * 0.56; // Asteroid symbol ring (inner sub-ring)
 
     // Transit ring (outside R_OUTER)
     const R_TRANSIT_TICK = R_OUTER + 10;
@@ -185,6 +203,12 @@ export default function NatalChart2D({
         [transitPlanets]
     );
 
+    const activeAsteroids = asteroids.filter(a => astOn[a.name]);
+    const asteroidDispAngles = useMemo(
+        () => resolveNonOverlapping(activeAsteroids, 12),
+        [asteroids, astOn]
+    );
+
     return (
         <div className={`w-full h-full flex items-center justify-center relative ${transparent ? 'bg-transparent' : 'bg-white rounded-full shadow-2xl'} text-black`}>
             <svg viewBox="-70 -70 540 540" className="w-full h-full" style={{ overflow: 'visible' }}>
@@ -199,10 +223,10 @@ export default function NatalChart2D({
                 {/* Inner planet ring guide (subtle) */}
                 <circle cx={cx} cy={cy} r={R_SYMBOL + 16} fill="none" stroke={style.ring} strokeWidth="0.3" opacity="0.2" strokeDasharray="3,4" />
 
-                {/* ── Sign boundaries (dashed) */}
                 {Array.from({ length: 12 }).map((_, i) => {
-                    const c = polar(i * 30, R_OUTER);
-                    return <line key={`sb-${i}`} x1={cx} y1={cy} x2={c.x} y2={c.y} stroke={style.ring} strokeWidth="0.5" strokeDasharray="4,3" opacity="0.4" />;
+                    const a = polar(i * 30, R_OUTER);
+                    const b = polar(i * 30, R_ZODIAC_INNER);
+                    return <line key={`sb-${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={style.ring} strokeWidth="0.6" opacity="0.5" />;
                 })}
 
                 {/* ── Zodiac glyphs */}
@@ -217,19 +241,20 @@ export default function NatalChart2D({
                     );
                 })}
 
-                {/* ── House cusps + numbers */}
                 {houses.map((cuspLon, i) => {
                     const c = polar(cuspLon, R_HOUSE_LINE);
                     const nextCusp = houses[(i + 1) % 12];
                     let mid = (cuspLon + nextCusp) / 2;
                     if (nextCusp < cuspLon) mid = ((cuspLon + nextCusp + 360) / 2) % 360;
-                    const nC = polar(mid, R_OUTER * 0.35);
+                    const nC = polar(mid, R_OUTER * 0.40);
+                    const isAngular = i === 0 || i === 3 || i === 6 || i === 9;
                     return (
                         <g key={`house-${i}`}>
-                            <line x1={cx} y1={cy} x2={c.x} y2={c.y} stroke={style.houseLine} strokeWidth={style.strokeNormal} />
+                            <line x1={cx} y1={cy} x2={c.x} y2={c.y}
+                                stroke={isAngular ? style.line : '#cfcfcf'}
+                                strokeWidth={isAngular ? '1.4' : '0.7'} />
                             <text x={nC.x} y={nC.y} textAnchor="middle" dominantBaseline="middle"
-                                fill={style.text} opacity="0.55" fontSize={theme === 'alchemical' ? "10" : "8"}
-                                fontFamily={style.font}>{i + 1}</text>
+                                fill={style.text} opacity="0.5" fontSize="9" fontFamily="monospace">{i + 1}</text>
                         </g>
                     );
                 })}
@@ -239,27 +264,20 @@ export default function NatalChart2D({
                     x2={cx + R_OUTER * Math.cos(0)} y2={cy + R_OUTER * Math.sin(0)}
                     stroke={style.line} strokeWidth={style.strokeBold} opacity="0.8" />
 
-                {/* ── Aspect lines */}
                 {natalPlanets.map((p1, i) =>
                     natalPlanets.slice(i + 1).map((p2) => {
                         let diff = Math.abs(p1.longitude - p2.longitude);
                         if (diff > 180) diff = 360 - diff;
-                        const orb = 8;
+                        const orb = 6;
                         const isTrine = Math.abs(diff - 120) < orb;
                         const isSquare = Math.abs(diff - 90) < orb;
                         const isOpp = Math.abs(diff - 180) < orb;
-                        const isSextile = Math.abs(diff - 60) < 5;
-                        const isQuincunx = Math.abs(diff - 150) < 4;
-                        if (!isTrine && !isSquare && !isOpp && !isSextile && !isQuincunx) return null;
+                        if (!isTrine && !isSquare && !isOpp) return null;
                         const c1 = polar(p1.longitude, R_ASPECT);
                         const c2 = polar(p2.longitude, R_ASPECT);
-                        let color = '#ccc', width = "0.5", dash = '0';
-                        if (isTrine) { color = '#3b82f6'; width = "1"; }
-                        if (isSquare || isOpp) { color = '#ef4444'; width = "1"; }
-                        if (isSextile) { color = '#10b981'; dash = '2,2'; }
-                        if (isQuincunx) { color = '#8b5cf6'; dash = '1,3'; }
+                        const color = isTrine ? '#3b82f6' : '#ef4444';
                         return <line key={`asp-${p1.name}-${p2.name}`} x1={c1.x} y1={c1.y} x2={c2.x} y2={c2.y}
-                            stroke={color} strokeWidth={width} strokeDasharray={dash} opacity="0.7" />;
+                            stroke={color} strokeWidth="0.7" opacity="0.28" />;
                     })
                 )}
 
@@ -346,6 +364,37 @@ export default function NatalChart2D({
                                     </text>
                                 </g>
                             )}
+                        </g>
+                    );
+                })}
+
+                {/* ── ASTEROIDES (Quirón · Ceres · Pallas · Juno · Vesta) — anillo interior */}
+                {activeAsteroids.map((ast, i) => {
+                    const tickOuter = polar(ast.longitude, R_TICK_OUTER);
+                    const tickInner = polar(ast.longitude, R_TICK_INNER);
+                    const dispLon = asteroidDispAngles[i] ?? ast.longitude;
+                    const symPos = polar(dispLon, R_AST);
+                    const symEdge = polar(dispLon, R_AST + 11);
+                    const anchorStart = polar(ast.longitude, R_ANCHOR);
+                    const midPoint = polar((ast.longitude + dispLon) / 2, (R_ANCHOR + R_AST + 12) / 2);
+                    const deg = Math.floor(ast.longitude % 30);
+                    const rr = style.planetRadius * 0.78;
+                    return (
+                        <g key={`ast-${ast.name}`}>
+                            <line x1={tickOuter.x} y1={tickOuter.y} x2={tickInner.x} y2={tickInner.y}
+                                stroke={ast.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.85" />
+                            {Math.abs(dispLon - ast.longitude) > 1 && (
+                                <path d={`M${anchorStart.x},${anchorStart.y} Q${midPoint.x},${midPoint.y} ${symEdge.x},${symEdge.y}`}
+                                    fill="none" stroke={ast.color} strokeWidth="0.5" strokeDasharray="2,2" opacity="0.5" />
+                            )}
+                            <circle cx={symPos.x} cy={symPos.y} r={rr}
+                                fill={style.planetBg} stroke={ast.color} strokeWidth="1" strokeDasharray="2,1.5" />
+                            <text x={symPos.x} y={symPos.y} textAnchor="middle" dominantBaseline="middle"
+                                fill={ast.color} fontSize={style.planetFontSize * 0.82} fontWeight="bold" fontFamily={style.font}>
+                                {ast.symbol}
+                            </text>
+                            <text x={symPos.x} y={symPos.y + rr + 5} textAnchor="middle"
+                                fill={style.text} fontSize="5.5" fontFamily="monospace" opacity="0.6">{deg}°</text>
                         </g>
                     );
                 })}
@@ -448,6 +497,21 @@ export default function NatalChart2D({
                 <circle cx={cx} cy={cy} r="4" fill={style.line} />
 
             </svg>
+
+            {showAsteroids && asteroids.length > 0 && (
+                <div className="absolute top-2 left-2 z-10 flex flex-col gap-0.5 bg-white/85 backdrop-blur-sm rounded-lg p-2 border border-black/5 shadow-sm text-[9px]">
+                    <span className="font-mono uppercase tracking-wider text-gray-400 mb-1 px-0.5">Asteroides</span>
+                    {asteroids.map(a => (
+                        <label key={a.name} className="flex items-center gap-1.5 cursor-pointer select-none hover:bg-black/5 rounded px-0.5 py-px">
+                            <input type="checkbox" checked={!!astOn[a.name]}
+                                onChange={() => setAstOn(p => ({ ...p, [a.name]: !p[a.name] }))}
+                                style={{ accentColor: a.color, width: 11, height: 11 }} />
+                            <span style={{ color: a.color }} className="text-[11px] leading-none">{a.symbol}</span>
+                            <span className="text-gray-600">{a.name}</span>
+                        </label>
+                    ))}
+                </div>
+            )}
 
             <div className="absolute bottom-2 right-2 text-xs text-gray-500 font-serif">
                 {date ? new Date(date).toLocaleDateString() : 'DEMO'}
