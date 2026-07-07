@@ -128,7 +128,13 @@ function CreatorContent() {
         }
     }, [step, formData, dynamicLabel, currentUserEmail, userProfile?.firstName, flowType, activeTab]);
 
-    if (isLoading) return null;
+    // Nunca pantalla en blanco: feedback visible mientras se resuelve la sesión
+    if (isLoading) return (
+        <div className="min-h-screen bg-[hsl(var(--sm-bg-base))] flex flex-col items-center justify-center gap-4">
+            <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/50">Cargando Scene Me…</p>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-[hsl(var(--sm-bg-base))] text-[hsl(var(--sm-text-muted))] flex flex-col">
