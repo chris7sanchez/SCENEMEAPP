@@ -11,6 +11,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+    const [info, setInfo] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
@@ -172,6 +173,7 @@ export default function LoginPage() {
                             </div>
 
                             {error && <p className="text-destructive text-xs font-bold text-center bg-destructive/10 p-2 rounded-lg">{error}</p>}
+                            {info && <p className="text-xs font-bold text-center p-2 rounded-lg" style={{ color: 'hsl(150, 60%, 55%)', background: 'hsla(150, 60%, 40%, 0.12)' }}>{info}</p>}
 
                             <Button
                                 type="submit"
@@ -185,6 +187,23 @@ export default function LoginPage() {
                             >
                                 {isLoading ? 'CARGANDO...' : (isLogin ? 'ENTRAR' : 'REGISTRARME')}
                             </Button>
+
+                            {isLogin && (
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        setError(''); setInfo('');
+                                        const { auth } = await import('@/lib/auth');
+                                        const r = await auth.resetPassword(email.trim());
+                                        if (r.success) setInfo(`Te hemos enviado un email a ${email.trim()} para crear una contraseña nueva. Revisa también el spam.`);
+                                        else setError(r.error || 'No se pudo enviar el email.');
+                                    }}
+                                    className="w-full text-center font-bold text-[11px] uppercase tracking-widest transition-colors hover:text-primary"
+                                    style={{ color: 'hsl(220, 15%, 65%)' }}
+                                >
+                                    ¿Olvidaste tu contraseña?
+                                </button>
+                            )}
                         </form>
 
                         {/* SSO Section */}

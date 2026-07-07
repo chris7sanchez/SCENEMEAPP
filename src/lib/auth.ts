@@ -3,6 +3,7 @@
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    sendPasswordResetEmail,
     signOut,
     onAuthStateChanged,
     GoogleAuthProvider,
@@ -63,6 +64,20 @@ export const auth = {
         } catch (error: any) {
             console.error("Login error FULL:", error);
             return { success: false, error: humanAuthError(error, "No se pudo iniciar sesión.") };
+        }
+    },
+
+    // Envía el email de restablecimiento de contraseña (camino garantizado para
+    // recuperar el acceso cuando la contraseña guardada no coincide).
+    resetPassword: async (email: string): Promise<{ success: boolean; error?: string }> => {
+        if (!firebaseAuth) return { success: false, error: NOT_CONFIGURED };
+        if (!email || !email.includes("@")) return { success: false, error: "Escribe tu email arriba y vuelve a pulsar aquí." };
+        try {
+            await sendPasswordResetEmail(firebaseAuth, email);
+            return { success: true };
+        } catch (error: any) {
+            console.error("resetPassword error:", error);
+            return { success: false, error: humanAuthError(error, "No se pudo enviar el email de recuperación.") };
         }
     },
 
