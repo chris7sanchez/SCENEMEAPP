@@ -244,7 +244,7 @@ export default function LoginPage() {
                     variant="ghost"
                     onClick={() => router.push('/admin')}
                     className="font-mono tracking-widest uppercase text-[9px] px-4"
-                    style={{ color: 'hsl(220, 15%, 40%)' }}
+                    style={{ color: 'hsl(220, 15%, 62%)' }}
                 >
                     <Lock className="w-2.5 h-2.5 mr-1" /> admin
                 </Button>

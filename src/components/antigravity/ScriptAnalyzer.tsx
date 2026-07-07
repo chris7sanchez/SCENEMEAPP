@@ -718,9 +718,9 @@ export default function ScriptAnalyzer() {
                 <div className="max-w-[98vw] mx-auto p-4 md:p-8 relative z-10 font-sans text-stone-900 selection:bg-stone-200">
                     <ChartNotesSystem chartId={currentUser?.date || 'default'} />
                     
-                    <header className="flex flex-col lg:flex-row lg:flex-wrap justify-between items-center mb-16 gap-6 lg:gap-8 bg-white/70 backdrop-blur-2xl p-6 md:p-8 rounded-none border border-[#1a1a1a]/10 shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-[100] w-full">
+                    <header className="flex flex-col lg:flex-row lg:flex-wrap justify-between items-center mb-8 gap-4 lg:gap-6 bg-white/70 backdrop-blur-2xl p-4 md:p-5 rounded-none border border-[#1a1a1a]/10 shadow-[16px_16px_48px_-18px_rgba(0,0,0,0.1)] relative z-[100] w-full">
                         <div className="flex flex-col items-center md:items-start gap-1">
-                            <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-4">
                                 <button
                                     onClick={() => router.push('/creator')}
                                     className="p-2 border border-[#1a1a1a]/20 hover:bg-[#1a1a1a] hover:text-white transition-all group"
@@ -728,12 +728,12 @@ export default function ScriptAnalyzer() {
                                 >
                                     <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
                                 </button>
-                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-display tracking-[0.15em] text-[#1a1a1a] leading-none">ALCHEMISTERY</h1>
+                                <h1 className="text-3xl md:text-4xl font-display tracking-[0.12em] text-[#1a1a1a] leading-none">ACTORLOGÍA</h1>
                             </div>
-                            <p className="text-[10px] tracking-[0.4em] uppercase font-black text-[#C55959]/60 flex items-center gap-4 mt-2">
+                            <p className="text-[9px] tracking-[0.35em] uppercase font-black text-[#A34545] flex items-center gap-3 mt-2">
                                 <span>Alquimia Actoral</span>
                                 <span className="w-8 h-[1px] bg-[#C55959]/20"></span>
-                                <span>v4.0.2</span>
+                                <span>v4.1</span>
                             </p>
                         </div>
 
@@ -747,7 +747,7 @@ export default function ScriptAnalyzer() {
                             <button
                                 key={m.id}
                                 onClick={() => handleViewModeChange(m.id as ViewMode)}
-                                className={`flex-1 lg:flex-initial min-w-0 flex flex-col lg:flex-row items-center justify-center gap-1 lg:gap-3 px-1.5 py-2.5 md:px-6 md:py-4 transition-all duration-300 border rounded-none ${viewMode === m.id ? 'bg-black text-white border-black shadow-lg' : 'bg-transparent text-gray-400 border-transparent hover:text-gray-900 hover:bg-white'}`}
+                                className={`flex-1 lg:flex-initial min-w-0 flex flex-col lg:flex-row items-center justify-center gap-1 lg:gap-2.5 px-1.5 py-2 md:px-5 md:py-3 transition-all duration-300 border rounded-none ${viewMode === m.id ? 'bg-black text-white border-black shadow-lg' : 'bg-transparent text-gray-600 border-transparent hover:text-gray-900 hover:bg-white'}`}
                             >
                                 <div className="shrink-0 flex items-center justify-center">
                                     {typeof m.icon === 'function' ? <m.icon /> : React.createElement(m.icon as any, { size: 18 })}
@@ -760,12 +760,12 @@ export default function ScriptAnalyzer() {
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setShowLibrary(true)}
-                            className="flex items-center gap-3 px-8 py-5 border border-black/10 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-black hover:text-white transition-all shadow-sm rounded-none"
+                            className="flex items-center gap-2 px-5 py-3 border border-black/10 text-[10px] font-black uppercase tracking-[0.25em] hover:bg-black hover:text-white transition-all shadow-sm rounded-none"
                         >
-                            <BookOpen size={20} /> BIBLIOTHECA
+                            <BookOpen size={16} /> BIBLIOTHECA
                         </button>
 
-                        <div className="h-12 w-px bg-black/10 hidden md:block"></div>
+                        <div className="h-8 w-px bg-black/10 hidden md:block"></div>
 
                         {isLoggedIn ? (
                             <div className="flex items-center gap-2 text-[11px] text-[#1a1a1a]/50">
@@ -786,11 +786,11 @@ export default function ScriptAnalyzer() {
                                         const email = window.prompt("Introduce tu Email de Operador:");
                                         if (email) handleLogin(email);
                                     }}
-                                    className="bg-[#1a1a1a] text-white px-12 py-5 text-[11px] font-black uppercase tracking-[0.4em] shadow-[4px_4px_20px_rgba(0,0,0,0.2)] hover:bg-[#C55959] transition-all rounded-none"
+                                    className="bg-[#1a1a1a] text-white px-7 py-3 text-[10px] font-black uppercase tracking-[0.3em] shadow-[4px_4px_16px_rgba(0,0,0,0.2)] hover:bg-[#C55959] transition-all rounded-none"
                                 >
                                     Acceso Operador
                                 </button>
-                                <span className="text-[9px] text-gray-400 uppercase tracking-widest mt-2 opacity-50 font-mono">Session ID Required</span>
+                                <span className="text-[9px] text-gray-600 uppercase tracking-widest mt-2 font-mono">Session ID Required</span>
                             </div>
                         )}
                     </div>
@@ -833,10 +833,10 @@ export default function ScriptAnalyzer() {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn pb-12">
                             <div className="lg:col-span-1 glass-panel p-6 rounded-none shadow-xl">
                                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Users size={18} /> Mi Red</h3>
-                                <p className="text-[10px] text-gray-400 mb-3 leading-relaxed">Los personajes que analizas en <b>EL CUERPO</b> aparecen aquí automáticamente. Elige <b>dos almas</b> para ver su sinergia:</p>
+                                <p className="text-[10px] text-gray-600 mb-3 leading-relaxed">Los personajes que analizas en <b>EL CUERPO</b> aparecen aquí automáticamente. Elige <b>dos almas</b> para ver su sinergia:</p>
                                 <div className="space-y-2 mb-5">
                                     <div>
-                                        <label className="text-[9px] uppercase font-black text-gray-400 block mb-1">Alma A ☉</label>
+                                        <label className="text-[9px] uppercase font-black text-gray-600 block mb-1">Alma A ☉</label>
                                         <select value={spiritSourceId} onChange={e => setSpiritSourceId(e.target.value)} className="w-full bg-white border border-black/10 p-2 text-xs font-bold uppercase rounded outline-none focus:border-black">
                                             <option value="user">Yo Mismo</option>
                                             {characterProfiles.map((c, i) => (<option key={i} value={'char-' + i}>{c.name}</option>))}
@@ -844,7 +844,7 @@ export default function ScriptAnalyzer() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-[9px] uppercase font-black text-gray-400 block mb-1">Alma B ☾</label>
+                                        <label className="text-[9px] uppercase font-black text-gray-600 block mb-1">Alma B ☾</label>
                                         <select value={spiritTargetId} onChange={e => setSpiritTargetId(e.target.value)} className="w-full bg-white border border-black/10 p-2 text-xs font-bold uppercase rounded outline-none focus:border-[#5B7C99]">
                                             <option value="">— Elige —</option>
                                             {characterProfiles.map((c, i) => (<option key={i} value={'char-' + i}>{c.name}</option>))}
@@ -856,13 +856,13 @@ export default function ScriptAnalyzer() {
                                  <div className="flex gap-1 mb-4 p-1 bg-gray-100 rounded-lg">
                                     <button 
                                         onClick={() => setSelectionPriority('source')} 
-                                        className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-md transition-all ${selectionPriority === 'source' ? 'bg-black text-white shadow-md' : 'text-gray-400'}`}
+                                        className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-md transition-all ${selectionPriority === 'source' ? 'bg-black text-white shadow-md' : 'text-gray-600'}`}
                                     >
                                         1. Base (☉)
                                     </button>
                                     <button 
                                         onClick={() => setSelectionPriority('target')} 
-                                        className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-md transition-all ${selectionPriority === 'target' ? 'bg-[#5B7C99] text-white shadow-md' : 'text-gray-400'}`}
+                                        className={`flex-1 py-2 text-[10px] font-bold uppercase rounded-md transition-all ${selectionPriority === 'target' ? 'bg-[#5B7C99] text-white shadow-md' : 'text-gray-600'}`}
                                     >
                                         2. Objetivo (☾)
                                     </button>
@@ -920,7 +920,7 @@ export default function ScriptAnalyzer() {
                                     ))}
                                 </div>
                                 <div className="bg-gray-50/50 p-4 rounded-none border border-black/5">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Añadir Conexión</p>
+                                    <p className="text-[10px] font-bold text-gray-600 uppercase mb-2">Añadir Conexión</p>
                                     <input className="input-minimal w-full mb-2 bg-white px-3 py-2 text-xs" placeholder="Nombre" value={newFriend.name} onChange={e => setNewFriend({ ...newFriend, name: e.target.value })} />
                                     <div className="flex gap-2">
                                         <input type="date" className="input-minimal flex-1 bg-white text-[10px]" value={newFriend.date} onChange={e => setNewFriend({ ...newFriend, date: e.target.value })} />
@@ -971,7 +971,7 @@ export default function ScriptAnalyzer() {
                                             <div className="flex gap-4">
                                                 {[{ l: 'Base', v: baseOpacity, s: setBaseOpacity }, { l: 'Objetivo', v: chartOpacity, s: setChartOpacity }].map(sl => (
                                                     <div key={sl.l} className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-none border border-black/5 flex items-center gap-2">
-                                                        <span className="text-[9px] font-bold uppercase text-gray-400">{sl.l}</span>
+                                                        <span className="text-[9px] font-bold uppercase text-gray-600">{sl.l}</span>
                                                         <input type="range" min="0" max="100" value={sl.v} onChange={e => sl.s(parseInt(e.target.value))} className="w-20 h-1 accent-[#C55959]" />
                                                     </div>
                                                 ))}

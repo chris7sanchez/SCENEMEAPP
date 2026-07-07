@@ -80,7 +80,7 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
 
                     <div className="flex flex-col gap-6 mb-8 relative z-10">
                         <div className="group/input relative">
-                            <label className="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-1 block group-focus-within/input:text-[#C55959] transition-colors">Tu Nombre</label>
+                            <label className="text-[9px] uppercase font-bold tracking-widest text-gray-600 mb-1 block group-focus-within/input:text-[#C55959] transition-colors">Tu Nombre</label>
                             <div className="flex items-center gap-2">
                                 <input
                                     type="text"
@@ -91,7 +91,7 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                                 />
                                 <button
                                     onClick={() => setShowUserLibrary(!showUserLibrary)}
-                                    className="p-2 hover:bg-[#F9F8F4] rounded-none text-gray-400 hover:text-[#C55959] transition-colors relative"
+                                    className="p-2 hover:bg-[#F9F8F4] rounded-none text-gray-600 hover:text-[#C55959] transition-colors relative"
                                     title="Cargar carta guardada"
                                 >
                                     <Book size={18} />
@@ -108,7 +108,7 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                                         <button onClick={() => setShowUserLibrary(false)}><X size={12} /></button>
                                     </div>
                                     {userLibrary.length === 0 && (
-                                        <div className="p-4 text-center text-xs text-gray-400 italic">No hay cartas guardadas aún.</div>
+                                        <div className="p-4 text-center text-xs text-gray-600 italic">No hay cartas guardadas aún.</div>
                                     )}
                                     {userLibrary.map((user, i) => (
                                         <div key={i} className="p-3 border-b border-black/5 hover:bg-[#F9F8F4] group flex justify-between items-center transition-colors">
@@ -135,11 +135,11 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
 
                         <div className="grid grid-cols-4 gap-4">
                             <div className="col-span-1">
-                                <label className="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Día</label>
+                                <label className="text-[9px] uppercase font-bold tracking-widest text-gray-600 mb-1 block">Día</label>
                                 <input ref={dayRef} type="text" maxLength={2} className="input-minimal w-full text-center bg-[#F9F8F4] border border-black/10 focus:border-[#C55959] py-2" placeholder="DD" value={dateParts.day} onChange={e => handleDatePartChange('day', e.target.value)} />
                             </div>
                             <div className="col-span-2">
-                                <label className="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Mes</label>
+                                <label className="text-[9px] uppercase font-bold tracking-widest text-gray-600 mb-1 block">Mes</label>
                                 <select ref={monthRef} className="input-minimal w-full bg-[#F9F8F4] border border-black/10 focus:border-[#C55959] py-2 text-xs uppercase" value={dateParts.month} onChange={e => handleDatePartChange('month', e.target.value)}>
                                     <option value="" disabled>SELECCIONAR</option>
                                     {['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'].map((m, i) => (
@@ -148,18 +148,18 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                                 </select>
                             </div>
                             <div className="col-span-1">
-                                <label className="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Año</label>
+                                <label className="text-[9px] uppercase font-bold tracking-widest text-gray-600 mb-1 block">Año</label>
                                 <input ref={yearRef} type="text" maxLength={4} className="input-minimal w-full text-center bg-[#F9F8F4] border border-black/10 focus:border-[#C55959] py-2" placeholder="AAAA" value={dateParts.year} onChange={e => handleDatePartChange('year', e.target.value)} />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-1 flex items-center gap-2"><span>Hora</span><span className="text-[8px] bg-red-100 text-red-800 px-1 rounded font-mono">HORA LOCAL</span></label>
+                                <label className="text-[9px] uppercase font-bold tracking-widest text-gray-600 mb-1 flex items-center gap-2"><span>Hora</span><span className="text-[8px] bg-red-100 text-red-800 px-1 rounded font-mono">HORA LOCAL</span></label>
                                 <input ref={timeRef} type="time" className="input-minimal w-full text-center font-mono bg-[#F9F8F4] border border-black/10 focus:border-[#C55959] py-3 text-lg" value={currentUser?.date ? new Date(currentUser.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '12:00'} onChange={e => { const [h, m] = e.target.value.split(':'); const d = currentUser?.date ? new Date(currentUser.date) : new Date(); d.setHours(parseInt(h) || 0, parseInt(m) || 0); setCurrentUser(prev => prev ? { ...prev, date: d.toISOString() } : { date: d.toISOString(), latitude: 40, longitude: -3 }); }} />
                             </div>
                             <div className="relative">
-                                <label className="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Ciudad de Nacimiento</label>
+                                <label className="text-[9px] uppercase font-bold tracking-widest text-gray-600 mb-1 block">Ciudad de Nacimiento</label>
                                 <div className="flex gap-2">
                                     <input type="text" placeholder="Ciudad..." className="input-minimal flex-1 bg-[#F9F8F4] border border-black/10 focus:border-[#C55959] px-3 py-2 uppercase text-[10px]" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLocationSearch()} />
                                     <button onClick={handleLocationSearch} disabled={isSearching} className="bg-black text-white px-3 py-2 text-[10px] font-bold uppercase hover:bg-[#C55959] transition-colors min-w-[70px] flex justify-center items-center">{isSearching ? <Loader2 className="animate-spin" size={14} /> : 'BUSCAR'}</button>

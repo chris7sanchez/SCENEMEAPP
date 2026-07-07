@@ -228,7 +228,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                             <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight uppercase">Taller de Personajes</h2>
                             <div className="flex items-center gap-2 mt-1">
                                 <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                                <p className="text-[9px] text-gray-400 uppercase tracking-[0.25em] font-black">Protocolo: Alchemistery Method</p>
+                                <p className="text-[9px] text-gray-600 uppercase tracking-[0.25em] font-black">Protocolo: Alchemistery Method</p>
                             </div>
                         </div>
                     </div>
@@ -242,7 +242,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                     "relative px-3 md:px-5 py-2.5 rounded-full flex items-center gap-2.5 transition-all duration-500 overflow-hidden",
                                     activeStep === s.id
                                         ? "text-white shadow-xl"
-                                        : "text-gray-400 hover:text-gray-600 hover:bg-black/5"
+                                        : "text-gray-600 hover:text-gray-600 hover:bg-black/5"
                                 )}
                             >
                                 {activeStep === s.id && (
@@ -277,7 +277,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                         <div className="lg:col-span-8 space-y-6">
                             <div className="glass-panel p-0 overflow-hidden relative group rounded-none shadow-2xl h-[600px] border-2 border-black/5">
                                 <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10 border-b border-black/5 bg-white/60 backdrop-blur-md">
-                                    <span className="text-[11px] uppercase font-black tracking-[0.4em] text-gray-400 flex items-center gap-3">
+                                    <span className="text-[11px] uppercase font-black tracking-[0.4em] text-gray-600 flex items-center gap-3">
                                         <FileText size={16} className="text-black" /> Laboratorio de Guiones
                                     </span>
                                     <div className="flex items-center gap-4">
@@ -320,7 +320,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                 }
                                             }}
                                         />
-                                        <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-3 py-1 rounded-none uppercase">{scriptText.length} chars</span>
+                                        <span className="text-[10px] font-mono text-gray-600 bg-gray-100 px-3 py-1 rounded-none uppercase">{scriptText.length} chars</span>
                                         <button
                                             onClick={() => setScriptText('')}
                                             className="text-gray-300 hover:text-red-500 transition-colors"
@@ -359,13 +359,13 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                         <div className="lg:col-span-4 space-y-6">
                             <div className="glass-panel p-8 bg-black/5 rounded-none border-2 border-black/10 shadow-inner h-full">
                                 <div className="flex justify-between items-center mb-8">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-gray-400 flex items-center gap-3">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-gray-600 flex items-center gap-3">
                                         <Fingerprint size={16} /> Elenco Detectado
                                     </h3>
                                     {characterProfiles.length > 0 && (
                                         <button
                                             onClick={() => setCharacterProfiles([])}
-                                            className="text-gray-400 hover:text-red-500 transition-colors"
+                                            className="text-gray-600 hover:text-red-500 transition-colors"
                                             title="Limpiar elenco"
                                         >
                                             <Trash2 size={16} />
@@ -390,7 +390,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                 >
                                                     <div className="flex flex-col">
                                                         <span className="text-xs font-black uppercase tracking-widest group-hover:text-amber-600 transition-colors">{char.name}</span>
-                                                        <span className="text-[9px] text-gray-400 uppercase font-bold mt-1">{char.fullAnalysis.archetype}</span>
+                                                        <span className="text-[9px] text-gray-600 uppercase font-bold mt-1">{char.fullAnalysis.archetype}</span>
                                                     </div>
                                                 </button>
                                                 
@@ -433,12 +433,12 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                 </div>
                                                 <div>
                                                     <h3 className="text-2xl font-black text-gray-900 font-serif leading-none">{characterProfiles[selectedCharacterId].name}</h3>
-                                                    <p className="text-[10px] text-gray-400 uppercase tracking-[0.3em] font-black mt-1.5">{characterProfiles[selectedCharacterId].fullAnalysis.archetype}</p>
+                                                    <p className="text-[10px] text-gray-600 uppercase tracking-[0.3em] font-black mt-1.5">{characterProfiles[selectedCharacterId].fullAnalysis.archetype}</p>
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => setEditingCharacterId(editingCharacterId === selectedCharacterId ? null : selectedCharacterId)}
-                                                className={cn("p-3 rounded-full transition-all", editingCharacterId === selectedCharacterId ? "bg-black text-white" : "bg-gray-100 text-gray-400 hover:text-black")}
+                                                className={cn("p-3 rounded-full transition-all", editingCharacterId === selectedCharacterId ? "bg-black text-white" : "bg-gray-100 text-gray-600 hover:text-black")}
                                                 title="Editar / afinar la carta"
                                             >
                                                 <Edit3 size={18} />
@@ -493,7 +493,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                     <div className="grid grid-cols-3 gap-2 mb-5">
                                                         {trio.map(t => (
                                                             <div key={t.l} className="bg-white border border-black/5 px-3 py-2 text-center">
-                                                                <span className="block text-[8px] font-black uppercase tracking-widest text-gray-400">{t.l}</span>
+                                                                <span className="block text-[8px] font-black uppercase tracking-widest text-gray-600">{t.l}</span>
                                                                 <span className="block text-xs font-black uppercase text-gray-900 mt-0.5 truncate">{t.v}</span>
                                                             </div>
                                                         ))}
@@ -514,7 +514,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                     </div>
 
                                                     {isSearchingDates ? (
-                                                        <div className="flex items-center gap-2 text-[10px] text-gray-400 italic py-3">
+                                                        <div className="flex items-center gap-2 text-[10px] text-gray-600 italic py-3">
                                                             <Loader2 size={12} className="animate-spin" /> Buscando encarnaciones reales para el trío…
                                                         </div>
                                                     ) : foundDates.length > 0 ? (
@@ -548,7 +548,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                             })}
                                                         </div>
                                                     ) : (
-                                                        <p className="text-[10px] text-gray-400 italic py-2">
+                                                        <p className="text-[10px] text-gray-600 italic py-2">
                                                             No se encontraron días exactos para este trío y edad. Ajusta el trío o la edad con el lápiz ✎ y pulsa Recalcular.
                                                         </p>
                                                     )}
@@ -578,7 +578,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                         const val = (item.override ? characterProfiles[selectedCharacterId].fullAnalysis[item.override] : null) || characterProfiles[selectedCharacterId].fullAnalysis[item.key] || 'Aries';
                                                         return (
                                                             <div key={item.label} className="flex flex-col bg-white p-4 rounded-none border border-black/5 shadow-sm">
-                                                                <label className="text-[9px] uppercase font-black text-gray-400 mb-2">{item.label}</label>
+                                                                <label className="text-[9px] uppercase font-black text-gray-600 mb-2">{item.label}</label>
                                                                 <select
                                                                     className="text-xs font-black uppercase border-none outline-none bg-transparent text-gray-900"
                                                                     value={val}
@@ -606,7 +606,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                     <div className="bg-white p-6 border border-black/5 space-y-6">
                                                         <div className="flex items-end gap-4">
                                                             <div className="flex-1">
-                                                                <label className="text-[9px] uppercase font-black text-gray-400 mb-2 block">Edad del Personaje</label>
+                                                                <label className="text-[9px] uppercase font-black text-gray-600 mb-2 block">Edad del Personaje</label>
                                                                 <input 
                                                                     type="number" 
                                                                     className="w-full text-lg font-black bg-gray-50 border-none p-3 focus:ring-1 ring-amber-500 outline-none"
@@ -625,7 +625,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
 
                                                         {foundDates.length > 0 && (
                                                             <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-500">
-                                                                <p className="text-[9px] uppercase font-bold text-gray-400">Fechas compatibles encontradas:</p>
+                                                                <p className="text-[9px] uppercase font-bold text-gray-600">Fechas compatibles encontradas:</p>
                                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                                     {foundDates.map((date, idx) => (
                                                                         <button
@@ -656,7 +656,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-800/40 mb-4">Ajuste Manual Fino</h4>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="flex flex-col bg-white p-4 rounded-none border border-black/5 shadow-sm">
-                                                            <label className="text-[9px] uppercase font-black text-gray-400 mb-2">Día de Nacimiento (UTC)</label>
+                                                            <label className="text-[9px] uppercase font-black text-gray-600 mb-2">Día de Nacimiento (UTC)</label>
                                                             <input 
                                                                 type="date" 
                                                                 className="text-xs font-black uppercase border-none outline-none bg-transparent text-gray-900 w-full"
@@ -670,7 +670,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                             />
                                                         </div>
                                                         <div className="flex flex-col bg-white p-4 rounded-none border border-black/5 shadow-sm">
-                                                            <label className="text-[9px] uppercase font-black text-gray-400 mb-2">Hora (UTC)</label>
+                                                            <label className="text-[9px] uppercase font-black text-gray-600 mb-2">Hora (UTC)</label>
                                                             <input 
                                                                 type="time" 
                                                                 className="text-xs font-black uppercase border-none outline-none bg-transparent text-gray-900 w-full"
@@ -802,7 +802,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                         </h4>
                                         <div className="space-y-6">
                                             <div className="space-y-3">
-                                                <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Deseo Raíz (Super-Objetivo)</label>
+                                                <label className="text-[10px] uppercase font-black text-gray-600 tracking-widest">Deseo Raíz (Super-Objetivo)</label>
                                                 <textarea
                                                     className="w-full bg-gray-50 border border-black/5 rounded-[25px] p-6 text-sm font-serif italic focus:border-amber-500 transition-all outline-none h-32"
                                                     placeholder="¿Qué es lo que más desea el personaje en la vida?"
@@ -816,7 +816,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                 />
                                             </div>
                                             <div className="space-y-3">
-                                                <label className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Subtexto (Lo No Dicho)</label>
+                                                <label className="text-[10px] uppercase font-black text-gray-600 tracking-widest">Subtexto (Lo No Dicho)</label>
                                                 <textarea
                                                     className="w-full bg-gray-50 border border-black/5 rounded-[25px] p-6 text-sm font-serif italic focus:border-amber-500 transition-all outline-none h-32"
                                                     placeholder="Secretos, miedos y contradicciones..."
