@@ -18,6 +18,7 @@ import { UserProfile } from "./types";
 
 // Crea el documento del usuario en Firestore si aún no existe (primer login social).
 async function ensureUserDoc(uid: string, email: string, provider: string): Promise<void> {
+    if (!db) return;
     try {
         const ref = doc(db, "users", uid);
         const snap = await getDoc(ref);
@@ -35,8 +36,11 @@ export interface UserAccount {
     profile?: UserProfile;
 }
 
+const NOT_CONFIGURED = "Firebase no está configurado en este entorno (faltan las claves NEXT_PUBLIC_FIREBASE_*).";
+
 export const auth = {
     login: async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+        if (!firebaseAuth) return { success: false, error: NOT_CONFIGURED };
         try {
             await signInWithEmailAndPassword(firebaseAuth, email, password);
             return { success: true };
@@ -47,6 +51,7 @@ export const auth = {
     },
 
     register: async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+        if (!firebaseAuth) return { success: false, error: NOT_CONFIGURED };
         try {
             const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
             // Try to create user document, but don't fail registration if it fails (we can create it later)
@@ -66,6 +71,7 @@ export const auth = {
     },
 
     logout: async () => {
+        if (!firebaseAuth) { localStorage.removeItem('scene_me_current_user'); return; }
         try {
             await signOut(firebaseAuth);
             localStorage.removeItem('scene_me_current_user'); // Clear legacy/cache
@@ -78,6 +84,7 @@ export const auth = {
     // se bloquea, cae a redirección. En redirección, el resultado se recoge al
     // recargar con completeRedirectLogin().
     loginWithGoogle: async (): Promise<{ success: boolean; redirecting?: boolean; error?: string }> => {
+        if (!firebaseAuth) return { success: false, error: NOT_CONFIGURED };
         const provider = new GoogleAuthProvider();
         try {
             if (isMobileEnv()) {
@@ -108,6 +115,7 @@ export const auth = {
 
     // Completa el login tras volver de una redirección (móvil/PWA). Llamar al montar.
     completeRedirectLogin: async (): Promise<boolean> => {
+        if (!firebaseAuth) return false;
         try {
             const res = await getRedirectResult(firebaseAuth);
             if (res && res.user) {
@@ -126,18 +134,21 @@ export const auth = {
     // Ideally, use a React Context for Auth.
     getCurrentUser: async (): Promise<UserAccount | null> => {
         return new Promise((resolve) => {
+            if (!firebaseAuth) { resolve(null); return; } // Sin Firebase → invitado
             const unsubscribe = onAuthStateChanged(firebaseAuth, async (user) => {
                 if (user) {
-                    // Fetch profile from Firestore
-                    const docRef = doc(db, "users", user.uid);
-                    const docSnap = await getDoc(docRef);
-                    const data = docSnap.exists() ? docSnap.data() : {};
-
-                    resolve({
-                        email: user.email || "",
-                        uid: user.uid,
-                        profile: data.profile as UserProfile | undefined
-                    });
+                    // Perfil desde Firestore (si hay db); si no, devolvemos al usuario sin perfil.
+                    let profile: UserProfile | undefined;
+                    if (db) {
+                        try {
+                            const docSnap = await getDoc(doc(db, "users", user.uid));
+                            const data = docSnap.exists() ? docSnap.data() : {};
+                            profile = data.profile as UserProfile | undefined;
+                        } catch (e) {
+                            console.error("getCurrentUser profile fetch error:", e);
+                        }
+                    }
+                    resolve({ email: user.email || "", uid: user.uid, profile });
                 } else {
                     resolve(null);
                 }
@@ -147,6 +158,7 @@ export const auth = {
     },
 
     updateProfile: async (profile: UserProfile): Promise<void> => {
+        if (!firebaseAuth || !db) return;
         const user = firebaseAuth.currentUser;
         if (!user) return;
 

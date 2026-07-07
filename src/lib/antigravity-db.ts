@@ -23,6 +23,7 @@ function getRef(uid: string) {
 }
 
 export async function loadAntigravityState(): Promise<AntigravityState | null> {
+    if (!firebaseAuth || !db) return null; // Firebase no configurado → modo local
     const user = firebaseAuth.currentUser;
     if (!user) return null;
 
@@ -36,6 +37,7 @@ export async function loadAntigravityState(): Promise<AntigravityState | null> {
 }
 
 export async function saveAntigravityState(state: Partial<AntigravityState>): Promise<void> {
+    if (!firebaseAuth || !db) return; // Firebase no configurado → modo local
     const user = firebaseAuth.currentUser;
     if (!user) return;
 

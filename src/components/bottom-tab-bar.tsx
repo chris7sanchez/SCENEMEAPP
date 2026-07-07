@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 const TABS = [
     { id: 'home', label: 'Inicio', icon: Home, path: '/creator' },
     { id: 'services', label: 'Servicios', icon: Clapperboard, path: '/creator?tab=services' },
-    { id: 'workshop', label: 'Alquimia', icon: Sparkles, path: '/antigravity' },
+    { id: 'workshop', label: 'Actorlogía', icon: Sparkles, path: '/actorlogia' },
     { id: 'talents', label: 'Talentos', icon: Users, path: '/talents' },
     { id: 'profile', label: 'Perfil', icon: User, path: '/creator?tab=profile' },
 ] as const;
@@ -26,7 +26,7 @@ export function BottomTabBar() {
 
     const getActiveTab = () => {
         if (pathname === '/talents') return 'talents';
-        if (pathname.startsWith('/antigravity')) return 'workshop';
+        if (pathname.startsWith('/actorlogia')) return 'workshop';
         if (pathname === '/creator' || pathname.startsWith('/creator')) return 'home';
         return 'home';
     };

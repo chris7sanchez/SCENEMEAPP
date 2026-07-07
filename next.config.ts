@@ -24,6 +24,14 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '5mb',
     },
   },
+  async redirects() {
+    return [
+      // La antigua ruta /antigravity ahora se llama /actorlogia.
+      // Solo la ruta EXACTA se redirige; los assets en /public/antigravity/*
+      // (imágenes de fondo) se siguen sirviendo sin tocar.
+      { source: '/antigravity', destination: '/actorlogia', permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -82,16 +82,27 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
 
     // Sembrar la edad del editor con la edad (del guion) SOLO al cambiar de personaje,
     // no en cada edición del perfil (si no, se reseteaba a la edad del análisis al editar).
+    // Además: al seleccionar un personaje, calcular AUTOMÁTICAMENTE los días reales que
+    // coinciden con su trío (Sol/Luna/Ascendente) para esa edad, y mostrarlos como
+    // opciones elegibles — la "propuesta según la edad del guion" que pide el flujo.
     React.useEffect(() => {
-        if (selectedCharacterId === null) return;
+        if (selectedCharacterId === null) { setFoundDates([]); return; }
         const a = characterProfiles[selectedCharacterId]?.fullAnalysis?.estimatedAge;
+        const seededAge = (typeof a === 'number' && a > 0 && a < 110) ? a : targetAge;
         if (typeof a === 'number' && a > 0 && a < 110) setTargetAge(a);
+        setFoundDates([]);
+        findBirthDatesByAge(seededAge);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCharacterId]);
 
-    const findBirthDatesByAge = () => {
+    // Busca fechas de nacimiento REALES compatibles con el trío del personaje.
+    // `ageOverride` permite pasar la edad directamente (el estado targetAge puede no
+    // estar aún actualizado en el mismo tick, p.ej. al auto-ejecutarse tras seleccionar).
+    const findBirthDatesByAge = (ageOverride?: number) => {
         if (selectedCharacterId === null) return;
         const char = characterProfiles[selectedCharacterId];
+        if (!char) return;
+        const age = (typeof ageOverride === 'number' && ageOverride > 0) ? ageOverride : targetAge;
         const sun = char.fullAnalysis.sunSign;
         const moon = char.fullAnalysis.knownMoon || char.fullAnalysis.moonSign || 'Aries';
         const asc = char.fullAnalysis.knownAscendant || char.fullAnalysis.ascendant || 'Aries';
@@ -102,12 +113,12 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
         setTimeout(() => {
             try {
                 const currentYear = new Date().getFullYear();
-                const year1 = currentYear - targetAge;
+                const year1 = currentYear - age;
                 const year2 = year1 - 1; // Para cubrir desplazamientos de fecha
 
                 const matches1 = findPossibleBirthDates(year1, sun, moon, asc);
                 const matches2 = findPossibleBirthDates(year2, sun, moon, asc);
-                
+
                 const allMatches = [...matches1, ...matches2].sort((a, b) => b.getTime() - a.getTime());
                 setFoundDates(allMatches);
             } catch (e) {
@@ -115,7 +126,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
             } finally {
                 setIsSearchingDates(false);
             }
-        }, 500);
+        }, 400);
     };
 
     const handleRefinement = async () => {
@@ -205,32 +216,32 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
     return (
         <div className="flex flex-col animate-fadeIn h-full min-h-screen pb-20">
             {/* --- HEADER CON STEPPER --- */}
-            <header className="mb-12">
-                <div className="flex flex-col lg:flex-row justify-between items-center gap-8 glass-panel p-8 rounded-none shadow-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-2 h-full bg-amber-500/50" />
+            <header className="mb-6">
+                <div className="flex flex-col lg:flex-row justify-between items-center gap-5 glass-panel p-5 rounded-none shadow-xl relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500/50" />
 
-                    <div className="flex items-center gap-6 relative z-10">
-                        <div className="w-16 h-16 bg-black text-white rounded-none flex items-center justify-center shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                            <ZapIcon size={32} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className="w-12 h-12 bg-black text-white rounded-none flex items-center justify-center shadow-[0_14px_30px_-12px_rgba(0,0,0,0.3)] transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                            <ZapIcon size={22} className="text-amber-400 group-hover:scale-110 transition-transform" />
                         </div>
                         <div>
-                            <h2 className="text-3xl font-black text-gray-900 tracking-tight uppercase">Taller de Personajes</h2>
+                            <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight uppercase">Taller de Personajes</h2>
                             <div className="flex items-center gap-2 mt-1">
-                                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                                <p className="text-[10px] text-gray-400 uppercase tracking-[0.3em] font-black">Protocolo: Alchemistery Method</p>
+                                <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                                <p className="text-[9px] text-gray-400 uppercase tracking-[0.25em] font-black">Protocolo: Alchemistery Method</p>
                             </div>
                         </div>
                     </div>
 
-                    <nav className="flex items-center gap-2 md:gap-4 bg-gray-900/5 p-2 rounded-full border border-black/5 relative z-10">
+                    <nav className="flex items-center gap-1.5 md:gap-2 bg-gray-900/5 p-1.5 rounded-full border border-black/5 relative z-10">
                         {STEPS.map((s) => (
                             <button
                                 key={s.id}
                                 onClick={() => setActiveStep(s.id)}
                                 className={cn(
-                                    "relative px-4 md:px-8 py-4 rounded-full flex items-center gap-3 transition-all duration-500 overflow-hidden",
+                                    "relative px-3 md:px-5 py-2.5 rounded-full flex items-center gap-2.5 transition-all duration-500 overflow-hidden",
                                     activeStep === s.id
-                                        ? "text-white shadow-2xl"
+                                        ? "text-white shadow-xl"
                                         : "text-gray-400 hover:text-gray-600 hover:bg-black/5"
                                 )}
                             >
@@ -241,7 +252,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                     />
                                 )}
-                                <s.icon size={18} className={cn(activeStep === s.id ? "text-amber-400" : "text-gray-300")} />
+                                <s.icon size={16} className={cn(activeStep === s.id ? "text-amber-400" : "text-gray-300")} />
                                 <div className="flex flex-col items-start leading-none">
                                     <span className="text-[10px] font-black uppercase tracking-widest">{s.label}</span>
                                     <span className="text-[8px] opacity-40 uppercase font-bold mt-1 hidden md:block">{s.sub}</span>
@@ -252,9 +263,9 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
 
                     <button
                         onClick={openLibrary}
-                        className="bg-black text-white px-8 py-5 rounded-none text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl hover:bg-zinc-800 transition-all flex items-center gap-4 border border-white/20"
+                        className="bg-black text-white px-5 py-3 rounded-none text-[10px] font-black uppercase tracking-[0.25em] shadow-xl hover:bg-zinc-800 transition-all flex items-center gap-3 border border-white/20"
                     >
-                        <BookOpen size={18} className="text-amber-500" /> BIBLIOTHECA PRO
+                        <BookOpen size={16} className="text-amber-500" /> BIBLIOTHECA PRO
                     </button>
                 </div>
             </header>
@@ -412,29 +423,30 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
                                 {/* Dashboard: Ahora expandido */}
                                 <div className="xl:col-span-9 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                                    <div className="lg:col-span-7 glass-panel p-10 bg-white border border-black/5 shadow-2xl rounded-none relative overflow-hidden flex flex-col min-h-[600px]">
-                                        <div className="absolute -top-20 -right-20 p-20 opacity-[0.03] text-[15rem] font-serif pointer-events-none animate-spin-slow">❂</div>
+                                    <div className="lg:col-span-7 glass-panel p-6 md:p-8 bg-white border border-black/5 shadow-xl rounded-none relative overflow-hidden flex flex-col min-h-[480px]">
+                                        <div className="absolute -top-16 -right-16 p-16 opacity-[0.03] text-[8rem] font-serif pointer-events-none animate-spin-slow">❂</div>
 
-                                        <header className="flex justify-between items-start mb-12 relative z-10">
-                                            <div className="flex items-center gap-6">
-                                                <div className="w-16 h-16 bg-amber-500/10 text-amber-600 rounded-none flex items-center justify-center font-black text-3xl shadow-inner uppercase">
+                                        <header className="flex justify-between items-start mb-6 relative z-10">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 bg-amber-500/10 text-amber-600 rounded-none flex items-center justify-center font-black text-2xl shadow-inner uppercase">
                                                     {characterProfiles[selectedCharacterId].fullAnalysis.sunSign[0]}
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-3xl font-black text-gray-900 font-serif leading-none">{characterProfiles[selectedCharacterId].name}</h3>
-                                                    <p className="text-[10px] text-gray-400 uppercase tracking-[0.4em] font-black mt-2">{characterProfiles[selectedCharacterId].fullAnalysis.archetype}</p>
+                                                    <h3 className="text-2xl font-black text-gray-900 font-serif leading-none">{characterProfiles[selectedCharacterId].name}</h3>
+                                                    <p className="text-[10px] text-gray-400 uppercase tracking-[0.3em] font-black mt-1.5">{characterProfiles[selectedCharacterId].fullAnalysis.archetype}</p>
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => setEditingCharacterId(editingCharacterId === selectedCharacterId ? null : selectedCharacterId)}
-                                                className={cn("p-4 rounded-full transition-all", editingCharacterId === selectedCharacterId ? "bg-black text-white" : "bg-gray-100 text-gray-400 hover:text-black")}
+                                                className={cn("p-3 rounded-full transition-all", editingCharacterId === selectedCharacterId ? "bg-black text-white" : "bg-gray-100 text-gray-400 hover:text-black")}
+                                                title="Editar / afinar la carta"
                                             >
-                                                <Edit3 size={20} />
+                                                <Edit3 size={18} />
                                             </button>
                                         </header>
 
                                         <div className="flex-1 flex items-center justify-center relative">
-                                            <div className="w-full max-w-[500px] aspect-square transform scale-100">
+                                            <div className="w-full max-w-[440px] aspect-square transform scale-100">
                                                 <ChartZoomWrapper title={`Speculum: ${characterProfiles[selectedCharacterId].name}`} theme={chartTheme} onThemeChange={setChartTheme}>
                                                     <NatalChart2D
                                                         date={characterProfiles[selectedCharacterId].birthData.date}
@@ -452,6 +464,103 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                 </ChartZoomWrapper>
                                             </div>
                                         </div>
+
+                                        {/* --- PROPUESTA DE ENCARNACIÓN (visible siempre) --- */}
+                                        {(() => {
+                                            const fa = characterProfiles[selectedCharacterId].fullAnalysis;
+                                            const trio = [
+                                                { l: 'Sol ☉', v: fa.sunSign || '—' },
+                                                { l: 'Luna ☾', v: fa.knownMoon || fa.moonSign || '—' },
+                                                { l: 'Asc ↑', v: fa.knownAscendant || fa.ascendant || '—' },
+                                            ];
+                                            const chosen = characterProfiles[selectedCharacterId].birthData.date;
+                                            const chosenLabel = chosen
+                                                ? new Date(chosen).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+                                                : null;
+                                            return (
+                                                <div className="mt-6 p-6 bg-[#FAF9F5] border border-amber-900/10 rounded-none relative z-10">
+                                                    <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                                                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-700/70 flex items-center gap-2">
+                                                            <Sparkles size={13} className="text-amber-500" /> Propuesta según el guion
+                                                        </p>
+                                                        {(typeof fa.estimatedAge === 'number' && fa.estimatedAge > 0) && (
+                                                            <span className="text-[9px] font-black uppercase tracking-widest bg-black text-white px-3 py-1">
+                                                                {fa.estimatedAge} años
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="grid grid-cols-3 gap-2 mb-5">
+                                                        {trio.map(t => (
+                                                            <div key={t.l} className="bg-white border border-black/5 px-3 py-2 text-center">
+                                                                <span className="block text-[8px] font-black uppercase tracking-widest text-gray-400">{t.l}</span>
+                                                                <span className="block text-xs font-black uppercase text-gray-900 mt-0.5 truncate">{t.v}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+                                                            Días reales que coinciden — elige uno
+                                                        </p>
+                                                        <button
+                                                            onClick={() => findBirthDatesByAge()}
+                                                            disabled={isSearchingDates}
+                                                            className="text-[9px] font-black uppercase tracking-widest text-amber-700 hover:text-black transition-colors flex items-center gap-1 disabled:opacity-40"
+                                                            title="Recalcular con la edad actual"
+                                                        >
+                                                            {isSearchingDates ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />} Recalcular
+                                                        </button>
+                                                    </div>
+
+                                                    {isSearchingDates ? (
+                                                        <div className="flex items-center gap-2 text-[10px] text-gray-400 italic py-3">
+                                                            <Loader2 size={12} className="animate-spin" /> Buscando encarnaciones reales para el trío…
+                                                        </div>
+                                                    ) : foundDates.length > 0 ? (
+                                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                                            {foundDates.map((date, idx) => {
+                                                                const iso = date.toISOString();
+                                                                const isChosen = chosen && chosen.slice(0, 10) === iso.slice(0, 10);
+                                                                return (
+                                                                    <button
+                                                                        key={idx}
+                                                                        onClick={() => {
+                                                                            const updated = [...characterProfiles];
+                                                                            updated[selectedCharacterId].birthData.date = iso;
+                                                                            setCharacterProfiles(updated);
+                                                                        }}
+                                                                        className={cn(
+                                                                            "p-2.5 border text-left transition-all",
+                                                                            isChosen
+                                                                                ? "bg-black text-white border-black"
+                                                                                : "bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-900"
+                                                                        )}
+                                                                    >
+                                                                        <p className="text-[10px] font-black leading-tight">
+                                                                            {date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                        </p>
+                                                                        <p className={cn("text-[8px] font-mono mt-0.5 uppercase", isChosen ? "text-white/60" : "text-amber-700/60")}>
+                                                                            {date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} UTC
+                                                                        </p>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-[10px] text-gray-400 italic py-2">
+                                                            No se encontraron días exactos para este trío y edad. Ajusta el trío o la edad con el lápiz ✎ y pulsa Recalcular.
+                                                        </p>
+                                                    )}
+
+                                                    {chosenLabel && (
+                                                        <p className="mt-4 pt-3 border-t border-amber-900/5 text-[10px] text-gray-500">
+                                                            Carta generada para: <span className="font-black text-gray-900">{chosenLabel}</span>. Puedes afinarlo todo con el lápiz ✎.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
 
                                         {/* Quick Edit */}
                                         {editingCharacterId === selectedCharacterId && (
