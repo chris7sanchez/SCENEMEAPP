@@ -217,10 +217,10 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                                 </ChartZoomWrapper>
                             </div>
                         ) : (
-                            <div className="text-center text-stone-300 p-20 border-2 border-dashed border-stone-100 rounded-none bg-stone-50/50">
+                            <div className="text-center text-stone-600 p-20 border-2 border-dashed border-stone-200 rounded-none bg-stone-50/50">
                                 <Atom size={64} className="mx-auto mb-6 opacity-10 animate-spin-slow" />
-                                <h3 className="text-xl font-serif italic text-stone-400 mb-2">"Abyssus abyssum invocat"</h3>
-                                <p className="text-[10px] uppercase tracking-[0.4em] font-bold">Introduce tus datos de nacimiento para ver tu carta</p>
+                                <h3 className="text-xl font-serif italic text-stone-600 mb-2">"Abyssus abyssum invocat"</h3>
+                                <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-stone-600">Introduce tus datos de nacimiento para ver tu carta</p>
                             </div>
                         )}
                     </div>
@@ -229,11 +229,11 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                     <div className="w-full max-w-2xl mx-auto px-4">
                         <div className="bg-stone-50 p-6 rounded-none border border-stone-100 shadow-inner group">
                             <div className="flex justify-between items-center mb-4">
-                                <label className="text-[10px] uppercase font-bold text-stone-400 tracking-widest flex items-center gap-2">
+                                <label className="text-[10px] uppercase font-bold text-stone-600 tracking-widest flex items-center gap-2">
                                     <span className="w-1 h-1 bg-[#C55959] rounded-none"></span>
                                     Ver Tránsitos en Otra Fecha
                                 </label>
-                                <span className="font-mono text-[10px] text-[#C55959] font-bold bg-[#C55959]/10 px-2 py-0.5 rounded">
+                                <span className="font-mono text-[10px] text-[#A34545] font-bold bg-[#C55959]/10 px-2 py-0.5 rounded">
                                     {Math.abs(Math.floor((transitDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} días {transitDate >= new Date() ? 'en el futuro' : 'en el pasado'}
                                 </span>
                             </div>
@@ -246,7 +246,7 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                                 className="w-full accent-[#C55959] h-1.5 bg-stone-200 rounded-none appearance-none cursor-pointer"
                             />
                             <div className="flex justify-between mt-4">
-                                <button onClick={() => setTransitDate(new Date())} className="text-[9px] font-bold uppercase text-stone-400 hover:text-stone-800 transition-colors py-1 px-3 border border-stone-200 rounded hover:border-stone-400">Volver al Hoy</button>
+                                <button onClick={() => setTransitDate(new Date())} className="text-[9px] font-bold uppercase text-stone-600 hover:text-stone-900 transition-colors py-1 px-3 border border-stone-300 rounded hover:border-stone-500">Volver al Hoy</button>
                                 <div className="text-[10px] text-stone-500 font-serif italic flex items-center gap-1">
                                     <X size={10} className="text-stone-300" />
                                     {transitDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
@@ -257,7 +257,7 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
 
                     {currentUser && userSigns && (
                         <div className="mt-12 pt-10 border-t border-stone-100 w-full">
-                            <h3 className="text-center text-[10px] font-black uppercase tracking-[0.5em] text-stone-300 mb-8">Tu Tríada Principal</h3>
+                            <h3 className="text-center text-[10px] font-black uppercase tracking-[0.5em] text-stone-500 mb-8">Tu Tríada Principal</h3>
                             <PlanetaryTrinity sun={userSigns.sun} moon={userSigns.moon} asc={userSigns.ascendant} />
                         </div>
                     )}
@@ -272,7 +272,7 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
                         <span className="text-[#C55959]">🜂</span>
                         <span>Efluvios Celestes</span>
                     </h2>
-                    <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#5B7C99] mb-4 border-b border-[#5B7C99]/20 pb-4 leading-relaxed">
+                    <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#44607a] mb-4 border-b border-[#5B7C99]/20 pb-4 leading-relaxed">
                         Influencias planetarias activas — {transitDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
 

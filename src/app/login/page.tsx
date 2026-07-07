@@ -172,7 +172,7 @@ export default function LoginPage() {
                                 </button>
                             </div>
 
-                            {error && <p className="text-destructive text-xs font-bold text-center bg-destructive/10 p-2 rounded-lg">{error}</p>}
+                            {error && <p className="text-xs font-bold text-center p-2 rounded-lg" style={{ color: 'hsl(0, 90%, 72%)', background: 'hsla(0, 70%, 50%, 0.12)' }}>{error}</p>}
                             {info && <p className="text-xs font-bold text-center p-2 rounded-lg" style={{ color: 'hsl(150, 60%, 55%)', background: 'hsla(150, 60%, 40%, 0.12)' }}>{info}</p>}
 
                             <Button

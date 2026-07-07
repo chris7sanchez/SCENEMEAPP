@@ -1,0 +1,38 @@
+# VIGILANTE DE SALUD DE PRODUCCIÓN — scenemeapp.com
+# Se ejecuta:
+#  - tras cada push a main (espera al deploy de Vercel y verifica que nada se rompió)
+#  - cada mañana a las 08:00 (hora española de verano)
+#  - a mano desde la pestaña Actions ("Run workflow")
+# Si falla, GitHub envía email automáticamente al dueño del repo.
+
+name: Salud de producción
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *' # 06:00 UTC = 08:00 en España (verano)
+  workflow_dispatch:
+
+jobs:
+  vigilante:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Esperar al deploy de Vercel (solo en push)
+        if: github.event_name == 'push'
+        run: sleep 300
+
+      - name: Instalar puppeteer-core (usa el Chrome del runner)
+        run: npm install --no-save --no-package-lock puppeteer-core
+
+      - name: Verificar scenemeapp.com
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node scripts/salud-produccion.mjs

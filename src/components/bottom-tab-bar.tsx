@@ -44,7 +44,7 @@ export function BottomTabBar() {
                             onClick={() => router.push(path)}
                             className={cn(
                                 "flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-200 active:scale-90",
-                                isActive ? "text-primary" : "text-zinc-500"
+                                isActive ? "text-primary" : "text-zinc-400"
                             )}
                         >
                             <div className={cn(
@@ -61,7 +61,7 @@ export function BottomTabBar() {
                             </div>
                             <span className={cn(
                                 "text-[10px] font-bold tracking-wide transition-all",
-                                isActive ? "opacity-100" : "opacity-60"
+                                isActive ? "opacity-100" : "opacity-90"
                             )}>
                                 {label}
                             </span>
