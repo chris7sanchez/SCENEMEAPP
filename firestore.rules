@@ -25,10 +25,18 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if isAuthenticated() && isOwner(userId);
 
-      // Antigravity data: only the user can access their own state
-      match /antigravity/{docId} {
+      // TODAS las subcolecciones del usuario (antigravity, submissions del
+      // Studio, y las que vengan) — solo su dueño.
+      match /{document=**} {
         allow read, write: if isAuthenticated() && isOwner(userId);
       }
+    }
+
+    // Escena del día del Studio: contenido compartido. Cualquiera la lee;
+    // el primer usuario autenticado del día la cachea (setDoc en studio-db).
+    match /dailyScenes/{dateKey} {
+      allow read: if true;
+      allow write: if isAuthenticated();
     }
 
     // Orders collection: 
