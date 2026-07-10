@@ -13,6 +13,8 @@ export interface OrderData extends FormData {
 }
 
 export const createOrder = async (formData: FormData, totalAmount: number, depositAmount: number, paymentMethod: string) => {
+    if (!auth || !db) throw new Error("Firebase no está configurado");
+
     const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
 
