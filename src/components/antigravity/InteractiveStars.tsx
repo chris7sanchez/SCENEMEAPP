@@ -69,7 +69,9 @@ const InteractiveStars: React.FC<InteractiveStarsProps> = ({
                 // Calculate distance to mouse
                 const dx = mouseRef.current.x - star.x;
                 const dy = mouseRef.current.y - star.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                // "|| 1" evita división por cero cuando el cursor coincide con la estrella
+                // (el NaN propagado a createRadialGradient tiraba la página entera)
+                const distance = Math.sqrt(dx * dx + dy * dy) || 1;
 
                 // Repulsion force (stars flee from cursor)
                 if (distance < repulsionStrength) {
