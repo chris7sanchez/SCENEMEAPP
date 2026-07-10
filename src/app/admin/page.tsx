@@ -84,7 +84,13 @@ export default function AdminPage() {
 
     // Check authentication on mount
     useEffect(() => {
-        const unsubscribe = firebaseAuth.onAuthStateChanged(async (user) => {
+        if (!firebaseAuth) {
+            setIsLoadingAuth(false);
+            return;
+        }
+        const authInstance = firebaseAuth;
+
+        const unsubscribe = authInstance.onAuthStateChanged(async (user) => {
             if (!user) {
                 setIsAuthenticated(false);
                 setIsLoadingAuth(false);
@@ -100,7 +106,7 @@ export default function AdminPage() {
             } else {
                 setIsAuthenticated(false);
                 // Si el usuario no es admin, cerramos sesión para evitar estados ambiguos
-                await firebaseAuth.signOut();
+                await authInstance.signOut();
             }
             setIsLoadingAuth(false);
         });
@@ -113,10 +119,15 @@ export default function AdminPage() {
 
     useEffect(() => {
         if (!isAuthenticated) return;
+        if (!db) {
+            setFirestoreError("Firebase no está configurado.");
+            setLoadingOrders(false);
+            return;
+        }
 
         setFirestoreError(null);
         setLoadingOrders(true);
-        
+
         const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
 
         const unsubscribe = onSnapshot(
@@ -161,7 +172,7 @@ export default function AdminPage() {
 
                 if (res.ok) {
                     const { token } = await res.json();
-                    if (token) {
+                    if (token && firebaseAuth) {
                         await signInWithCustomToken(firebaseAuth, token);
                         setIsAuthenticated(true);
                         return;
