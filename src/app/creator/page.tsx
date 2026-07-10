@@ -39,6 +39,23 @@ function CreatorContent() {
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Las pestañas inferiores navegan con query params sobre esta misma ruta.
+    // Sin este sync, pulsar Inicio/Servicios estando ya dentro de /creator no
+    // hacía NADA (el paso vivía solo en estado interno): ese era el bug de
+    // "Servicios no funciona". Ahora la URL manda.
+    useEffect(() => {
+        if (searchParams.get('tab') === 'profile') return;
+        const urlStep = Number(searchParams.get('step')) || 0;
+        setStep(urlStep);
+        setFlowType(searchParams.get('flow') === 'photo' ? 'photo' : 'scene');
+        if (searchParams.get('tab') === 'services') {
+            // Servicios → aterrizar en el escaparate de servicios del landing
+            setTimeout(() => document.getElementById('servicios')?.scrollIntoView({ behavior: 'smooth' }), 200);
+        } else if (urlStep === 0) {
+            window.scrollTo({ top: 0 });
+        }
+    }, [searchParams]);
+
     useEffect(() => {
         const isGuest = searchParams.get('guest') === 'true';
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { PHOTO_TYPES, PHOTO_PACKS_ACTOR, PHOTO_PACKS_EDITORIAL, PHOTO_PACKS_CONCEPTUAL, PHOTO_GALLERY } from "@/lib/data";
 import { type FormData } from "@/lib/types";
 import { Button } from "../ui/button";
-import { ArrowLeft, ArrowRight, Camera, User, Sparkles, Mail, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, User, Sparkles, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { PhotoPackSelector } from "@/components/photo-pack-selector";
@@ -17,12 +17,6 @@ interface Step1PhotoSelectionProps {
 }
 
 const TYPE_ICON: Record<string, any> = { actor: User, editorial: Camera, conceptual: Sparkles, event: Mail };
-
-const TYPE_INTRO: Record<string, string> = {
-    actor: "Tu material esencial para castings y agencias: fotos naturales que muestran quién eres, listas para presentarte al mercado profesional.",
-    editorial: "Moda, estilo y actitud. Imágenes de alto impacto para elevar tu marca personal y destacar en redes y portafolios.",
-    conceptual: "Creatividad sin límites: escenografía, luz e historia para conseguir una imagen icónica y diferente.",
-};
 
 export default function Step1PhotoSelection({ formData, updateForm, setStep, setFlowType }: Step1PhotoSelectionProps) {
     const [selectedType, setSelectedType] = useState<string>(formData.photoType || 'actor');
@@ -52,26 +46,19 @@ export default function Step1PhotoSelection({ formData, updateForm, setStep, set
 
     const currentTypeData = PHOTO_TYPES.find(t => t.id === selectedType);
     const getSamples = (type: string) => (PHOTO_GALLERY as any)[type] || PHOTO_GALLERY.default;
-    const tierLabel = (id: string) => id === 'essential' ? 'Nivel 1' : id === 'complete' ? 'Nivel 2' : 'Nivel 3';
 
     return (
         <div className="animate-in fade-in duration-500 w-full max-w-6xl mx-auto flex flex-col">
 
-            {/* HEADER */}
+            {/* HEADER — mínimo: título y fuera */}
             <div className="mb-4">
-                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-1 md:gap-6">
-                    <h1 className="font-headline text-2xl md:text-3xl uppercase tracking-tight text-foreground leading-none shrink-0">
-                        Elige tu sesión de fotos
-                    </h1>
-                    <p className="text-muted-foreground text-sm md:text-right md:max-w-md leading-snug">
-                        <span className="block">Material profesional para casting, agencias y tu marca como actor.</span>
-                        <span className="block">Empieza eligiendo el tipo de sesión.</span>
-                    </p>
-                </div>
+                <h1 className="font-headline text-2xl md:text-3xl uppercase tracking-tight text-foreground leading-none">
+                    Elige tu sesión de fotos
+                </h1>
                 <div className="w-full h-px bg-border/60 mt-3" />
             </div>
 
-            {/* TYPE SELECTOR */}
+            {/* TYPE SELECTOR — chips compactos, sin párrafos en móvil */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-5">
                 {PHOTO_TYPES.map((type) => {
                     const Icon = TYPE_ICON[type.id] || Camera;
@@ -83,15 +70,15 @@ export default function Step1PhotoSelection({ formData, updateForm, setStep, set
                             aria-pressed={active}
                             onClick={() => handleSelectType(type.id)}
                             className={cn(
-                                "flex flex-col items-start gap-1.5 rounded-2xl border p-3 text-left transition-all",
+                                "flex items-center md:items-start md:flex-col gap-2 md:gap-1.5 rounded-2xl border p-3 text-left transition-all active:scale-[0.98]",
                                 active
                                     ? "border-primary bg-primary/15"
                                     : "border-border bg-secondary hover:border-primary/50 hover:bg-primary/5"
                             )}
                         >
-                            <Icon className={cn("w-5 h-5", active ? "text-primary" : "text-muted-foreground")} />
+                            <Icon className={cn("w-5 h-5 shrink-0", active ? "text-primary" : "text-muted-foreground")} />
                             <div className="font-bold text-sm text-foreground leading-tight">{type.label}</div>
-                            <div className="text-xs text-muted-foreground line-clamp-2">{type.desc}</div>
+                            <div className="hidden md:block text-xs text-muted-foreground line-clamp-2">{type.desc}</div>
                         </button>
                     );
                 })}
@@ -112,31 +99,23 @@ export default function Step1PhotoSelection({ formData, updateForm, setStep, set
                     </Button>
                 </div>
             ) : (
-                <div className="space-y-5">
-                    {/* INTRO */}
+                <div className="space-y-6">
+                    {/* 1º EJEMPLOS — justo después del tipo, en carrusel deslizable */}
                     <div>
-                        <h2 className="font-headline text-xl uppercase tracking-wide text-foreground mb-1">
-                            {currentTypeData?.label}
-                        </h2>
-                        <p className="text-muted-foreground text-sm leading-snug max-w-3xl">
-                            {TYPE_INTRO[selectedType] || TYPE_INTRO.actor}
+                        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                            Así se ve un {currentTypeData?.label}
                         </p>
-                    </div>
-
-                    {/* PACKS — solo móvil; en escritorio van bajo el stepper */}
-                    <PhotoPackSelector formData={formData} updateForm={updateForm} className="md:hidden" />
-
-                    {/* EXAMPLES (grandes) */}
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Ejemplos de este tipo de book</p>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                            {getSamples(selectedType).slice(0, 6).map((item: { src: string }, i: number) => (
-                                <div key={i} className="relative aspect-[4/5] rounded-xl overflow-hidden border border-border bg-secondary">
-                                    <Image src={item.src} alt={`Ejemplo ${i + 1}`} fill className="object-cover" />
+                        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            {getSamples(selectedType).map((item: { src: string }, i: number) => (
+                                <div key={i} className="relative snap-start shrink-0 w-44 md:w-52 aspect-[4/5] rounded-2xl overflow-hidden border border-border bg-secondary">
+                                    <Image src={item.src} alt={`Ejemplo ${i + 1} de ${currentTypeData?.label}`} fill sizes="208px" className="object-cover" />
                                 </div>
                             ))}
                         </div>
                     </div>
+
+                    {/* 2º PACKS — filas compactas; el detalle se abre al tocar */}
+                    <PhotoPackSelector formData={formData} updateForm={updateForm} className="md:hidden" />
                 </div>
             )}
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { Suspense } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Home, Clapperboard, Users, User, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,8 +16,9 @@ const TABS = [
 // Rutas donde NO mostrar la barra
 const HIDDEN_ROUTES = ['/admin', '/exquisit', '/hub', '/login', '/astro-lab', '/astrologia', '/alquimia', '/xalvaje'];
 
-export function BottomTabBar() {
+function TabBarInner() {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const router = useRouter();
 
     // Ocultar en login, admin, y rutas internas especiales
@@ -24,10 +26,17 @@ export function BottomTabBar() {
         return null;
     }
 
+    // La pestaña activa se decide por ruta + query: antes Servicios y Perfil
+    // nunca se iluminaban (todo /creator contaba como "Inicio").
     const getActiveTab = () => {
         if (pathname === '/talents') return 'talents';
         if (pathname.startsWith('/actorlogia')) return 'workshop';
-        if (pathname === '/creator' || pathname.startsWith('/creator')) return 'home';
+        if (pathname.startsWith('/creator')) {
+            const tab = searchParams.get('tab');
+            if (tab === 'profile') return 'profile';
+            if (tab === 'services') return 'services';
+            return 'home';
+        }
         return 'home';
     };
 
@@ -70,5 +79,15 @@ export function BottomTabBar() {
                 })}
             </div>
         </nav>
+    );
+}
+
+// useSearchParams exige un límite de Suspense al prerenderizar: lo llevamos
+// dentro del propio componente para no tocar el layout.
+export function BottomTabBar() {
+    return (
+        <Suspense fallback={null}>
+            <TabBarInner />
+        </Suspense>
     );
 }

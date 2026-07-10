@@ -181,7 +181,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                 </div>
             </div>
 
-            <div className="relative flex flex-col w-full max-w-[100vw] pb-2">
+            <div id="servicios" className="relative flex flex-col w-full max-w-[100vw] pb-2 scroll-mt-20">
 
                 {/* Scroll Container (Desktop/Tablet) */}
                 <div
