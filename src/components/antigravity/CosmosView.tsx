@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react';
 import { Book, X, Pencil, Trash2, Loader2, Atom, Sun, BookOpen } from 'lucide-react';
 import { UserData, ChartTheme, CosmosViewMode } from './types';
 import NatalChart2D from './NatalChart2D';
+import Carta3DViewer from './Carta3DViewer';
+import CartaNeonSVG from './CartaNeonSVG';
 import CelestialSphere from './CelestialSphere';
 import { ChartZoomWrapper, PlanetaryTrinity } from './shared-components';
 import { calculateAstroBalance } from '@/utils/astrology';
@@ -200,22 +202,39 @@ const CosmosView: React.FC<CosmosViewProps> = (props) => {
 
                     <div className="flex-1 flex flex-col items-center justify-center relative z-10 w-full mb-8">
                         {currentUser && currentUser.date ? (
-                            <div className="w-full max-w-3xl aspect-square">
-                                <ChartZoomWrapper
-                                    title={`Carta de: ${currentUser.name || currentUser.city || 'Anónimo'}`}
-                                    theme={chartTheme}
-                                    onThemeChange={setChartTheme}
-                                >
-                                    <NatalChart2D
+                            <>
+                                <div className="w-full max-w-3xl aspect-square">
+                                    <ChartZoomWrapper
+                                        title={`Carta de: ${currentUser.name || currentUser.city || 'Anónimo'}`}
+                                        theme={chartTheme}
+                                        onThemeChange={setChartTheme}
+                                    >
+                                        <NatalChart2D
+                                            date={currentUser.date}
+                                            latitude={currentUser.latitude}
+                                            longitude={currentUser.longitude}
+                                            transitsDate={transitDate.toISOString()}
+                                            showTransits={true}
+                                            theme={chartTheme}
+                                        />
+                                    </ChartZoomWrapper>
+                                </div>
+                                <div className="w-full max-w-3xl mt-6">
+                                    <CartaNeonSVG
                                         date={currentUser.date}
                                         latitude={currentUser.latitude}
                                         longitude={currentUser.longitude}
-                                        transitsDate={transitDate.toISOString()}
-                                        showTransits={true}
-                                        theme={chartTheme}
+                                        ciudad={currentUser.city}
+                                        nombre={currentUser.name}
                                     />
-                                </ChartZoomWrapper>
-                            </div>
+                                </div>
+                                <Carta3DViewer
+                                    date={currentUser.date}
+                                    latitude={currentUser.latitude}
+                                    longitude={currentUser.longitude}
+                                    title={`Carta ${currentUser.name || 'personal'}`}
+                                />
+                            </>
                         ) : (
                             <div className="text-center text-stone-600 p-20 border-2 border-dashed border-stone-200 rounded-none bg-stone-50/50">
                                 <Atom size={64} className="mx-auto mb-6 opacity-10 animate-spin-slow" />
