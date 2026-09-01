@@ -26,6 +26,7 @@ import { PHOTO_PACKS_ACTOR } from "@/lib/data"; // Added this import
 import ProfileForm from "@/components/profile-form"; // Import directly for simplicity since it's used in the tab
 
 import { AnimatePresence, motion } from "framer-motion";
+import StudioInvite from "@/components/studio/StudioInvite";
 
 function CreatorContent() {
     const { toast } = useToast();
@@ -246,6 +247,9 @@ function CreatorContent() {
                                 {CurrentStepComponent}
                             </div>
                         )}
+
+                        {/* Oferta del Studio: invita (una vez al día), no obliga */}
+                        {step === 0 && <StudioInvite />}
                     </>
                 )}
             </main>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dailyKey, isValidScene, sanitizeFilename, buildSubmissionPath } from './daily-scene';
+import { dailyKey, isValidScene, sanitizeFilename, buildSubmissionPath, computeStreak } from './daily-scene';
 
 describe('dailyKey', () => {
     it('da formato YYYY-MM-DD', () => {
@@ -63,5 +63,26 @@ describe('buildSubmissionPath', () => {
         expect(buildSubmissionPath('user123', '2026-06-10', 'toma.mp4', 1000)).toBe(
             'submissions/user123/2026-06-10/1000_toma.mp4',
         );
+    });
+});
+
+describe('computeStreak', () => {
+    it('cuenta días seguidos hasta hoy', () => {
+        expect(computeStreak(['2026-08-30', '2026-08-31', '2026-09-01'], '2026-09-01')).toBe(3);
+    });
+    it('si hoy no hay toma, la racha de ayer sigue viva', () => {
+        expect(computeStreak(['2026-08-30', '2026-08-31'], '2026-09-01')).toBe(2);
+    });
+    it('se rompe si falta un día intermedio', () => {
+        expect(computeStreak(['2026-08-28', '2026-08-30', '2026-09-01'], '2026-09-01')).toBe(1);
+    });
+    it('sin tomas: racha cero', () => {
+        expect(computeStreak([], '2026-09-01')).toBe(0);
+    });
+    it('cruza el cambio de mes', () => {
+        expect(computeStreak(['2026-08-31', '2026-09-01'], '2026-09-01')).toBe(2);
+    });
+    it('tolera fechas repetidas', () => {
+        expect(computeStreak(['2026-09-01', '2026-09-01', '2026-08-31'], '2026-09-01')).toBe(2);
     });
 });

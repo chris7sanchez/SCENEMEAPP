@@ -44,6 +44,29 @@ export function isValidScene(s: any): s is DailyScene {
     return true;
 }
 
+/** Resta un día a una clave YYYY-MM-DD (aritmética en UTC, sin sorpresas de TZ). */
+function prevKey(key: string): string {
+    const d = new Date(`${key}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - 1);
+    return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Racha de días seguidos con toma subida, contando hacia atrás desde hoy.
+ * Si hoy aún no has subido nada, la racha de ayer sigue viva (no se rompe
+ * hasta que el día termina sin toma).
+ */
+export function computeStreak(dates: string[], todayKey: string): number {
+    const days = new Set(dates);
+    let cursor = days.has(todayKey) ? todayKey : prevKey(todayKey);
+    let streak = 0;
+    while (days.has(cursor)) {
+        streak++;
+        cursor = prevKey(cursor);
+    }
+    return streak;
+}
+
 /** Limpia un nombre de archivo de caracteres peligrosos para una ruta de Storage. */
 export function sanitizeFilename(name: string): string {
     const cleaned = (name || '')

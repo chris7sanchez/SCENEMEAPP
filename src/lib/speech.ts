@@ -19,6 +19,11 @@ export interface SpeechProvider {
 }
 
 class BrowserSpeechProvider implements SpeechProvider {
+    /** Última llamada a cancel(): un speak() pegado a un cancel() se pierde en Chrome. */
+    private lastCancelAt = 0;
+    /** Referencia viva a la locución en curso: si Chrome la recolecta (GC), onend no llega. */
+    private currentUtterance: SpeechSynthesisUtterance | null = null;
+
     isSupported(): boolean {
         return typeof window !== 'undefined' && 'speechSynthesis' in window;
     }
@@ -57,12 +62,15 @@ class BrowserSpeechProvider implements SpeechProvider {
                 if (v) u.voice = v;
                 u.onend = finish;
                 u.onerror = finish;
+                this.currentUtterance = u;
                 const ss = window.speechSynthesis;
                 const fire = () => { try { ss.speak(u); ss.resume(); } catch { /* */ } };
                 // Bug de Chrome: cancel() justo antes de speak() puede "tragarse" la
-                // locución (Safari no lo sufre). Solo cancelamos si ya hay algo sonando,
-                // y damos un respiro antes de hablar.
-                if (ss.speaking || ss.pending) { ss.cancel(); setTimeout(fire, 140); } else { fire(); }
+                // locución (Safari no lo sufre). Si acabamos de cancelar (nosotros o el
+                // reproductor al cambiar de turno), damos un respiro antes de hablar.
+                if (ss.speaking || ss.pending) { ss.cancel(); this.lastCancelAt = Date.now(); setTimeout(fire, 160); }
+                else if (Date.now() - this.lastCancelAt < 250) { setTimeout(fire, 180); }
+                else { fire(); }
                 keepAlive = setInterval(() => { try { ss.resume(); } catch { /* */ } }, 4000);
                 // Red de seguridad: si nunca llega onend/onerror, avanzar igual.
                 setTimeout(finish, estimateMs);
@@ -74,8 +82,9 @@ class BrowserSpeechProvider implements SpeechProvider {
 
     cancel(): void {
         if (this.isSupported()) {
-            try { window.speechSynthesis.cancel(); } catch { /* noop */ }
+            try { window.speechSynthesis.cancel(); this.lastCancelAt = Date.now(); } catch { /* noop */ }
         }
+        this.currentUtterance = null;
     }
 }
 

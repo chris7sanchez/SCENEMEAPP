@@ -25,11 +25,15 @@ export default function RehearsalSection({ dateKey }: { dateKey: string }) {
     return (
         <section className="rounded-2xl border border-zinc-700/60 bg-zinc-900/60 p-5 sm:p-7">
             <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">Ensayar con réplicas</p>
-                <h2 className="text-lg font-semibold text-white sm:text-xl">Tu compañero de reparto</h2>
+                <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
+                    <span className="mr-2 rounded-full border border-zinc-600 bg-white/5 px-2 py-0.5 text-[10px] font-black text-zinc-300">2</span>
+                    Ensayar con réplicas
+                </p>
+                <h2 className="mt-1 text-lg font-semibold text-white sm:text-xl">Tu compañero de reparto 🎭</h2>
                 <p className="mt-1 text-sm text-zinc-400">
                     Pega una escena (o usa la de hoy), elige tu personaje y la app te lee las
-                    líneas del otro y se calla en las tuyas.
+                    líneas del otro y se calla en las tuyas. Con «avance por voz», di tu frase,
+                    calla… y te responde.
                 </p>
             </div>
 

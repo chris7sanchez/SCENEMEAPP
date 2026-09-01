@@ -24,11 +24,14 @@ export default function DailyScene({ dateKey }: { dateKey: string }) {
     };
 
     return (
-        <section className="rounded-2xl border border-amber-500/30 bg-zinc-900/60 p-5 sm:p-7">
+        <section className="rounded-2xl border border-amber-500/30 bg-zinc-900/60 p-5 shadow-[0_0_40px_-18px_hsla(42,90%,55%,0.5)] sm:p-7">
             <div className="flex items-center justify-between gap-3">
                 <div>
-                    <p className="text-xs uppercase tracking-[0.25em] text-amber-400/80">Escena del día</p>
-                    <h2 className="text-lg font-semibold text-white sm:text-xl">{dateKey}</h2>
+                    <p className="text-xs uppercase tracking-[0.25em] text-amber-400/80">
+                        <span className="mr-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black">1</span>
+                        Escena del día
+                    </p>
+                    <h2 className="mt-1 text-lg font-semibold text-white sm:text-xl">{dateKey}</h2>
                 </div>
                 {!scene && (
                     <button

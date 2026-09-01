@@ -7,6 +7,7 @@ import {
     type VoiceProfile, type SpeechVoice,
 } from '@/lib/speech';
 import { useRehearsal } from '@/hooks/useRehearsal';
+import { VoiceTrigger } from '@/lib/voice-advance';
 
 type LineMode = 'full' | 'cue' | 'hidden';
 type AdvanceMode = 'tap' | 'voice';
@@ -272,9 +273,16 @@ function ActivePlayer(props: {
     const [micDenied, setMicDenied] = useState(false);
     const [micError, setMicError] = useState('');
     const [micAttempt, setMicAttempt] = useState(0);
+    // El detector de voz SOLO puede armarse cuando el micro ya está abierto.
+    // Tiene que ser estado (no ref): si fuera ref, el efecto del detector se
+    // ejecutaría con el analizador aún a null (permiso del navegador pendiente)
+    // y no volvería a armarse jamás — la réplica "contestaba una vez y nunca más".
+    const [micReady, setMicReady] = useState(false);
+    const [heard, setHeard] = useState(false);
     const micStreamRef = useRef<MediaStream | null>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
+    const vuRef = useRef<HTMLDivElement | null>(null);
     const currentLineRef = useRef<HTMLDivElement | null>(null);
 
     // Desplaza la separata para que la línea actual quede siempre visible.
@@ -308,6 +316,7 @@ function ActivePlayer(props: {
                     src.connect(analyser);
                     audioCtxRef.current = ctx;
                     analyserRef.current = analyser;
+                    setMicReady(true); // avisa al detector: ya puede armarse
                     // Chrome suele dejar el AudioContext "suspended": reanúdalo al primer gesto.
                     window.addEventListener('pointerdown', resumeCtx);
                     window.addEventListener('keydown', resumeCtx);
@@ -320,6 +329,7 @@ function ActivePlayer(props: {
             window.removeEventListener('keydown', resumeCtx);
             try { audioCtxRef.current?.close(); } catch { /* */ }
             audioCtxRef.current = null; analyserRef.current = null;
+            setMicReady(false);
             if (micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null; }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -336,32 +346,38 @@ function ActivePlayer(props: {
 
     // Avance por voz: medimos el VOLUMEN del micro (Web Audio). Cuando hablas y
     // luego hay ~1,1s de silencio, avanzamos. Sin reconocimiento de Chrome, sin clic.
+    // Se REARMA en cada turno tuyo (y en cuanto el micro esté listo: micReady).
     useEffect(() => {
-        if (advanceMode !== 'voice' || state.phase !== 'awaiting-user') return;
+        if (advanceMode !== 'voice' || state.phase !== 'awaiting-user' || !micReady) return;
         const analyser = analyserRef.current;
         if (!analyser) return;
+        setHeard(false);
         try { audioCtxRef.current?.resume?.(); } catch { /* */ }
         const buf = new Uint8Array(analyser.fftSize);
-        let raf = 0; let done = false; let hasSpoken = false; let silenceStart = 0;
-        const SPEAK = 0.03, SILENCE = 0.02, SILENCE_MS = 1100;
+        const trigger = new VoiceTrigger();
+        let raf = 0; let done = false; let frame = 0; let heardShown = false;
         const tick = () => {
             if (done) return;
+            frame++;
+            // Chrome puede suspender el AudioContext a mitad de ensayo (sin gesto
+            // del usuario en modo voz): reanúdalo periódicamente o el micro "muere".
+            if (frame % 60 === 0 && audioCtxRef.current?.state === 'suspended') {
+                audioCtxRef.current.resume().catch(() => {});
+            }
             analyser.getByteTimeDomainData(buf);
             let sum = 0;
             for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
             const rms = Math.sqrt(sum / buf.length);
-            const now = performance.now();
-            if (rms > SPEAK) { hasSpoken = true; silenceStart = 0; }
-            else if (hasSpoken && rms < SILENCE) {
-                if (!silenceStart) silenceStart = now;
-                else if (now - silenceStart > SILENCE_MS) { done = true; r.advance(); return; }
-            }
+            // Medidor visible: el usuario VE que el micro le está oyendo.
+            if (vuRef.current) vuRef.current.style.width = `${Math.min(100, Math.round(rms * 700))}%`;
+            if (!heardShown && trigger.heard) { heardShown = true; setHeard(true); }
+            if (trigger.sample(rms, performance.now())) { done = true; r.advance(); return; }
             raf = requestAnimationFrame(tick);
         };
         raf = requestAnimationFrame(tick);
         return () => { done = true; cancelAnimationFrame(raf); };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [advanceMode, state.phase, state.index]);
+    }, [advanceMode, state.phase, state.index, micReady]);
 
     if (state.phase === 'finished') {
         return (
@@ -406,8 +422,17 @@ function ActivePlayer(props: {
                                         ⚠️ Micrófono no disponible{micError ? ` (${micError})` : ''} — permítelo en el candado de la barra (y en macOS → Ajustes → Privacidad → Micrófono → Chrome).{' '}
                                         <button onClick={() => setMicAttempt(n => n + 1)} className="font-bold text-amber-400 underline hover:text-amber-300">Reintentar</button>{' '}o pulsa SIGUIENTE.
                                     </p>
+                                ) : !micReady ? (
+                                    <p className="animate-pulse">🎙️ Activando el micrófono… (acepta el permiso si te lo pide)</p>
                                 ) : (
-                                    <p>🎤 Escuchando… avanza solo al terminar tu frase (o pulsa SIGUIENTE).</p>
+                                    <div>
+                                        <p className={heard ? 'font-bold text-emerald-400' : ''}>
+                                            {heard ? '✓ Te he oído — cuando calles, entra la réplica' : '🎤 Di tu frase cuando quieras…'}
+                                        </p>
+                                        <div className="mx-auto mt-1.5 h-1.5 w-40 overflow-hidden rounded-full bg-zinc-800">
+                                            <div ref={vuRef} className={`h-full rounded-full transition-[width] duration-75 ${heard ? 'bg-emerald-400' : 'bg-amber-400'}`} style={{ width: '0%' }} />
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         )}

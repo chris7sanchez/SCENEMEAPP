@@ -13,6 +13,9 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [info, setInfo] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    // Sesión ya guardada en este dispositivo: FRENAMOS aquí en vez de saltar
+    // directos a la app. El usuario decide: continuar o cambiar de cuenta.
+    const [knownUser, setKnownUser] = useState<string | null>(null);
     const router = useRouter();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -46,7 +49,14 @@ export default function LoginPage() {
             const redirect = await auth.completeRedirectLogin();
             const user = await auth.getCurrentUser();
             if (user) {
-                router.push('/creator');
+                // Login con Google recién completado (volvemos de la redirección):
+                // el usuario acaba de pedirlo explícitamente -> entra directo.
+                if (redirect.ok) {
+                    router.push('/creator');
+                    return;
+                }
+                // Sesión guardada de otro día: NO saltar solos a la app.
+                setKnownUser(user.email);
                 return;
             }
             // Fallo silencioso de la redirección (Safari/ITP): mostrarlo, no callarlo
@@ -127,6 +137,43 @@ export default function LoginPage() {
                              border: '1px solid hsla(42, 60%, 50%, 0.2)',
                              boxShadow: '0 8px 40px hsla(222, 36%, 3%, 0.6), inset 0 1px 0 hsla(220, 30%, 30%, 0.15)',
                          }}>
+                        {knownUser ? (
+                            <div className="text-center space-y-5 animate-in fade-in duration-300">
+                                <h2 className="text-xl font-bold font-display tracking-wide"
+                                    style={{ color: 'hsl(45, 20%, 92%)' }}>
+                                    HOLA DE NUEVO 👋
+                                </h2>
+                                <p className="text-sm break-all" style={{ color: 'hsl(220, 15%, 72%)' }}>
+                                    Tienes la sesión iniciada como<br />
+                                    <span className="font-bold" style={{ color: 'hsl(42, 80%, 65%)' }}>{knownUser}</span>
+                                </p>
+                                <Button
+                                    onClick={() => { setIsLoading(true); window.location.href = '/creator'; }}
+                                    disabled={isLoading}
+                                    className="w-full h-12 text-base font-black tracking-widest transition-all transform active:scale-95 rounded-xl uppercase"
+                                    style={{
+                                        background: 'linear-gradient(135deg, hsl(42, 90%, 50%) 0%, hsl(38, 85%, 45%) 100%)',
+                                        color: 'hsl(222, 36%, 7%)',
+                                        boxShadow: '0 4px 20px hsla(42, 90%, 50%, 0.3), inset 0 1px 0 hsla(45, 100%, 80%, 0.3)',
+                                    }}
+                                >
+                                    {isLoading ? 'ENTRANDO…' : 'CONTINUAR'}
+                                </Button>
+                                <button
+                                    onClick={async () => {
+                                        const { auth } = await import('@/lib/auth');
+                                        await auth.logout();
+                                        setKnownUser(null);
+                                        setError(''); setInfo('');
+                                    }}
+                                    className="w-full text-center font-bold text-[11px] uppercase tracking-widest transition-colors hover:text-primary"
+                                    style={{ color: 'hsl(220, 15%, 65%)' }}
+                                >
+                                    Usar otra cuenta
+                                </button>
+                            </div>
+                        ) : (
+                        <>
                         <h2 className="text-xl font-bold mb-4 text-center font-display tracking-wide"
                             style={{ color: 'hsl(45, 20%, 92%)' }}>
                             {isLogin ? 'ACCESO ACTORES' : 'CREAR CUENTA'}
@@ -253,6 +300,8 @@ export default function LoginPage() {
                                 {isLogin ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia sesión"}
                             </button>
                         </div>
+                        </>
+                        )}
                     </div>
                 </div>
 

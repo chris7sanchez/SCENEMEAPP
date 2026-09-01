@@ -47,8 +47,11 @@ export default function MyTasks({ uid, dateKey }: { uid: string; dateKey: string
         <section className="rounded-2xl border border-zinc-700/60 bg-zinc-900/60 p-5 sm:p-7">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">Mis tareas</p>
-                    <h2 className="text-lg font-semibold text-white sm:text-xl">Tus grabaciones</h2>
+                    <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
+                        <span className="mr-2 rounded-full border border-zinc-600 bg-white/5 px-2 py-0.5 text-[10px] font-black text-zinc-300">3</span>
+                        Mis tareas
+                    </p>
+                    <h2 className="mt-1 text-lg font-semibold text-white sm:text-xl">Tus grabaciones 📹</h2>
                 </div>
                 <button
                     onClick={() => fileRef.current?.click()}
