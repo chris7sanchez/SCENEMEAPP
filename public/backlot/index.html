@@ -1,4 +1,6 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0c">
 <title>SceneMe Studios</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -193,6 +195,16 @@ header.nav{ position:absolute; top:0; left:0; right:0; z-index:40; display:flex;
 .hot:hover .lbl,.hot:focus-visible .lbl{ opacity:1; transform:translate(-50%,0) }
 .hot:hover .pin{ transform:scale(1.3) }
 .hot:focus-visible{ outline:2px solid var(--gold-bright); outline-offset:-10px; border-radius:50% }
+/* La pantalla de la comunidad: el vídeo se encaja en el croma con una
+   homografía calculada en JS a partir de las cuatro esquinas reales. */
+#pantalla{ position:absolute; left:0; top:0; transform-origin:0 0; object-fit:cover;
+  opacity:0; transition:opacity 1.2s ease; will-change:transform }
+#pantalla.on{ opacity:1 }
+#pantallaLuz{ position:absolute; left:0; top:0; transform-origin:0 0; pointer-events:none;
+  opacity:0; transition:opacity 1.2s ease;
+  background:linear-gradient(180deg, rgba(255,214,150,.16), rgba(20,12,4,.30));
+  mix-blend-mode:overlay }
+#pantallaLuz.on{ opacity:1 }
 #mundo.enfocado .hot{ opacity:.5 }
 #mundo.enfocado .hot.activa{ opacity:0; pointer-events:none }
 #vignette{ position:absolute; inset:0; pointer-events:none; z-index:108; box-shadow:inset 0 0 180px 40px rgba(3,4,8,.6); opacity:.6; transition:opacity .9s, box-shadow .9s }
@@ -343,13 +355,15 @@ header.nav{ position:absolute; top:0; left:0; right:0; z-index:40; display:flex;
   <div id="mundo">
     <div id="patio" class="aterrizando">
       <div id="paral">
-        <img class="foto" src="/backlot/patio.jpg" alt="Patio de Scene Me Studios entre los stages 5, 1 y 8 a la hora dorada">
+        <img class="foto" src="/backlot/patio2.jpg" alt="Patio de Scene Me Studios: el Stage 5 a la izquierda, el Stage 1 al fondo y la gran pantalla de la comunidad a la derecha">
+        <video id="pantalla" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+        <div id="pantallaLuz" aria-hidden="true"></div>
         <div class="glow sol"></div>
         <div class="glow verde"></div>
         <div class="glow naranja"></div>
-        <button class="hot" data-idx="0" style="left:16%;top:42%"><span class="pin"></span><span class="lbl"><b>Stage 5</b>Tus Estudios</span></button>
-        <button class="hot" data-idx="1" style="left:52.2%;top:23.5%"><span class="pin"></span><span class="lbl"><b>Stage 1</b>Entrenamiento Actoral</span></button>
-        <button class="hot" data-idx="2" style="left:83%;top:36%"><span class="pin"></span><span class="lbl"><b>Stage 8</b>Comunidad Scene Me</span></button>
+        <button class="hot" data-idx="0" style="left:11%;top:26%"><span class="pin"></span><span class="lbl"><b>Stage 5</b>Tus Estudios</span></button>
+        <button class="hot" data-idx="1" style="left:50.5%;top:31%"><span class="pin"></span><span class="lbl"><b>Stage 1</b>Entrenamiento Actoral</span></button>
+        <button class="hot" data-idx="2" style="left:82.5%;top:33%"><span class="pin"></span><span class="lbl"><b>La pantalla</b>Comunidad Scene Me</span></button>
       </div>
     </div>
     <div id="vignette"></div>
@@ -361,7 +375,7 @@ header.nav{ position:absolute; top:0; left:0; right:0; z-index:40; display:flex;
     <div id="barra">
       <button type="button" data-go="0"><b>Stage 5</b><span class="t">Tus Estudios</span></button>
       <button type="button" data-go="1"><b>Stage 1</b><span class="t">Entrenamiento</span></button>
-      <button type="button" data-go="2"><b>Stage 8</b><span class="t">Comunidad</span></button>
+      <button type="button" data-go="2"><b>La pantalla</b><span class="t">Comunidad</span></button>
     </div>
     <aside id="panel">
       <div class="sec" id="pSec"></div><h3 id="pTitle"></h3><p id="pDesc"></p>
@@ -377,7 +391,7 @@ header.nav{ position:absolute; top:0; left:0; right:0; z-index:40; display:flex;
   <div id="expFade"></div>
 </div>
 
-<script>window.__MP4__="/backlot/hero-loop.mp4";</script>
+<script>window.__MP4__="/backlot/hero-loop.mp4"; window.__PANTALLA__="/backlot/pantalla.mp4";</script>
 <script>
 (function(){
   var phrases=["Luz","Cámara","Acción","Bienvenido a Scene Me Studios","Hollywood","Estreno mundial"];
@@ -410,13 +424,17 @@ document.querySelectorAll('.stats').forEach(function(el){io2.observe(el);});
 "use strict";
 var STAGES=[
   {stage:'Stage 5', sec:'Edad de oro', title:'Tus Estudios',
-   desc:'Tres platós, tu producción. Reserva tu luz y rueda.', url:'https://www.scenemeapp.com/estudios', cta:'Entrar en Mis Estudios', zx:.13, zy:.50, zoom:1.28},
+   desc:'Tres platós, tu producción. Reserva tu luz y rueda.', url:'https://www.scenemeapp.com/estudios', cta:'Entrar en Mis Estudios', zx:.11, zy:.46, zoom:1.5},
   {stage:'Stage 1', sec:'Cine noir',   title:'Entrenamiento Actoral',
-   desc:'Donde se forja el talento. Método, cámara y escena.', url:'https://www.scenemeapp.com/studio', cta:'Entrar en el Studio', zx:.52, zy:.50, zoom:1.45},
-  {stage:'Stage 8', sec:'Sci-fi neón', title:'Comunidad Scene Me',
-   desc:'Miles de actores, una sola marquesina.',              url:null, plan:'scenemeapp.com/comunidad', cta:'Próximamente', zx:.86, zy:.46, zoom:1.28}
+   desc:'Donde se forja el talento. Método, cámara y escena.', url:'https://www.scenemeapp.com/studio', cta:'Entrar en el Studio', zx:.50, zy:.46, zoom:1.6},
+  {stage:'La pantalla', sec:'En directo', title:'Comunidad Scene Me',
+   desc:'El muro donde se proyectan las tomas de todos.',      url:null, plan:'scenemeapp.com/comunidad', cta:'Próximamente', zx:.83, zy:.33, zoom:1.5}
 ];
-var IMG_W=1904, IMG_H=1040;
+var IMG_W=2200, IMG_H=1043;
+
+/* Las cuatro esquinas del croma, medidas sobre la propia imagen (en % de su
+   ancho y alto). De aquí sale la perspectiva de la pantalla. */
+var CROMA=[[0.6888,0.2523],[0.9685,0.0887],[0.9604,0.5729],[0.6920,0.5797]];
 var $=function(id){ return document.getElementById(id); };
 var exp=$('exp'), inm=$('inmersion'), inmVid=$('inmVid'), inmTitle=$('inmTitle'), skip=$('skip'),
     mundo=$('mundo'), patio=$('patio'), paral=$('paral'), flash=$('flash'),
@@ -430,10 +448,17 @@ function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
 /* el patio cubre la ventana manteniendo la proporción de la foto */
 function layout(){
   var vw=mundo.clientWidth||innerWidth, vh=mundo.clientHeight||innerHeight;
-  var s=Math.max(vw/IMG_W, vh/IMG_H)*1.10;
+  /* La foto es muy panorámica (2,11:1). Recortarla a lo ancho dejaba la
+     pantalla de la derecha fuera de cuadro, así que en apaisado se muestra
+     entera como una tira de cinemascope; sólo en vertical se recorta y se
+     recorre con el dedo. */
+  var anchoCompleto=vw/IMG_W, cubrir=vh/IMG_H;
+  var tira = anchoCompleto*IMG_H >= vh*0.62;
+  var s = tira ? anchoCompleto*1.04 : cubrir*1.10;
   W=IMG_W*s; H=IMG_H*s;
   patio.style.width=W+'px'; patio.style.height=H+'px';
   maxPX=Math.max(0,(W-vw)/2-46); maxPY=Math.max(0,(H-vh)/2-26);
+  colocarPantalla();
   tpanX=Math.max(-maxPX,Math.min(maxPX,tpanX)); tpanY=Math.max(-maxPY,Math.min(maxPY,tpanY));
   if(modo==='zoom'&&activa) aplicarZoom(activa,false);
 }
@@ -442,6 +467,77 @@ addEventListener('resize',layout);
 /* parallax con el ratón + respiración lenta */
 var tx=0,ty=0,cx=0,cy=0,t0=0,rafId=0,corriendo=false;
 var panX=0,panY=0,tpanX=0,tpanY=0,maxPX=0,maxPY=0,arrastre=false,dragDist=0,lx=0,ly=0;
+/* ---------- La pantalla de la comunidad ----------
+   Encaja el vídeo dentro del croma. Como el panel está en perspectiva no basta
+   con escalar: hay que resolver la homografía que lleva el rectángulo del vídeo
+   a las cuatro esquinas reales, y pasarla a CSS como matrix3d. */
+function resolver(dst, bw, bh){
+  var src=[[0,0],[bw,0],[bw,bh],[0,bh]], A=[], b=[];
+  for(var i=0;i<4;i++){
+    var x=src[i][0], y=src[i][1], u=dst[i][0], v=dst[i][1];
+    A.push([x,y,1,0,0,0,-u*x,-u*y]); b.push(u);
+    A.push([0,0,0,x,y,1,-v*x,-v*y]); b.push(v);
+  }
+  for(var c=0;c<8;c++){                                  /* Gauss con pivoteo */
+    var piv=c;
+    for(var r=c+1;r<8;r++) if(Math.abs(A[r][c])>Math.abs(A[piv][c])) piv=r;
+    var t=A[c]; A[c]=A[piv]; A[piv]=t;
+    var tb=b[c]; b[c]=b[piv]; b[piv]=tb;
+    if(Math.abs(A[c][c])<1e-10) return null;
+    for(var r2=0;r2<8;r2++){
+      if(r2===c) continue;
+      var f=A[r2][c]/A[c][c];
+      for(var k=c;k<8;k++) A[r2][k]-=f*A[c][k];
+      b[r2]-=f*b[c];
+    }
+  }
+  var h=[]; for(var i2=0;i2<8;i2++) h.push(b[i2]/A[i2][i2]);
+  return [h[0],h[3],0,h[6], h[1],h[4],0,h[7], 0,0,1,0, h[2],h[5],0,1];
+}
+
+var pantalla=$('pantalla'), pantallaLuz=$('pantallaLuz'), pantallaLista=false;
+
+function colocarPantalla(){
+  if(!pantalla) return;
+  var dst=CROMA.map(function(p){ return [p[0]*W, p[1]*H]; });
+  /* base del vídeo: el lado más largo del cuadrilátero, para no perder nitidez */
+  var bw=Math.round(Math.max(Math.hypot(dst[1][0]-dst[0][0],dst[1][1]-dst[0][1]),
+                             Math.hypot(dst[2][0]-dst[3][0],dst[2][1]-dst[3][1])));
+  var bh=Math.round(Math.max(Math.hypot(dst[3][0]-dst[0][0],dst[3][1]-dst[0][1]),
+                             Math.hypot(dst[2][0]-dst[1][0],dst[2][1]-dst[1][1])));
+  if(bw<8||bh<8) return;
+  var m=resolver(dst,bw,bh); if(!m) return;
+  var css='matrix3d('+m.map(function(n){ return n.toFixed(6); }).join(',')+')';
+  [pantalla,pantallaLuz].forEach(function(el){
+    if(!el) return;
+    el.style.width=bw+'px'; el.style.height=bh+'px'; el.style.transform=css;
+  });
+}
+
+/* El vídeo sólo se carga cuando ya estás en el patio: no lastra la portada. */
+function encenderPantalla(){
+  if(pantallaLista||!pantalla) return;
+  pantallaLista=true;
+  pantalla.src=window.__PANTALLA__;
+  colocarPantalla();
+  var arranca=function(){
+    var pr=pantalla.play();
+    if(pr&&pr.catch) pr.catch(function(){ /* si el navegador no deja, se queda el croma */ });
+    pantalla.classList.add('on'); if(pantallaLuz) pantallaLuz.classList.add('on');
+  };
+  if(pantalla.readyState>=2) arranca();
+  else pantalla.addEventListener('loadeddata', arranca, {once:true});
+
+  /* El navegador pausa el vídeo cuando la pestaña pasa a segundo plano;
+     al volver, la pantalla debe seguir encendida sin que nadie haga nada. */
+  var reanuda=function(){
+    if(document.hidden||modo==='inmersion'||!pantalla.paused) return;
+    var pr=pantalla.play(); if(pr&&pr.catch) pr.catch(function(){});
+  };
+  document.addEventListener('visibilitychange', reanuda);
+  pantalla.addEventListener('pause', function(){ later(reanuda, 400); });
+}
+
 mundo.addEventListener('pointerdown',function(e){
   if(modo!=='patio') return;
   arrastre=true; dragDist=0; lx=e.clientX; ly=e.clientY;
@@ -467,7 +563,11 @@ function loop(now){
   var t=(now-t0)/1000;
   var breath=reduce?1:(1+0.012*Math.sin(t*0.35));
   panX+=(tpanX-panX)*0.16; panY+=(tpanY-panY)*0.16;
-  var mx=(reduce?0:cx*44)+panX, my=(reduce?0:cy*24)+panY;
+  var holguraX=Math.max(0,(W-(mundo.clientWidth||innerWidth))/2);
+  var holguraY=Math.max(0,(H-(mundo.clientHeight||innerHeight))/2);
+  var px=reduce?0:Math.max(-holguraX,Math.min(holguraX,cx*44));
+  var py=reduce?0:Math.max(-holguraY,Math.min(holguraY,cy*24));
+  var mx=px+panX, my=py+panY;
   paral.style.transform='translate('+mx+'px,'+my+'px) scale('+breath+')';
 }
 
@@ -565,6 +665,7 @@ function aterrizar(idx){
   later(function(){
     inm.classList.add('off'); mundo.classList.add('on');
     corriendo=true; t0=performance.now(); cancelAnimationFrame(rafId); rafId=requestAnimationFrame(loop);
+    encenderPantalla();
     requestAnimationFrame(function(){ requestAnimationFrame(function(){ patio.classList.remove('aterrizando'); }); });
     if(idx!=null) later(function(){ entrar(idx); }, 1900);
   }, 240);
