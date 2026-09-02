@@ -123,64 +123,78 @@ function Config(props: {
     const update = (s: string, p: VoiceProfile) => setProfiles(prev => ({ ...prev, [s]: p }));
 
     return (
-        <div className="mt-6 space-y-6">
-            <div>
-                <p className="mb-2 text-xs uppercase tracking-widest text-amber-400/80">¿Cuál es tu personaje?</p>
-                <div className="flex flex-wrap gap-2">
-                    {speakers.map(s => <Chip key={s} active={role === s} onClick={() => setRole(s)}>{s}</Chip>)}
+        <div className="mt-6">
+            {/* Dos columnas en escritorio: a la izquierda lo que haces tú,
+                a la derecha cómo suena tu compañero. En móvil, una sola. */}
+            <div className="lg:grid lg:grid-cols-2 lg:gap-10 lg:items-start">
+
+                <div className="space-y-6">
+                    <p className="border-b border-zinc-800 pb-2 text-[11px] font-black uppercase tracking-[0.3em] text-amber-400/90">Tu parte</p>
+
+                    <div>
+                        <p className="mb-2 text-xs uppercase tracking-widest text-amber-400/80">¿Cuál es tu personaje?</p>
+                        <div className="flex flex-wrap gap-2">
+                            {speakers.map(s => <Chip key={s} active={role === s} onClick={() => setRole(s)}>{s}</Chip>)}
+                        </div>
+                    </div>
+
+                    <div>
+                        <p className="mb-2 text-xs uppercase tracking-widest text-zinc-400">Tus líneas</p>
+                        <div className="flex flex-wrap gap-2">
+                            <Chip active={mode === 'full'} onClick={() => setMode('full')}>Texto completo</Chip>
+                            <Chip active={mode === 'cue'} onClick={() => setMode('cue')}>Pie de entrada</Chip>
+                            <Chip active={mode === 'hidden'} onClick={() => setMode('hidden')}>Oculto</Chip>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p className="mb-2 text-xs uppercase tracking-widest text-zinc-400">Avance</p>
+                        <div className="flex flex-wrap gap-2">
+                            <Chip active={advance === 'tap'} onClick={() => setAdvance('tap')}>Toque / barra</Chip>
+                            <Chip active={advance === 'voice'} onClick={() => setAdvance('voice')}>Por voz</Chip>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-8 space-y-6 lg:mt-0">
+                    <p className="border-b border-zinc-800 pb-2 text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400">Tu compañero</p>
+
+                    <div>
+                        <p className="mb-2 text-xs uppercase tracking-widest text-zinc-400">Motor de voz</p>
+                        <div className="flex flex-wrap gap-2">
+                            <Chip active={engine === 'browser'} onClick={() => setEngine('browser')}>Navegador (gratis)</Chip>
+                            <Chip active={engine === 'ai'} onClick={() => setEngine('ai')}>Voz IA (OpenAI)</Chip>
+                            <Chip active={engine === 'eleven'} onClick={() => setEngine('eleven')}>Voz IA Pro (ElevenLabs)</Chip>
+                            <Chip active={engine === 'cartesia'} onClick={() => setEngine('cartesia')}>Voz IA Pro (Cartesia)</Chip>
+                        </div>
+                        {engine === 'ai' && (
+                            <p className="mt-2 text-xs text-zinc-500">Voz actuada con emoción. Requiere clave de OpenAI; si no, usa la del navegador.</p>
+                        )}
+                        {engine === 'eleven' && (
+                            <p className="mt-2 text-xs text-zinc-500">La más natural. Requiere clave de ElevenLabs; si no, usa la del navegador. La emoción depende sobre todo de la voz elegida.</p>
+                        )}
+                        {engine === 'cartesia' && (
+                            <p className="mt-2 text-xs text-zinc-500">Muy natural y barata. Usa tus voces de Cartesia (incluidas las que clones, p. ej. una voz castellana). El &quot;cómo habla&quot; ajusta la emoción. Requiere clave de Cartesia.</p>
+                        )}
+                    </div>
+
+                    <div>
+                        <p className="mb-1 text-xs uppercase tracking-widest text-zinc-400">Voz de cada personaje</p>
+                        <p className="mb-3 text-xs text-zinc-500">Ajusta cada personaje. (Tu personaje no se lee en voz alta.)</p>
+                        <div className="space-y-3">
+                            {speakers.map(s => (
+                                <VoiceEditor
+                                    key={s} speaker={s} isMine={s === role} engine={engine} voices={voices}
+                                    profile={profiles[s] ?? DEFAULT_PROFILE}
+                                    onChange={(p) => update(s, p)}
+                                />
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div>
-                <p className="mb-2 text-xs uppercase tracking-widest text-zinc-400">Motor de voz</p>
-                <div className="flex flex-wrap gap-2">
-                    <Chip active={engine === 'browser'} onClick={() => setEngine('browser')}>Navegador (gratis)</Chip>
-                    <Chip active={engine === 'ai'} onClick={() => setEngine('ai')}>Voz IA (OpenAI)</Chip>
-                    <Chip active={engine === 'eleven'} onClick={() => setEngine('eleven')}>Voz IA Pro (ElevenLabs)</Chip>
-                    <Chip active={engine === 'cartesia'} onClick={() => setEngine('cartesia')}>Voz IA Pro (Cartesia)</Chip>
-                </div>
-                {engine === 'ai' && (
-                    <p className="mt-2 text-xs text-zinc-500">Voz actuada con emoción. Requiere clave de OpenAI; si no, usa la del navegador.</p>
-                )}
-                {engine === 'eleven' && (
-                    <p className="mt-2 text-xs text-zinc-500">La más natural. Requiere clave de ElevenLabs; si no, usa la del navegador. La emoción depende sobre todo de la voz elegida.</p>
-                )}
-                {engine === 'cartesia' && (
-                    <p className="mt-2 text-xs text-zinc-500">Muy natural y barata. Usa tus voces de Cartesia (incluidas las que clones, p. ej. una voz castellana). El &quot;cómo habla&quot; ajusta la emoción. Requiere clave de Cartesia.</p>
-                )}
-            </div>
-
-            <div>
-                <p className="mb-2 text-xs uppercase tracking-widest text-zinc-400">Tus líneas</p>
-                <div className="flex flex-wrap gap-2">
-                    <Chip active={mode === 'full'} onClick={() => setMode('full')}>Texto completo</Chip>
-                    <Chip active={mode === 'cue'} onClick={() => setMode('cue')}>Pie de entrada</Chip>
-                    <Chip active={mode === 'hidden'} onClick={() => setMode('hidden')}>Oculto</Chip>
-                </div>
-            </div>
-            <div>
-                <p className="mb-2 text-xs uppercase tracking-widest text-zinc-400">Avance</p>
-                <div className="flex flex-wrap gap-2">
-                    <Chip active={advance === 'tap'} onClick={() => setAdvance('tap')}>Toque / barra</Chip>
-                    <Chip active={advance === 'voice'} onClick={() => setAdvance('voice')}>Por voz</Chip>
-                </div>
-            </div>
-
-            <div>
-                <p className="mb-1 text-xs uppercase tracking-widest text-zinc-400">Voz de cada personaje</p>
-                <p className="mb-3 text-xs text-zinc-500">Ajusta cada personaje. (Tu personaje no se lee en voz alta.)</p>
-                <div className="space-y-3">
-                    {speakers.map(s => (
-                        <VoiceEditor
-                            key={s} speaker={s} isMine={s === role} engine={engine} voices={voices}
-                            profile={profiles[s] ?? DEFAULT_PROFILE}
-                            onChange={(p) => update(s, p)}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            <button onClick={() => { primeSpeech(); onStart(); }} disabled={!role} className="w-full rounded-full bg-amber-500 py-4 text-base font-black text-black transition hover:bg-amber-400 disabled:opacity-50">
+            <button onClick={() => { primeSpeech(); onStart(); }} disabled={!role} className="mt-8 w-full rounded-full bg-amber-500 py-4 text-base font-black text-black transition hover:bg-amber-400 disabled:opacity-50">
                 EMPEZAR
             </button>
         </div>
