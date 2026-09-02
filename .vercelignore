@@ -8,3 +8,6 @@ src/data/exquisit/guides/
 *.mp4
 *.mov
 src/app/tools/video/
+
+# excepcion: el bucle aereo de la landing /backlot (2 MB) si debe desplegarse
+!public/backlot/hero-loop.mp4
