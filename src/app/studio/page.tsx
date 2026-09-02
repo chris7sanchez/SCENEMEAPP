@@ -7,6 +7,7 @@ import DailyScene from '@/components/studio/DailyScene';
 import RehearsalSection from '@/components/studio/RehearsalSection';
 import MyTasks from '@/components/studio/MyTasks';
 import StudioOnboarding from '@/components/studio/StudioOnboarding';
+import TakeFeedback from '@/components/studio/TakeFeedback';
 
 const ONBOARDING_KEY = 'sm_studio_onboarding_v1';
 
@@ -104,6 +105,8 @@ export default function StudioPage() {
                     <DailyScene dateKey={dateKey} />
 
                     <RehearsalSection dateKey={dateKey} />
+
+                    <TakeFeedback dateKey={dateKey} />
 
                     {!checked ? (
                         <p className="text-center text-sm text-zinc-500">Cargando…</p>
