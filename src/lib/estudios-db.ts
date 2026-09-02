@@ -69,11 +69,21 @@ function guardarLocal<T>(c: Coleccion, items: T[]): void {
     try { localStorage.setItem(LS(c), JSON.stringify(items)); } catch { /* modo privado */ }
 }
 
-/** Lee una colección. Con uid intenta Firestore; si falla, cae a local sin romper. */
+/** Corta una promesa que se eterniza. Firestore no siempre rechaza: a veces
+ *  simplemente no responde (sin red, permisos raros), y sin esto la página se
+ *  quedaría cargando para siempre. */
+function conLimite<T>(promesa: Promise<T>, ms: number): Promise<T> {
+    return Promise.race([
+        promesa,
+        new Promise<T>((_, rechaza) => setTimeout(() => rechaza(new Error('tiempo agotado')), ms)),
+    ]);
+}
+
+/** Lee una colección. Con uid intenta Firestore; si falla o tarda, cae a local sin romper. */
 export async function listar<T extends Ficha>(uid: string | null, c: Coleccion): Promise<T[]> {
     if (uid && db) {
         try {
-            const snap = await getDoc(doc(db, 'users', uid, 'estudios', c));
+            const snap = await conLimite(getDoc(doc(db, 'users', uid, 'estudios', c)), 6000);
             if (snap.exists()) {
                 const items = (snap.data()?.items ?? []) as T[];
                 guardarLocal(c, items); // copia local para arrancar rápido la próxima vez
@@ -81,7 +91,7 @@ export async function listar<T extends Ficha>(uid: string | null, c: Coleccion):
             }
             return [];
         } catch (e) {
-            console.warn('[estudios] lectura remota falló, uso local:', e);
+            console.warn('[estudios] lectura remota falló o tardó demasiado, uso local:', e);
         }
     }
     return leerLocal<T>(c);
@@ -92,7 +102,7 @@ export async function guardar<T extends Ficha>(uid: string | null, c: Coleccion,
     guardarLocal(c, items);
     if (!uid || !db) return;
     try {
-        await setDoc(doc(db, 'users', uid, 'estudios', c), { items, actualizado: Date.now() });
+        await conLimite(setDoc(doc(db, 'users', uid, 'estudios', c), { items, actualizado: Date.now() }), 8000);
     } catch (e) {
         console.warn('[estudios] guardado remoto falló (queda en local):', e);
     }
