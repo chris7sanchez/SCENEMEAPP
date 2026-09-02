@@ -102,27 +102,52 @@ export function nuevoId(): string {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
+export class SinClaveError extends Error {
+    constructor() { super('Falta la clave de TMDB'); this.name = 'SinClaveError'; }
+}
+
 /**
- * Búsqueda de películas con la API de iTunes: no necesita clave, permite CORS y
- * devuelve póster, sinopsis, tráiler y una ficha donde verla.
+ * Búsqueda de películas con TMDB (la misma fuente que usan las fichas tipo
+ * IMDb/FilmAffinity): póster, sinopsis, tráiler de YouTube y dónde verla.
+ *
+ * Probé antes la API de iTunes porque no necesita clave, pero Apple ha retirado
+ * las películas de su búsqueda pública: `media=movie` devuelve 0 siempre y el
+ * filtrado genérico sólo saca títulos irrelevantes. Sin clave no hay búsqueda
+ * fiable, así que aquí avisamos y la página ofrece alta manual.
  */
 export async function buscarPeliculas(termino: string): Promise<Pelicula[]> {
     const q = termino.trim();
     if (!q) return [];
-    const url = 'https://itunes.apple.com/search?media=movie&limit=12&country=ES&term=' + encodeURIComponent(q);
-    const res = await fetch(url);
+
+    const clave = process.env.NEXT_PUBLIC_TMDB_KEY;
+    if (!clave) throw new SinClaveError();
+
+    const base = 'https://api.themoviedb.org/3';
+    const res = await fetch(`${base}/search/movie?api_key=${clave}&language=es-ES&include_adult=false&query=${encodeURIComponent(q)}`);
     if (!res.ok) throw new Error('La búsqueda no respondió (' + res.status + ')');
     const data = await res.json();
-    return (data.results ?? []).map((r: any): Pelicula => ({
-        id: String(r.trackId ?? nuevoId()),
-        titulo: r.trackName ?? 'Sin título',
-        anio: r.releaseDate ? String(r.releaseDate).slice(0, 4) : undefined,
-        genero: r.primaryGenreName ?? undefined,
-        sinopsis: r.longDescription ?? r.shortDescription ?? undefined,
-        // el artwork viene a 100px; pedir 600 da un póster decente
-        poster: r.artworkUrl100 ? String(r.artworkUrl100).replace('100x100', '600x600') : undefined,
-        trailer: r.previewUrl ?? undefined,
-        verOnline: r.trackViewUrl ?? undefined,
+
+    return (data.results ?? []).slice(0, 12).map((r: any): Pelicula => ({
+        id: String(r.id),
+        titulo: r.title ?? r.original_title ?? 'Sin título',
+        anio: r.release_date ? String(r.release_date).slice(0, 4) : undefined,
+        genero: undefined,
+        sinopsis: r.overview || undefined,
+        poster: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : undefined,
+        verOnline: `https://www.themoviedb.org/movie/${r.id}/watch`,
         creado: Date.now(),
     }));
+}
+
+/** Busca el tráiler de YouTube de una película ya guardada (bajo demanda). */
+export async function buscarTrailer(tmdbId: string): Promise<string | undefined> {
+    const clave = process.env.NEXT_PUBLIC_TMDB_KEY;
+    if (!clave) return undefined;
+    try {
+        const res = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}/videos?api_key=${clave}&language=es-ES`);
+        if (!res.ok) return undefined;
+        const data = await res.json();
+        const v = (data.results ?? []).find((x: any) => x.site === 'YouTube' && x.type === 'Trailer') ?? (data.results ?? [])[0];
+        return v ? `https://www.youtube.com/watch?v=${v.key}` : undefined;
+    } catch { return undefined; }
 }

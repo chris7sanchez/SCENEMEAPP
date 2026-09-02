@@ -12,7 +12,7 @@ import {
     Play, ExternalLink, X, Loader2, ArrowLeft,
 } from 'lucide-react';
 import {
-    listar, guardar, nuevoId, buscarPeliculas,
+    listar, guardar, nuevoId, buscarPeliculas, SinClaveError,
     type Coleccion, type Pelicula, type Personaje, type Escena, type Guion,
 } from '@/lib/estudios-db';
 
@@ -197,6 +197,8 @@ function Peliculas({ uid, items, setItems, abrirFicha }: {
     const [resultados, setResultados] = useState<Pelicula[]>([]);
     const [buscando, setBuscando] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [manual, setManual] = useState(false);
+    const [nueva, setNueva] = useState<Record<string, string>>({});
 
     const guardados = useMemo(() => new Set(items.map(i => i.id)), [items]);
 
@@ -207,7 +209,10 @@ function Peliculas({ uid, items, setItems, abrirFicha }: {
         try {
             setResultados(await buscarPeliculas(q));
         } catch (err: any) {
-            setError('No se pudo buscar ahora mismo. Inténtalo de nuevo.');
+            setError(err instanceof SinClaveError
+                ? 'La búsqueda automática necesita una clave de TMDB (gratuita). Mientras tanto puedes añadir películas a mano.'
+                : 'No se pudo buscar ahora mismo. Inténtalo de nuevo.');
+            setManual(true);
             console.warn('[estudios] búsqueda:', err);
         } finally {
             setBuscando(false);
@@ -241,7 +246,49 @@ function Peliculas({ uid, items, setItems, abrirFicha }: {
                 </button>
             </form>
 
-            {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+            {error && <p className="mb-4 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-200/90">{error}</p>}
+
+            <button type="button" onClick={() => setManual(v => !v)}
+                className="mb-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-neutral-400 hover:text-amber-300">
+                <Plus className="h-3.5 w-3.5" /> {manual ? 'Ocultar alta manual' : 'Añadir película a mano'}
+            </button>
+
+            <AnimatePresence>
+                {manual && (
+                    <motion.form initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                        onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (!nueva.titulo?.trim()) return;
+                            const p: Pelicula = {
+                                id: nuevoId(), titulo: nueva.titulo.trim(), anio: nueva.anio || undefined,
+                                genero: nueva.genero || undefined, sinopsis: nueva.sinopsis || undefined,
+                                poster: nueva.poster || undefined, trailer: nueva.trailer || undefined,
+                                verOnline: nueva.verOnline || undefined, creado: Date.now(),
+                            };
+                            const nuevos = [p, ...items];
+                            setItems(nuevos); setNueva({}); setManual(false);
+                            await guardar(uid, 'favoritas', nuevos);
+                        }}
+                        className="mb-8 overflow-hidden rounded-xl border border-white/10 bg-white/5 p-5">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            {[['titulo', 'Título *'], ['anio', 'Año'], ['genero', 'Género'], ['poster', 'URL del póster'],
+                              ['trailer', 'Enlace del tráiler'], ['verOnline', 'Dónde verla']].map(([k, label]) => (
+                                <label key={k}>
+                                    <span className="mb-1.5 block text-xs uppercase tracking-[0.16em] text-neutral-400">{label}</span>
+                                    <input value={nueva[k] ?? ''} onChange={e => setNueva({ ...nueva, [k]: e.target.value })}
+                                        className="w-full rounded-lg border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 focus:border-amber-400/60 focus:outline-none" />
+                                </label>
+                            ))}
+                            <label className="sm:col-span-2">
+                                <span className="mb-1.5 block text-xs uppercase tracking-[0.16em] text-neutral-400">Sinopsis o por qué te importa</span>
+                                <textarea rows={3} value={nueva.sinopsis ?? ''} onChange={e => setNueva({ ...nueva, sinopsis: e.target.value })}
+                                    className="w-full rounded-lg border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 focus:border-amber-400/60 focus:outline-none" />
+                            </label>
+                        </div>
+                        <button type="submit" className="mt-4 rounded-full bg-amber-400 px-5 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-900 hover:bg-amber-300">Guardar película</button>
+                    </motion.form>
+                )}
+            </AnimatePresence>
 
             {resultados.length > 0 && (
                 <section className="mb-10">
