@@ -1,4 +1,3 @@
-public/videos/
 *.zip
 sceneeme.mov
 src/data/exquisit/design_elements/
@@ -14,9 +13,9 @@ src/app/tools/video/
 !public/backlot/pantalla.mp4
 !public/backlot/paso.mp4
 
-# excepciones: los videos y el poster que usa la landing de la raiz.
-# public/videos/ esta excluida entera (arriba) porque contiene los masters;
-# aqui solo se dejan pasar las versiones comprimidas que la pagina necesita.
+# Los videos de la landing de la raiz. La carpeta public/videos/ ya NO se excluye
+# entera, porque una carpeta excluida no admite reincluir su contenido con '!';
+# se dejan pasar uno a uno los que la pagina usa (el resto lo tapa *.mp4).
 !public/videos/MIX-cine-web.mp4
 !public/videos/MUDANZA-cut-web.mp4
 !public/videos/Mel_cuban-web.mp4
@@ -24,4 +23,3 @@ src/app/tools/video/
 !public/videos/SONIA_DORADO_DW2-web.mp4
 !public/videos/Acting1 OLIVER-web.mp4
 !public/videos/ACTING RODRIGUES SHOGUN2-web.mp4
-!public/videos/mix-cine-poster.jpg
