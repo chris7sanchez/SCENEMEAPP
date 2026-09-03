@@ -24,22 +24,17 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '5mb',
     },
   },
-  async rewrites() {
-    return {
-      // La raiz sirve la landing del backlot (HTML estatico en public/backlot),
-      // manteniendo la URL limpia: scenemeapp.com, sin /backlot en la barra.
-      // Va en beforeFiles para ganar a la ruta /  de la app.
-      beforeFiles: [
-        { source: '/', destination: '/backlot/index.html' },
-      ],
-    };
-  },
   async redirects() {
     return [
       // La antigua ruta /antigravity ahora se llama /actorlogia.
       // Solo la ruta EXACTA se redirige; los assets en /public/antigravity/*
       // (imágenes de fondo) se siguen sirviendo sin tocar.
       { source: '/antigravity', destination: '/actorlogia', permanent: true },
+      // La raiz entra en la landing del backlot. Se hace con redirect y no con
+      // rewrite porque un rewrite hacia un archivo de public/ no resuelve en
+      // Vercel: la raiz devolvia 404. Temporal (307) para poder revertirlo sin
+      // que quede cacheado en los navegadores.
+      { source: '/', destination: '/backlot', permanent: false },
     ];
   },
 };
