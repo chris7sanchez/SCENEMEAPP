@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 
-// La app abre en el login de actores (/login). El Hub (/hub) queda fuera del
-// flujo público: es material para alumnos y se vinculará desde otra entrada.
+// La raiz la sirve la landing del backlot (rewrite en next.config.ts hacia
+// /backlot/index.html), asi que esta pagina no se alcanza en produccion.
+// Se mantiene como respaldo: si se quita ese rewrite, la raiz vuelve al login.
 export default function Home() {
     redirect('/login');
 }

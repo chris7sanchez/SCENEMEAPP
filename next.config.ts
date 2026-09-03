@@ -24,6 +24,16 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '5mb',
     },
   },
+  async rewrites() {
+    return {
+      // La raiz sirve la landing del backlot (HTML estatico en public/backlot),
+      // manteniendo la URL limpia: scenemeapp.com, sin /backlot en la barra.
+      // Va en beforeFiles para ganar a la ruta /  de la app.
+      beforeFiles: [
+        { source: '/', destination: '/backlot/index.html' },
+      ],
+    };
+  },
   async redirects() {
     return [
       // La antigua ruta /antigravity ahora se llama /actorlogia.
