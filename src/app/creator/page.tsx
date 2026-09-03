@@ -168,7 +168,7 @@ function CreatorContent() {
                         href="/backlot"
                         className="shrink-0 inline-flex items-center rounded-full border border-amber-400/50 bg-amber-500/10 px-4 py-2 text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-amber-300 hover:bg-amber-500/20 transition-all"
                     >
-                        Studio
+                        Los estudios
                     </a>
                 </div>
             </header>
