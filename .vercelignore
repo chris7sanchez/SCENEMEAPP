@@ -13,3 +13,15 @@ src/app/tools/video/
 !public/backlot/hero-loop.mp4
 !public/backlot/pantalla.mp4
 !public/backlot/paso.mp4
+
+# excepciones: los videos y el poster que usa la landing de la raiz.
+# public/videos/ esta excluida entera (arriba) porque contiene los masters;
+# aqui solo se dejan pasar las versiones comprimidas que la pagina necesita.
+!public/videos/MIX-cine-web.mp4
+!public/videos/MUDANZA-cut-web.mp4
+!public/videos/Mel_cuban-web.mp4
+!public/videos/AMANDA_OK_22_01-web.mp4
+!public/videos/SONIA_DORADO_DW2-web.mp4
+!public/videos/Acting1 OLIVER-web.mp4
+!public/videos/ACTING RODRIGUES SHOGUN2-web.mp4
+!public/videos/mix-cine-poster.jpg
