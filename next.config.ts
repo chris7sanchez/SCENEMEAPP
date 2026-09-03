@@ -24,17 +24,28 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '5mb',
     },
   },
+  async rewrites() {
+    return {
+      // La raiz SIRVE la landing sin cambiar la URL: scenemeapp.com muestra el
+      // backlot y la barra sigue diciendo scenemeapp.com.
+      //
+      // El destino es '/backlot' y no '/backlot/index.html': Vercel sirve los
+      // .html de public/ con URL limpia y devuelve 308 desde la ruta con
+      // extension. Un rewrite no sigue redirecciones, asi que apuntar al
+      // index.html dejaba la raiz en 404.
+      //
+      // Va en beforeFiles para ganar a la ruta '/' de la app.
+      beforeFiles: [
+        { source: '/', destination: '/backlot' },
+      ],
+    };
+  },
   async redirects() {
     return [
       // La antigua ruta /antigravity ahora se llama /actorlogia.
       // Solo la ruta EXACTA se redirige; los assets en /public/antigravity/*
       // (imágenes de fondo) se siguen sirviendo sin tocar.
       { source: '/antigravity', destination: '/actorlogia', permanent: true },
-      // La raiz entra en la landing del backlot. Se hace con redirect y no con
-      // rewrite porque un rewrite hacia un archivo de public/ no resuelve en
-      // Vercel: la raiz devolvia 404. Temporal (307) para poder revertirlo sin
-      // que quede cacheado en los navegadores.
-      { source: '/', destination: '/backlot', permanent: false },
     ];
   },
 };
