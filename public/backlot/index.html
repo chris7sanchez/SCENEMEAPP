@@ -641,7 +641,10 @@ document.querySelectorAll('#barra button').forEach(function(b){
 var paso=$('paso'), cromaSalida=$('cromaSalida'), cruzando=false;
 
 function precargarPaso(){
-  if(paso && !paso.src && window.__PASO__) paso.src=window.__PASO__;
+  if(!paso || paso.src || !window.__PASO__) return;
+  paso.preload='auto';                 /* con 'none' asignar src no descarga nada */
+  paso.src=window.__PASO__;
+  try{ paso.load(); }catch(e){}
 }
 function irA(url){
   try{ top.location.href=url; }catch(err){ location.href=url; }
@@ -658,17 +661,23 @@ function cruzar(url){
   var salta=function(){ if(!salto){ salto=true; irA(url); } };
 
   precargarPaso();
+  var lanza=function(){
+    paso.classList.add('on');
+    var pr=paso.play(); if(pr&&pr.catch) pr.catch(function(){});
+    later(function(){ cromaSalida.classList.add('on'); }, 2350);
+    later(salta, 2650);
+  };
+  var rendirse=function(){                 /* sin clip no se castiga al usuario */
+    cromaSalida.classList.add('on');
+    later(salta, 300);
+  };
   later(function(){
-    if(paso.readyState>=2){
-      paso.classList.add('on');
-      var pr=paso.play(); if(pr&&pr.catch) pr.catch(function(){});
-      later(function(){ cromaSalida.classList.add('on'); }, 2350);
-      later(salta, 2650);
-    }else{
-      /* si el clip no está listo, no se castiga al usuario: croma y adentro */
-      cromaSalida.classList.add('on');
-      later(salta, 320);
-    }
+    if(paso.readyState>=2){ lanza(); return; }
+    /* segunda oportunidad: el clip puede estar aún bajando */
+    var listo=false;
+    var arranca=function(){ if(listo) return; listo=true; lanza(); };
+    paso.addEventListener('canplay', arranca, {once:true});
+    later(function(){ if(!listo){ listo=true; rendirse(); } }, 900);
   }, 420);
 
   later(salta, 5000);                                  /* red de seguridad */
