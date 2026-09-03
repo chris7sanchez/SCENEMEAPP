@@ -17,7 +17,14 @@ export default function StudioPage() {
     const [checked, setChecked] = useState(false);
     const [streak, setStreak] = useState(0);
     const [showOnboarding, setShowOnboarding] = useState(false);
-    const dateKey = dailyKey();
+    // La fecha se calcula DESPUÉS de montar, nunca durante el render.
+    // /studio se prerenderiza estática, así que calcularla en el render horneaba
+    // la fecha del despliegue en el HTML: al día siguiente el navegador calculaba
+    // otra y saltaba el desajuste de hidratación (React #418), además de pedir la
+    // escena del día equivocada.
+    const [dateKey, setDateKey] = useState('');
+
+    useEffect(() => { setDateKey(dailyKey()); }, []);
 
     useEffect(() => {
         import('@/lib/auth').then(async ({ auth }) => {
@@ -102,6 +109,10 @@ export default function StudioPage() {
                 </header>
 
                 <div className="space-y-6">
+                    {!dateKey ? (
+                        <p className="text-center text-sm text-zinc-500">Abriendo el plató…</p>
+                    ) : (
+                    <>
                     <DailyScene dateKey={dateKey} />
 
                     <RehearsalSection dateKey={dateKey} />
@@ -124,6 +135,8 @@ export default function StudioPage() {
                                 Iniciar sesión
                             </button>
                         </section>
+                    )}
+                    </>
                     )}
                 </div>
 
