@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { LazyVideo } from '@/components/landing/lazy-video';
 
 export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -92,23 +93,17 @@ export function HeroSection() {
           {/* Column 1 */}
           <motion.div className="flex-1 flex flex-col gap-4" style={{ y: gridY1 }}>
             <div className="h-[40vh] rounded-2xl overflow-hidden relative">
-              <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-                <source src="/videos/MUDANZA-cut-web.mp4#t=15" type="video/mp4" />
-              </video>
+              <LazyVideo src="/videos/MUDANZA-cut-web.mp4#t=15" className="w-full h-full object-cover" />
             </div>
             <div className="h-[60vh] rounded-2xl overflow-hidden relative">
-              <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-                <source src="/videos/Mel_cuban-web.mp4" type="video/mp4" />
-              </video>
+              <LazyVideo src="/videos/Mel_cuban-web.mp4" className="w-full h-full object-cover" />
             </div>
           </motion.div>
 
           {/* Column 2 */}
           <motion.div className="flex-1 flex flex-col gap-4 mt-20" style={{ y: gridY2 }}>
             <div className="h-[50vh] rounded-2xl overflow-hidden relative">
-              <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-                <source src="/videos/AMANDA_OK_22_01-web.mp4" type="video/mp4" />
-              </video>
+              <LazyVideo src="/videos/AMANDA_OK_22_01-web.mp4" className="w-full h-full object-cover" />
             </div>
             <div className="h-[40vh] rounded-2xl overflow-hidden relative bg-zinc-900 flex flex-col items-center justify-center p-8 text-center border border-white/5">
                <h2 className="text-3xl font-display mb-4 leading-tight" style={{ fontFamily: "'Cinzel', serif" }}>
@@ -121,14 +116,10 @@ export function HeroSection() {
           {/* Column 3 (Hidden on mobile) */}
           <motion.div className="hidden md:flex flex-1 flex-col gap-4" style={{ y: gridY3 }}>
             <div className="h-[45vh] rounded-2xl overflow-hidden relative">
-              <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-                <source src="/videos/SONIA_DORADO_DW2-web.mp4" type="video/mp4" />
-              </video>
+              <LazyVideo src="/videos/SONIA_DORADO_DW2-web.mp4" className="w-full h-full object-cover" />
             </div>
             <div className="h-[55vh] rounded-2xl overflow-hidden relative">
-              <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-                <source src="/videos/Acting1 OLIVER-web.mp4" type="video/mp4" />
-              </video>
+              <LazyVideo src="/videos/Acting1 OLIVER-web.mp4" className="w-full h-full object-cover" />
             </div>
           </motion.div>
 
