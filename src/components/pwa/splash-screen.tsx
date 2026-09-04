@@ -14,6 +14,13 @@ export function SplashScreen() {
             setIsVisible(false);
             return;
         }
+        // Si vienes del backlot, la entrada ya es el plano del paso: la
+        // cortinilla en negro lo cortaría justo en el peor momento.
+        if (new URLSearchParams(window.location.search).get('desde') === 'backlot') {
+            sessionStorage.setItem('sceneme_splash_shown', 'true');
+            setIsVisible(false);
+            return;
+        }
         // Splash breve y FIJO (no depende de que cargue el vídeo): nunca deja la
         // app "colgada" en negro. Funde a ~1,2s y se oculta del todo a ~1,9s.
         sessionStorage.setItem('sceneme_splash_shown', 'true');

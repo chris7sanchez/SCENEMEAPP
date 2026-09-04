@@ -38,6 +38,7 @@ export const metadata: Metadata = {
 };
 
 import { SplashScreen } from '@/components/pwa/splash-screen';
+import EntradaBacklot from '@/components/EntradaBacklot';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { SceneMeProviders } from '@/components/SceneMeProviders';
@@ -68,6 +69,9 @@ export default function RootLayout({
             <body className="font-body antialiased flex flex-col min-h-screen" style={{ backgroundColor: 'var(--sm-bg-base)', color: 'var(--sm-text-primary)' }} suppressHydrationWarning>
                 <SceneMeProviders>
                     <SplashScreen />
+                    {/* Llegada desde el backlot: la seccion nace sobre el ultimo
+                        fotograma del paso. No pinta nada si no vienes de ahi. */}
+                    <EntradaBacklot />
                     <GlobalErrorBoundary>
                         <main className="flex-1 pb-16 md:pb-0">
                             {children}

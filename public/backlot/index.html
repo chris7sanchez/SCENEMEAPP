@@ -208,7 +208,7 @@ header.nav{ position:absolute; top:0; left:0; right:0; z-index:40; display:flex;
 /* El paso de la puerta: al entrar en una sección la cámara no corta, sigue
    metiéndose en la nave y remata sobre el croma, que es donde carga la página. */
 #paso{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 58%;
-  background:#0b0b0b; opacity:0; pointer-events:none; z-index:130; transition:opacity .3s linear }
+  background:#0b0b0b; opacity:0; pointer-events:none; z-index:130; transition:opacity .16s linear }
 #paso.on{ opacity:1 }
 #cromaSalida{ position:absolute; inset:0; background:#3FA55C; opacity:0; pointer-events:none;
   z-index:131; transition:opacity .22s linear }
@@ -436,7 +436,12 @@ var STAGES=[
   {stage:'Stage 5', sec:'Edad de oro', title:'Tus Estudios',
    desc:'Tres platós, tu producción. Reserva tu luz y rueda.', url:'https://www.scenemeapp.com/estudios', cta:'Entrar en Mis Estudios', zx:.11, zy:.46, zoom:1.5},
   {stage:'Stage 1', sec:'Cine noir',   title:'Entrenamiento Actoral',
-   desc:'Donde se forja el talento. Método, cámara y escena.', url:'https://www.scenemeapp.com/studio', cta:'Entrar en el Studio', zx:.50, zy:.46, zoom:1.6},
+   desc:'Donde se forja el talento. Método, cámara y escena.', url:'https://www.scenemeapp.com/studio', cta:'Entrar en el Studio', zx:.50, zy:.46, zoom:1.6,
+   /* Encuadre con el que se corta al vídeo. Está medido: el croma interior de
+      la foto está centrado en (0.535, 0.624) y el del primer fotograma del clip
+      en (0.528, 0.595); con zoom 2.14 el croma de la foto queda al 80 % del
+      tamaño que tiene en el vídeo, así que el corte conserva el avance. */
+   raccord:{zx:.535, zy:.624, zoom:2.14}},
   {stage:'La pantalla', sec:'En directo', title:'Comunidad Scene Me',
    desc:'El muro donde se proyectan las tomas de todos.',      url:null, plan:'scenemeapp.com/comunidad', cta:'Próximamente', zx:.83, zy:.33, zoom:1.5}
 ];
@@ -655,17 +660,37 @@ function cruzar(url){
   if(reduce||!paso){ irA(url); return; }
 
   panel.classList.remove('on');
-  if(activa) aplicarZoom({zx:activa.zx, zy:activa.zy, zoom:activa.zoom*1.6}, true);
+
+  /* 1 · el empuje: la cámara sigue metiéndose hasta el encuadre que casa con el
+     primer fotograma del clip. Si el stage no tiene raccord medido, se usa el
+     acercamiento genérico de antes. */
+  var destino = (activa && activa.raccord)
+    ? activa.raccord
+    : {zx:activa.zx, zy:activa.zy, zoom:activa.zoom*1.6};
+  patio.style.transition='transform 1.25s cubic-bezier(.42,0,.85,.35)';
+  aplicarZoom(destino, true);
 
   var salto=false;
-  var salta=function(){ if(!salto){ salto=true; irA(url); } };
+  var salta=function(){ if(!salto){ salto=true; irA(url + (url.indexOf('?')<0?'?':'&') + 'desde=backlot'); } };
 
   precargarPaso();
+
+  /* 2 · el corte: el clip entra desde su fotograma 0, justo cuando el encuadre
+     de la foto coincide. Un fundido muy corto disimula la costura sin que se
+     lea como transición. */
   var lanza=function(){
+    try{ paso.currentTime=0; }catch(e){}
     paso.classList.add('on');
     var pr=paso.play(); if(pr&&pr.catch) pr.catch(function(){});
-    later(function(){ cromaSalida.classList.add('on'); }, 2350);
-    later(salta, 2650);
+
+    /* 3 · el clip se queda clavado en su último fotograma: es el suelo sobre el
+       que va a nacer la sección al otro lado. */
+    var congela=function(){
+      try{ paso.pause(); paso.currentTime=Math.max(0,(paso.duration||2.6)-0.05); }catch(e){}
+    };
+    paso.addEventListener('ended', congela, {once:true});
+    later(congela, 2560);
+    later(salta, 2760);
   };
   var rendirse=function(){                 /* sin clip no se castiga al usuario */
     cromaSalida.classList.add('on');
@@ -673,14 +698,13 @@ function cruzar(url){
   };
   later(function(){
     if(paso.readyState>=2){ lanza(); return; }
-    /* segunda oportunidad: el clip puede estar aún bajando */
     var listo=false;
     var arranca=function(){ if(listo) return; listo=true; lanza(); };
     paso.addEventListener('canplay', arranca, {once:true});
     later(function(){ if(!listo){ listo=true; rendirse(); } }, 900);
-  }, 420);
+  }, 1180);
 
-  later(salta, 5000);                                  /* red de seguridad */
+  later(salta, 6000);                                  /* red de seguridad */
 }
 
 $('pGo').addEventListener('click',function(e){
