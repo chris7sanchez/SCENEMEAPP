@@ -36,8 +36,8 @@ export default function EntradaBacklot() {
         } catch { /* nada */ }
 
         // Un respiro para que la sección pinte por debajo, y se disuelve.
-        const empieza = setTimeout(() => setDisolviendo(true), 260);
-        const acaba = setTimeout(() => setEntrando(false), 1900);
+        const empieza = setTimeout(() => setDisolviendo(true), 200);
+        const acaba = setTimeout(() => setEntrando(false), 2100);
         return () => { clearTimeout(empieza); clearTimeout(acaba); };
     }, []);
 
@@ -54,8 +54,12 @@ export default function EntradaBacklot() {
                 backgroundImage: `url(${ULTIMO_FOTOGRAMA})`,
                 backgroundSize: 'cover',
                 backgroundPosition: '50% 58%',
+                // Sigue avanzando mientras se disuelve: el movimiento no se
+                // para en seco al cambiar de pagina, se apaga con el plano.
+                transform: disolviendo ? 'scale(1)' : 'scale(1.05)',
                 opacity: disolviendo ? 0 : 1,
-                transition: 'opacity 1.4s cubic-bezier(.4,0,.2,1)',
+                transition: 'opacity 1.5s cubic-bezier(.4,0,.2,1), transform 1.9s cubic-bezier(.22,.61,.36,1)',
+                transformOrigin: '53% 60%',
             }}
         />
     );

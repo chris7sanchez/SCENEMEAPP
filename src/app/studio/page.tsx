@@ -67,10 +67,25 @@ export default function StudioPage() {
         <main className="relative min-h-screen overflow-hidden px-4 py-8 text-white sm:px-6"
             style={{ background: 'hsl(222, 36%, 7%)' }}>
 
-            {/* Fondo cinemático: mismo lenguaje visual que el login */}
+            {/* Fondo: el plató donde acabas de entrar.
+                Es el último fotograma del paso, desenfocado y muy bajo, con la
+                luz del croma cayendo desde arriba. Así la sección no es "otra
+                página": es el espacio en el que te ha dejado el travelling.
+                Todo queda por debajo del 16 % para no comerse el contraste del
+                texto. */}
             <div className="pointer-events-none fixed inset-0 z-0">
                 <div className="absolute inset-0"
                     style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 20%, hsl(222, 40%, 13%) 0%, hsl(222, 36%, 7%) 70%)' }} />
+                <div className="absolute inset-0"
+                    style={{
+                        backgroundImage: 'url(/backlot/paso-final.jpg)',
+                        backgroundSize: 'cover',
+                        backgroundPosition: '50% 58%',
+                        filter: 'blur(26px) saturate(0.7)',
+                        opacity: 0.14,
+                    }} />
+                <div className="absolute inset-0"
+                    style={{ background: 'linear-gradient(180deg, hsla(136, 34%, 46%, 0.15) 0%, transparent 55%)' }} />
                 <div className="absolute left-1/2 top-16 h-[420px] w-[420px] -translate-x-1/2 rounded-full"
                     style={{ background: 'radial-gradient(circle, hsla(42, 90%, 55%, 0.10) 0%, transparent 70%)' }} />
                 <div className="absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full"
@@ -79,7 +94,7 @@ export default function StudioPage() {
 
             <div className="relative z-10 mx-auto max-w-3xl">
                 <header className="mb-8 text-center">
-                    <p className="text-[10px] uppercase tracking-[0.45em] text-zinc-500">Entrena · Ensaya · Publica</p>
+                    <p className="text-[10px] uppercase tracking-[0.45em] text-zinc-400">Entrena · Ensaya · Publica</p>
                     <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl"
                         style={{
                             background: 'linear-gradient(180deg, hsl(45, 30%, 95%) 0%, hsl(42, 90%, 70%) 55%, hsl(42, 80%, 52%) 100%)',
