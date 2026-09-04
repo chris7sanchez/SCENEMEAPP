@@ -443,11 +443,13 @@ var STAGES=[
    desc:'Tres platós, tu producción. Reserva tu luz y rueda.', url:'https://www.scenemeapp.com/estudios', cta:'Entrar en Mis Estudios', zx:.11, zy:.46, zoom:1.5},
   {stage:'Stage 1', sec:'Cine noir',   title:'Entrenamiento Actoral',
    desc:'Donde se forja el talento. Método, cámara y escena.', url:'https://www.scenemeapp.com/studio', cta:'Entrar en el Studio', zx:.50, zy:.46, zoom:1.6,
-   /* Encuadre con el que se corta al vídeo. Está medido: el croma interior de
-      la foto está centrado en (0.535, 0.624) y el del primer fotograma del clip
-      en (0.528, 0.595); con zoom 2.14 el croma de la foto queda al 80 % del
-      tamaño que tiene en el vídeo, así que el corte conserva el avance. */
-   raccord:{zx:.535, zy:.624, zoom:2.14}},
+   /* Encuadre con el que se corta al vídeo, medido y comparado fotograma a
+      fotograma. El croma interior de la foto está centrado en (0.535, 0.624) y
+      el del primer fotograma del clip en (0.528, 0.595). Con zoom 2.70 el
+      rótulo del arco sale de cuadro y el croma queda al tamaño que tiene en el
+      vídeo: se cruza el umbral justo en el corte. Más zoom no compensa, la foto
+      empieza a verse blanda (el original mide 2200 px de ancho). */
+   raccord:{zx:.535, zy:.624, zoom:2.70}},
   {stage:'La pantalla', sec:'En directo', title:'Comunidad Scene Me',
    desc:'El muro donde se proyectan las tomas de todos.',      url:null, plan:'scenemeapp.com/comunidad', cta:'Próximamente', zx:.83, zy:.33, zoom:1.5}
 ];
@@ -675,7 +677,7 @@ function cruzar(url){
   var destino = (activa && activa.raccord)
     ? activa.raccord
     : {zx:activa.zx, zy:activa.zy, zoom:activa.zoom*1.6};
-  patio.style.transition='transform 1.25s cubic-bezier(.42,0,.85,.35)';
+  patio.style.transition='transform 1.15s cubic-bezier(.42,0,.85,.35)';
   aplicarZoom(destino, true);
 
   var salto=false;
@@ -710,7 +712,7 @@ function cruzar(url){
     var arranca=function(){ if(listo) return; listo=true; lanza(); };
     paso.addEventListener('canplay', arranca, {once:true});
     later(function(){ if(!listo){ listo=true; rendirse(); } }, 900);
-  }, 1180);
+  }, 1220);   /* el corte entra cuando el empuje ya ha terminado */
 
   later(salta, 6000);                                  /* red de seguridad */
 }
