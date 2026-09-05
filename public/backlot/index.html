@@ -184,6 +184,9 @@ header.nav{ position:absolute; top:0; left:0; right:0; z-index:40; display:flex;
 /* Las tres salas del patio. Ya no son un punto: cada edificio es la zona
    clicable entera, acotada donde la foto cambia de nave. */
 #zonas{ position:absolute; inset:0; z-index:111 }
+/* Cada sala se recorta siguiendo la silueta de su edificio: el cielo no es
+   clicable. Los perfiles estan medidos sobre la propia foto detectando donde
+   termina el cielo columna a columna, suavizado y tirando a conservador. */
 .zona{ position:absolute; top:0; bottom:0; background:none; border:0; padding:0; cursor:pointer;
   color:inherit; font:inherit; display:flex; align-items:flex-end; justify-content:center;
   transition:opacity .4s }
@@ -394,19 +397,19 @@ header.nav{ position:absolute; top:0; left:0; right:0; z-index:40; display:flex;
         <div class="glow verde"></div>
         <div class="glow naranja"></div>
         <div id="zonas">
-          <button class="zona" data-idx="0" style="left:0;width:31%">
+          <button class="zona" data-idx="0" style="left:0;width:31%;clip-path:polygon(0.0% 0.0%, 7.1% 0.0%, 14.3% 0.0%, 21.4% 0.0%, 28.6% 0.0%, 35.7% 0.0%, 42.9% 0.0%, 50.0% 0.0%, 57.1% 0.0%, 64.3% 2.0%, 71.4% 5.1%, 78.6% 8.0%, 85.7% 8.0%, 92.9% 9.9%, 100.0% 30.4%, 100% 100%, 0% 100%)">
             <span class="cartel">
               <b>Stage 5</b><em>Sala de producción</em>
               <i>Crea un espacio de referencias que te definan, que te sirvan de inspiración…</i>
             </span>
           </button>
-          <button class="zona" data-idx="1" style="left:31%;width:33%">
+          <button class="zona" data-idx="1" style="left:31%;width:33%;clip-path:polygon(0.0% 30.4%, 7.1% 30.8%, 14.3% 30.8%, 21.4% 30.4%, 28.6% 30.2%, 35.7% 27.5%, 42.9% 25.4%, 50.0% 23.9%, 57.1% 23.3%, 64.3% 23.5%, 71.4% 24.6%, 78.6% 26.6%, 85.7% 28.5%, 92.9% 30.0%, 100.0% 30.0%, 100% 100%, 0% 100%)">
             <span class="cartel">
               <b>Stage 1</b><em>Plató</em>
               <i>Porque un actor se hace entrenando…</i>
             </span>
           </button>
-          <button class="zona" data-idx="2" style="left:64%;width:36%">
+          <button class="zona" data-idx="2" style="left:64%;width:36%;clip-path:polygon(0.0% 30.0%, 7.1% 30.0%, 14.3% 16.6%, 21.4% 2.4%, 28.6% 2.4%, 35.7% 0.0%, 42.9% 0.0%, 50.0% 0.0%, 57.1% 0.0%, 64.3% 0.0%, 71.4% 2.4%, 78.6% 2.4%, 85.7% 2.4%, 92.9% 0.0%, 100.0% 0.0%, 100% 100%, 0% 100%)">
             <span class="cartel">
               <b>La pantalla</b><em>Sala de visionado</em>
               <i>Comparte y visualiza junto a otros actores tu trabajo para seguir mejorando.</i>
