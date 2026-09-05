@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { parseScriptTurns, speakersOf, cueOf, type SceneTurn } from '@/lib/scene-script';
 import {
-    getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES, ELEVENLABS_VOICES, primeSpeech,
+    getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES, ELEVENLABS_VOICES, unlockAudio, getSharedAudioContext,
     type VoiceProfile, type SpeechVoice,
 } from '@/lib/speech';
 import { useRehearsal } from '@/hooks/useRehearsal';
@@ -194,7 +194,7 @@ function Config(props: {
                 </div>
             </div>
 
-            <button onClick={() => { primeSpeech(); onStart(); }} disabled={!role} className="mt-8 w-full rounded-full bg-amber-500 py-4 text-base font-black text-black transition hover:bg-amber-400 disabled:opacity-50">
+            <button onClick={() => { unlockAudio(); onStart(); }} disabled={!role} className="mt-8 w-full rounded-full bg-amber-500 py-4 text-base font-black text-black transition hover:bg-amber-400 disabled:opacity-50">
                 EMPEZAR
             </button>
         </div>
@@ -293,6 +293,8 @@ function ActivePlayer(props: {
     // y no volvería a armarse jamás — la réplica "contestaba una vez y nunca más".
     const [micReady, setMicReady] = useState(false);
     const [heard, setHeard] = useState(false);
+    /** El AudioContext sigue 'suspended' (iOS sin gesto): el micro no mide nada. */
+    const [micSuspended, setMicSuspended] = useState(false);
     const micStreamRef = useRef<MediaStream | null>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
@@ -322,8 +324,10 @@ function ActivePlayer(props: {
                 micStreamRef.current = s;
                 try {
                     const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-                    const ctx: AudioContext = new AC();
-                    ctx.resume?.();
+                    // Preferimos el contexto creado DENTRO del gesto de EMPEZAR: iOS
+                    // deja suspendido para siempre uno creado fuera de un gesto.
+                    const ctx: AudioContext = getSharedAudioContext() || new AC();
+                    ctx.resume?.().catch(() => {});
                     const src = ctx.createMediaStreamSource(s);
                     const analyser = ctx.createAnalyser();
                     analyser.fftSize = 1024;
@@ -341,7 +345,7 @@ function ActivePlayer(props: {
             cancelled = true;
             window.removeEventListener('pointerdown', resumeCtx);
             window.removeEventListener('keydown', resumeCtx);
-            try { audioCtxRef.current?.close(); } catch { /* */ }
+            try { if (audioCtxRef.current && audioCtxRef.current !== getSharedAudioContext()) audioCtxRef.current.close(); } catch { /* */ }
             audioCtxRef.current = null; analyserRef.current = null;
             setMicReady(false);
             if (micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null; }
@@ -369,15 +373,19 @@ function ActivePlayer(props: {
         try { audioCtxRef.current?.resume?.(); } catch { /* */ }
         const buf = new Uint8Array(analyser.fftSize);
         const trigger = new VoiceTrigger();
-        let raf = 0; let done = false; let frame = 0; let heardShown = false;
+        let raf = 0; let done = false; let frame = 0; let heardShown = false; let suspendedFrames = 0;
         const tick = () => {
             if (done) return;
             frame++;
             // Chrome puede suspender el AudioContext a mitad de ensayo (sin gesto
             // del usuario en modo voz): reanúdalo periódicamente o el micro "muere".
-            if (frame % 60 === 0 && audioCtxRef.current?.state === 'suspended') {
-                audioCtxRef.current.resume().catch(() => {});
+            const ctxState = audioCtxRef.current?.state;
+            if (frame % 60 === 0 && ctxState === 'suspended') {
+                audioCtxRef.current?.resume().catch(() => {});
             }
+            // Si sigue suspendido ~1,5 s, iOS está esperando un gesto: se pide.
+            if (ctxState === 'suspended') { if (++suspendedFrames === 90) setMicSuspended(true); }
+            else if (suspendedFrames) { suspendedFrames = 0; setMicSuspended(false); }
             analyser.getByteTimeDomainData(buf);
             let sum = 0;
             for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
@@ -438,6 +446,8 @@ function ActivePlayer(props: {
                                     </p>
                                 ) : !micReady ? (
                                     <p className="animate-pulse">🎙️ Activando el micrófono… (acepta el permiso si te lo pide)</p>
+                                ) : micSuspended ? (
+                                    <p className="font-bold text-amber-300">👆 Toca la pantalla una vez para activar el micrófono.</p>
                                 ) : (
                                     <div>
                                         <p className={heard ? 'font-bold text-emerald-400' : ''}>
@@ -453,7 +463,18 @@ function ActivePlayer(props: {
                     </>
                 ) : (
                     <div className="mt-5 text-center">
-                        <p className="text-sm text-zinc-500">{r.paused ? 'En pausa' : (engine === 'browser' ? 'Leyendo la réplica…' : 'Generando voz IA…')}</p>
+                        <p className="text-sm text-zinc-500">
+                            {r.paused ? 'En pausa'
+                                : r.voiceStatus === 'esperando' ? 'Vuelve a esta pestaña para seguir con la réplica.'
+                                : r.voiceStatus === 'sonando' ? 'Leyendo la réplica…'
+                                : r.voiceStatus === 'silencio' ? 'La voz no ha sonado: lee la réplica y sigue.'
+                                : (engine === 'browser' ? 'Preparando la réplica…' : 'Generando voz IA…')}
+                        </p>
+                        {r.voiceFailed && (
+                            <p className="mx-auto mt-2 max-w-md rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                                ⚠️ No se ha oído la voz de la réplica. Sube el volumen o quita el modo silencio del móvil; la escena continúa sola.
+                            </p>
+                        )}
                         <button onClick={r.skip} className="mt-3 rounded-full bg-zinc-800 px-6 py-2.5 text-sm font-bold text-zinc-200 transition hover:bg-zinc-700">Continuar ▸ <span className="font-normal text-zinc-500">(si no se oye)</span></button>
                     </div>
                 )}
