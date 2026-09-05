@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { dailyKey } from '@/lib/daily-scene';
 
 // Nota de oferta del Studio al entrar en la app: invita, no obliga.
@@ -10,7 +9,6 @@ import { dailyKey } from '@/lib/daily-scene';
 const SEEN_KEY = 'sm_studio_invite_seen';
 
 export default function StudioInvite() {
-    const router = useRouter();
     const [open, setOpen] = useState(false);
     const today = dailyKey();
 
@@ -56,16 +54,20 @@ export default function StudioInvite() {
                         <li className="flex gap-2.5"><span>🔥</span><span>Graba tu toma, publícala y <b className="text-white">enciende tu racha</b>.</span></li>
                     </ul>
 
-                    <button
-                        onClick={() => { dismiss(); router.push('/studio'); }}
-                        className="mt-6 w-full rounded-full py-4 text-base font-black uppercase tracking-widest text-black transition hover:brightness-110"
+                    {/* Entra por la puerta grande: el backlot arranca con el plano
+                        aereo y desde ahi se elige sala. Va como enlace normal porque
+                        /backlot es un HTML estatico, fuera del router de Next. */}
+                    <a
+                        href="/backlot"
+                        onClick={dismiss}
+                        className="mt-6 block w-full rounded-full py-4 text-center text-base font-black uppercase tracking-widest text-black transition hover:brightness-110"
                         style={{
                             background: 'linear-gradient(135deg, hsl(42, 90%, 52%) 0%, hsl(38, 85%, 45%) 100%)',
                             boxShadow: '0 4px 24px hsla(42, 90%, 50%, 0.35)',
                         }}
                     >
                         Entrar al Studio
-                    </button>
+                    </a>
                     <button onClick={dismiss} className="mt-3 w-full text-xs font-bold uppercase tracking-widest text-zinc-500 transition hover:text-zinc-300">
                         Hoy no
                     </button>
