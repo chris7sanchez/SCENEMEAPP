@@ -54,9 +54,9 @@ export default function StudioInvite() {
                         <li className="flex gap-2.5"><span>🔥</span><span>Graba tu toma, publícala y <b className="text-white">enciende tu racha</b>.</span></li>
                     </ul>
 
-                    {/* Entra por la puerta grande: el backlot arranca con el plano
-                        aereo y desde ahi se elige sala. Va como enlace normal porque
-                        /backlot es un HTML estatico, fuera del router de Next. */}
+                    {/* Entrada principal: el backlot arranca con el plano aereo
+                        y desde ahi se elige sala. Va como enlace y no con
+                        router.push porque /backlot es un HTML estatico. */}
                     <a
                         href="/backlot"
                         onClick={dismiss}
@@ -66,8 +66,37 @@ export default function StudioInvite() {
                             boxShadow: '0 4px 24px hsla(42, 90%, 50%, 0.35)',
                         }}
                     >
-                        Entrar al Studio
+                        Entrar por el backlot
                     </a>
+
+                    {/* Atajos para quien ya sabe a lo que viene */}
+                    <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-400">O ve directo a</p>
+                    <div className="mt-3 grid gap-2">
+                        <a href="/studio" onClick={dismiss}
+                            className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:border-amber-400/50 hover:bg-white/10">
+                            <span>
+                                <span className="block text-sm font-bold text-white">La app</span>
+                                <span className="block text-xs text-zinc-400">La escena del día y el ensayo con réplicas</span>
+                            </span>
+                            <span className="text-amber-300">→</span>
+                        </a>
+                        <a href="/creator" onClick={dismiss}
+                            className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:border-amber-400/50 hover:bg-white/10">
+                            <span>
+                                <span className="block text-sm font-bold text-white">Taller de creación</span>
+                                <span className="block text-xs text-zinc-400">Tu perfil y tu material de trabajo</span>
+                            </span>
+                            <span className="text-amber-300">→</span>
+                        </a>
+                        <a href="/booking" onClick={dismiss}
+                            className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:border-amber-400/50 hover:bg-white/10">
+                            <span>
+                                <span className="block text-sm font-bold text-white">Contratar fotos o escenas</span>
+                                <span className="block text-xs text-zinc-400">Reserva sesión en la agenda</span>
+                            </span>
+                            <span className="text-amber-300">→</span>
+                        </a>
+                    </div>
                     <button onClick={dismiss} className="mt-3 w-full text-xs font-bold uppercase tracking-widest text-zinc-500 transition hover:text-zinc-300">
                         Hoy no
                     </button>
