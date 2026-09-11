@@ -7,6 +7,7 @@ import DailyScene from '@/components/studio/DailyScene';
 import RehearsalSection from '@/components/studio/RehearsalSection';
 import MyTasks from '@/components/studio/MyTasks';
 import StudioOnboarding from '@/components/studio/StudioOnboarding';
+import NavEstudios from '@/components/NavEstudios';
 import TakeFeedback from '@/components/studio/TakeFeedback';
 
 const ONBOARDING_KEY = 'sm_studio_onboarding_v1';
@@ -154,6 +155,8 @@ export default function StudioPage() {
                     </>
                     )}
                 </div>
+
+                <NavEstudios actual="plato" />
 
                 <p className="mt-10 text-center text-[10px] uppercase tracking-[0.4em] text-zinc-600">
                     Scene Me · The actor&apos;s store concept

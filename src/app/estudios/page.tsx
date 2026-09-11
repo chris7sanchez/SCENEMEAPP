@@ -6,6 +6,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import NavEstudios from '@/components/NavEstudios';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search, Star, Users, Clapperboard, FileText, Plus, Trash2,
@@ -16,17 +17,43 @@ import {
     type Coleccion, type Pelicula, type Personaje, type Escena, type Guion,
 } from '@/lib/estudios-db';
 
+// La piel de la Sala de producción.
+//
+// Era papel crema sobre blanco, y chirriaba: se entra desde un patio de noche y
+// se sale al Plató, que es negro. Ahora es la misma sala con las luces de
+// trabajo puestas —madera quemada, latón y un foco cálido arriba— en vez de una
+// hoja en blanco. Sólo cambian las VARIABLES y se añaden dos capas de ambiente:
+// el resto de la página no se toca, así que no hay nada que pueda romperse.
 const PIEL = `
 .cinemateca{
-    --cin-bg:#F4EFE4; --cin-card:#FBF8F1; --cin-input:#FFFDF8;
-    --cin-ink:#14120F; --cin-body:#211E19; --cin-dim:#6B6357;
-    --cin-line:#DED5C4;
-    --cin-accent:#3F6B5C; --cin-accent-dark:#35594D;
-    --cin-accent-soft:rgba(63,107,92,.10); --cin-accent-soft2:rgba(63,107,92,.18);
-    --cin-on-accent:#F7F4EC; --cin-sello:#9C4526;
+    --cin-bg:#100E0B; --cin-card:#1A1713; --cin-input:#141110;
+    --cin-ink:#F6EFE0; --cin-body:#D9CFBD; --cin-dim:#8A7F6D;
+    --cin-line:rgba(214,180,110,.16);
+    --cin-accent:#D9A84E; --cin-accent-dark:#C08F35;
+    --cin-accent-soft:rgba(217,168,78,.10); --cin-accent-soft2:rgba(217,168,78,.20);
+    --cin-on-accent:#140F06; --cin-sello:#C4603A;
     font-family:"Work Sans",system-ui,-apple-system,sans-serif;
+    position:relative; isolation:isolate;
 }
-.cin-display{ font-family:"Bodoni Moda",Georgia,"Times New Roman",serif; font-weight:700; letter-spacing:-0.012em }
+/* El foco de la sala: una luz cálida arriba que se apaga hacia abajo. */
+.cinemateca::before{
+    content:''; position:fixed; inset:0; z-index:-2; pointer-events:none;
+    background:
+      radial-gradient(120% 70% at 50% -20%, rgba(217,168,78,.16), transparent 62%),
+      radial-gradient(80% 50% at 12% 8%, rgba(196,96,58,.08), transparent 60%);
+}
+/* Grano de película: flojísimo, sólo para que el negro no quede plano. */
+.cinemateca::after{
+    content:''; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.5;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23g)' opacity='.045'/></svg>");
+}
+.cin-display{
+    font-family:"Bodoni Moda",Georgia,"Times New Roman",serif; font-weight:700;
+    letter-spacing:-0.012em; color:var(--cin-ink);
+}
+/* Las fichas se levantan al pasar por encima, como una foto que coges. */
+.cinemateca .group{ transition:transform .25s ease, box-shadow .25s ease }
+.cinemateca .group:hover{ transform:translateY(-2px); box-shadow:0 14px 34px rgba(0,0,0,.5) }
 `;
 
 const PESTANAS: { id: Coleccion; label: string; icono: React.ElementType }[] = [
@@ -198,6 +225,8 @@ export default function EstudiosPage() {
                     <p className="mt-10 text-sm text-[var(--cin-dim)]">Empieza por buscar una película que te haya marcado.</p>
                 )}
             </div>
+
+            <NavEstudios actual="produccion" />
 
             <AnimatePresence>
                 {ficha && <FichaPelicula pelicula={ficha} onClose={() => setFicha(null)} />}

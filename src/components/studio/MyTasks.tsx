@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { listMySubmissions, uploadSubmission, type Submission } from '@/lib/studio-db';
+import { misPublicaciones, publicar, retirar, nombreParaFirmar } from '@/lib/comunidad-db';
 
 export default function MyTasks({ uid, dateKey }: { uid: string; dateKey: string }) {
     const [items, setItems] = useState<Submission[]>([]);
@@ -9,11 +10,64 @@ export default function MyTasks({ uid, dateKey }: { uid: string; dateKey: string
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState('');
     const fileRef = useRef<HTMLInputElement>(null);
+    /** submissionId -> id de su publicación en la Sala. Lo que no esté aquí, es privado. */
+    const [publicadas, setPublicadas] = useState<Record<string, string>>({});
+    const [moviendo, setMoviendo] = useState<string | null>(null);
+
+    const refrescarPublicadas = async () => {
+        try {
+            const mias = await misPublicaciones(uid);
+            const mapa: Record<string, string> = {};
+            mias.forEach(p => { if (p.submissionId) mapa[p.submissionId] = p.id; });
+            setPublicadas(mapa);
+        } catch (e) {
+            console.warn('[comunidad] no se pudo saber qué está publicado:', e);
+        }
+    };
 
     const refresh = async () => {
         setLoading(true);
         setItems(await listMySubmissions(uid));
         setLoading(false);
+        refrescarPublicadas();
+    };
+
+    /**
+     * Compartir es SIEMPRE un acto explícito: nada sale del cajón privado si el
+     * actor no pulsa aquí, y se puede retirar en cualquier momento.
+     */
+    const alternarSala = async (it: Submission) => {
+        if (!it.id) return;
+        const id = it.id;
+        setError('');
+        try {
+            const yaEsta = publicadas[id];
+            if (yaEsta) {
+                if (!confirm('¿Retirar tu vídeo de la Sala? Tu toma NO se borra: sigue aquí.')) return;
+                setMoviendo(id);
+                await retirar(yaEsta);
+                setPublicadas(p => { const n = { ...p }; delete n[id]; return n; });
+            } else {
+                if (!confirm('Se verá en la Sala de visionado, con tu nombre, para los actores con cuenta. ¿Lo compartes?')) return;
+                setMoviendo(id);
+                const { auth } = await import('@/lib/auth');
+                const u = await auth.getCurrentUser();
+                const nuevo = await publicar({
+                    uid,
+                    autor: nombreParaFirmar(u?.profile),
+                    fecha: it.date,
+                    titulo: it.title,
+                    downloadURL: it.downloadURL,
+                    submissionId: id,
+                });
+                setPublicadas(p => ({ ...p, [id]: nuevo }));
+            }
+        } catch (e) {
+            console.error(e);
+            setError('No se pudo cambiar la visibilidad. Inténtalo otra vez.');
+        } finally {
+            setMoviendo(null);
+        }
     };
 
     useEffect(() => {
@@ -87,6 +141,18 @@ export default function MyTasks({ uid, dateKey }: { uid: string; dateKey: string
                                 <div className="mt-2 flex items-center justify-between">
                                     <span className="text-sm text-zinc-200">{it.title}</span>
                                     <span className="text-xs text-zinc-500">{it.date}</span>
+                                </div>
+                                <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/5 pt-2">
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${it.id && publicadas[it.id] ? 'text-amber-400/80' : 'text-zinc-600'}`}>
+                                        {it.id && publicadas[it.id] ? '● En la Sala' : '○ Solo tú lo ves'}
+                                    </span>
+                                    <button
+                                        onClick={() => alternarSala(it)}
+                                        disabled={moviendo === it.id}
+                                        className="rounded-full border border-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-300 transition hover:border-amber-400/40 hover:text-white disabled:opacity-50"
+                                    >
+                                        {moviendo === it.id ? '…' : it.id && publicadas[it.id] ? 'Retirar' : 'Compartir en la Sala'}
+                                    </button>
                                 </div>
                             </li>
                         ))}
