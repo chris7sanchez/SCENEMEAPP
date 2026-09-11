@@ -17,7 +17,9 @@ export default function NavEstudios({ actual }: { actual: Sala['id'] }) {
     const proxima = SALAS[siguiente];
 
     return (
-        <nav aria-label="Los Estudios" className="mx-auto mt-14 w-full max-w-5xl px-4 pb-10">
+        // pb-28: la barra de pestañas es fija y está por encima de todo — sin
+        // este hueco se come los dos botones de abajo.
+        <nav aria-label="Los Estudios" className="mx-auto mt-14 w-full max-w-5xl px-4 pb-28">
             <div className="flex items-center gap-3">
                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-400/70">Los Estudios</span>
                 <span className="h-px flex-1 bg-white/10" />

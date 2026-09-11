@@ -20,7 +20,7 @@ export interface Sala {
 export const SALAS: Sala[] = [
     { id: 'produccion', stage: 'Stage 5', sala: 'Sala de producción', ruta: '/estudios' },
     { id: 'plato', stage: 'Stage 1', sala: 'Plató', ruta: '/studio' },
-    { id: 'pantalla', stage: 'La pantalla', sala: 'Sala de visionado', ruta: null },
+    { id: 'pantalla', stage: 'La pantalla', sala: 'Sala de visionado', ruta: '/comunidad' },
 ];
 
 /** El patio, abierto directamente en esa sala. */

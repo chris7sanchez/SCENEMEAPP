@@ -39,7 +39,51 @@ service cloud.firestore {
       allow write: if isAuthenticated();
     }
 
-    // Orders collection: 
+    // LA SALA DE VISIONADO. Aquí sólo llega lo que el actor decide enseñar:
+    // las tomas siguen privadas en users/{uid}/submissions y publicar crea una
+    // copia AQUÍ. Se lee con sesión iniciada — nunca en abierto, que son
+    // self-tapes de gente real y no material para un buscador.
+    match /comunidad/{postId} {
+      allow read: if isAuthenticated();
+      // Publicar sólo en tu nombre: nadie puede colgar algo firmado por otro.
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      // Retirar: su dueño o el admin.
+      allow delete: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow update: if isAuthenticated() && (
+        resource.data.uid == request.auth.uid
+        || isAdmin()
+        // Cualquiera con sesión puede mover el contador de bravos, y NADA más:
+        // el resto del documento tiene que quedar igual.
+        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bravos'])
+      );
+
+      // Un bravo por persona: el id del documento ES su uid, así que el propio
+      // camino impide aplaudir dos veces o aplaudir en nombre de otro.
+      match /bravos/{votanteId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() && votanteId == request.auth.uid;
+      }
+
+      match /comentarios/{comentarioId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+        // Borra quien lo escribió, el dueño del vídeo (es su espacio) o el admin.
+        allow delete: if isAuthenticated() && (
+          resource.data.uid == request.auth.uid
+          || get(/databases/$(database)/documents/comunidad/$(postId)).data.uid == request.auth.uid
+          || isAdmin()
+        );
+      }
+    }
+
+    // Denuncias: se escriben pero no se leen. Quien denuncia no puede ver lo
+    // denunciado por otros, y el denunciado no se entera. Sólo el admin lee.
+    match /reportes/{reporteId} {
+      allow create: if isAuthenticated() && request.resource.data.denunciante == request.auth.uid;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Orders collection:
     // - Anyone can create an order (public checkout)
     // - Only admin can read/update/delete.
     match /orders/{orderId} {
