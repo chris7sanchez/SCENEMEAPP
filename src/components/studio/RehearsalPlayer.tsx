@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { parseScriptTurns, speakersOf, cueOf, type SceneTurn } from '@/lib/scene-script';
+import {
+    parseScriptScenes, speakersOfScenes, scenesWith, scenesWithDialogue, sceneLabel, cueOf,
+    type SceneTurn, type Scene,
+} from '@/lib/scene-script';
 import {
     getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES, ELEVENLABS_VOICES, unlockAudio, getSharedAudioContext,
     type VoiceProfile, type SpeechVoice,
@@ -13,25 +16,67 @@ type LineMode = 'full' | 'cue' | 'hidden';
 type AdvanceMode = 'tap' | 'voice';
 type Engine = 'browser' | 'ai' | 'eleven' | 'cartesia';
 
-export default function RehearsalPlayer({ script, onClose }: { script: string; onClose: () => void }) {
-    const turns = useMemo(() => parseScriptTurns(script), [script]);
-    const speakers = useMemo(() => speakersOf(turns), [turns]);
+/** Lo que el reproductor devuelve al cerrarse, para poder guardarlo en el guion. */
+export interface AjustesEnsayo {
+    reparto: Record<string, VoiceProfile>;
+    miPersonaje: string;
+    motor: string;
+}
 
-    const [role, setRole] = useState('');
+export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onClose }: {
+    script: string;
+    /** Reparto y elecciones guardadas de este guion, si las hay. */
+    ajustes?: Partial<AjustesEnsayo>;
+    /** Se llama al pulsar EMPEZAR: así el reparto queda guardado en la cuenta. */
+    onGuardarAjustes?: (a: AjustesEnsayo) => void;
+    onClose: () => void;
+}) {
+    const scenes = useMemo(() => parseScriptScenes(script), [script]);
+    // El reparto se calcula sobre el GUION ENTERO, no sobre las escenas
+    // elegidas: así la voz de un personaje no cambia al cambiar de escena.
+    const speakers = useMemo(() => speakersOfScenes(scenes), [scenes]);
+    const conDialogo = useMemo(() => scenesWithDialogue(scenes), [scenes]);
+    /** Un guion de verdad (varias escenas) abre el selector; una escena pegada, no. */
+    const esGuionLargo = conDialogo.length > 1;
+
+    const [role, setRole] = useState(ajustes?.miPersonaje ?? '');
     const [mode, setMode] = useState<LineMode>('full');
     const [advance, setAdvance] = useState<AdvanceMode>('tap');
-    const [engine, setEngine] = useState<Engine>('browser');
+    const [engine, setEngine] = useState<Engine>((ajustes?.motor as Engine) ?? 'browser');
     const [started, setStarted] = useState(false);
     const [browserVoices, setBrowserVoices] = useState<SpeechVoice[]>([]);
     const [cartesiaVoices, setCartesiaVoices] = useState<SpeechVoice[]>([]);
-    const [profiles, setProfiles] = useState<Record<string, VoiceProfile>>({});
+    const [profiles, setProfiles] = useState<Record<string, VoiceProfile>>(ajustes?.reparto ?? {});
+    /** Elección manual de escenas, atada al personaje para el que se hizo:
+     *  al cambiar de personaje vuelve a mandar la preselección de sus escenas. */
+    const [seleccion, setSeleccion] = useState<{ role: string; ids: Set<number> } | null>(null);
 
     const voices = engine === 'ai' ? OPENAI_TTS_VOICES
         : engine === 'eleven' ? ELEVENLABS_VOICES
         : engine === 'cartesia' ? cartesiaVoices
         : browserVoices;
 
-    useEffect(() => { if (speakers.length && !role) setRole(speakers[0]); }, [speakers, role]);
+    useEffect(() => {
+        if (!speakers.length) return;
+        // Si el personaje guardado ya no está en este guion, cae al primero.
+        if (!role || !speakers.includes(role)) setRole(speakers[0]);
+    }, [speakers, role]);
+
+    // Por defecto se ensayan TUS escenas, que es lo que se hace el 95% de las
+    // veces; en cuanto tocas la lista manda tu elección, hasta que cambies de
+    // personaje. Se deriva en vez de guardarse para no encadenar renders.
+    const elegidas = useMemo(() => {
+        if (seleccion && seleccion.role === role) return seleccion.ids;
+        const mias = scenesWith(conDialogo, role);
+        return new Set((mias.length ? mias : conDialogo).map(s => s.id));
+    }, [seleccion, role, conDialogo]);
+    const setElegidas = (ids: Set<number>) => setSeleccion({ role, ids });
+
+    /** Las escenas que se van a ensayar, en orden de guion. */
+    const escenasEnsayo = useMemo(
+        () => (esGuionLargo ? conDialogo.filter(s => elegidas.has(s.id)) : conDialogo),
+        [esGuionLargo, conDialogo, elegidas],
+    );
 
     // Carga las voces de Cartesia (incluidas las clonadas) al elegir ese motor.
     useEffect(() => {
@@ -74,13 +119,13 @@ export default function RehearsalPlayer({ script, onClose }: { script: string; o
 
     return (
         <div className="fixed inset-0 z-[200] flex flex-col bg-black/95 backdrop-blur-sm p-4 sm:p-6 text-white overflow-y-auto">
-            <div className={`mx-auto w-full pb-10 ${started && turns.length > 0 ? 'max-w-5xl' : 'max-w-2xl'}`}>
+            <div className={`mx-auto w-full pb-10 ${started && conDialogo.length > 0 ? 'max-w-5xl' : 'max-w-2xl'}`}>
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-black uppercase tracking-wide">Ensayar con réplicas</h2>
                     <button onClick={onClose} className="rounded-full px-3 py-1 text-zinc-400 hover:text-white" aria-label="Cerrar">✕</button>
                 </div>
 
-                {turns.length === 0 ? (
+                {conDialogo.length === 0 ? (
                     <p className="mt-8 text-center text-zinc-400">No se detectaron diálogos. Pega una escena con personajes (NOMBRE: línea).</p>
                 ) : !started ? (
                     <Config
@@ -88,11 +133,17 @@ export default function RehearsalPlayer({ script, onClose }: { script: string; o
                         mode={mode} setMode={setMode} advance={advance} setAdvance={setAdvance}
                         engine={engine} setEngine={setEngine}
                         voices={voices} profiles={profiles} setProfiles={setProfiles}
-                        onStart={() => setStarted(true)}
+                        escenas={conDialogo} elegidas={elegidas} setElegidas={setElegidas}
+                        esGuionLargo={esGuionLargo} totalTurnos={escenasEnsayo.reduce((n, s) => n + s.turns.length, 0)}
+                        onStart={() => {
+                            onGuardarAjustes?.({ reparto: profiles, miPersonaje: role, motor: engine });
+                            setStarted(true);
+                        }}
                     />
                 ) : (
                     <ActivePlayer
-                        key={role + engine} turns={turns} role={role}
+                        key={role + engine + escenasEnsayo.map(s => s.id).join(',')}
+                        escenas={escenasEnsayo} role={role}
                         mode={mode} advanceMode={advance} engine={engine} profiles={profiles}
                         onBack={() => setStarted(false)} onClose={onClose}
                     />
@@ -110,6 +161,59 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
     );
 }
 
+function SelectorEscenas(props: {
+    escenas: Scene[]; role: string;
+    elegidas: Set<number>; setElegidas: (s: Set<number>) => void;
+}) {
+    const { escenas, role, elegidas, setElegidas } = props;
+    const mias = useMemo(() => scenesWith(escenas, role), [escenas, role]);
+    const soloMias = mias.length > 0 && mias.length === elegidas.size && mias.every(s => elegidas.has(s.id));
+    const todas = elegidas.size === escenas.length;
+
+    const alternar = (id: number) => {
+        const next = new Set(elegidas);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        setElegidas(next);
+    };
+
+    return (
+        <div>
+            <p className="mb-2 text-xs uppercase tracking-widest text-zinc-400">Qué ensayas</p>
+            <div className="flex flex-wrap gap-2">
+                <Chip active={soloMias} onClick={() => setElegidas(new Set(mias.map(s => s.id)))}>
+                    Sólo mis escenas ({mias.length})
+                </Chip>
+                <Chip active={todas} onClick={() => setElegidas(new Set(escenas.map(s => s.id)))}>
+                    Película entera ({escenas.length})
+                </Chip>
+            </div>
+
+            <div className="mt-3 max-h-56 overflow-y-auto rounded-xl border border-zinc-800 bg-black/30">
+                {escenas.map((s, i) => {
+                    const salgo = s.speakers.includes(role);
+                    const marcada = elegidas.has(s.id);
+                    return (
+                        <label key={s.id} className="flex cursor-pointer items-start gap-3 border-b border-zinc-800/60 px-3 py-2 last:border-0 hover:bg-white/5">
+                            <input type="checkbox" checked={marcada} onChange={() => alternar(s.id)} className="mt-1 accent-amber-500" />
+                            <span className="min-w-0 flex-1">
+                                <span className={`block truncate text-xs font-bold ${salgo ? 'text-amber-300' : 'text-zinc-400'}`}>
+                                    {sceneLabel(s, i)}{salgo && <span className="ml-2 font-normal text-amber-500/70">· sales tú</span>}
+                                </span>
+                                <span className="block truncate text-[11px] text-zinc-500">
+                                    {s.speakers.join(' · ')} — {s.turns.length} {s.turns.length === 1 ? 'línea' : 'líneas'}
+                                </span>
+                            </span>
+                        </label>
+                    );
+                })}
+            </div>
+            {elegidas.size === 0 && (
+                <p className="mt-2 text-xs text-amber-400/90">Marca al menos una escena para poder empezar.</p>
+            )}
+        </div>
+    );
+}
+
 function Config(props: {
     speakers: string[]; role: string; setRole: (s: string) => void;
     mode: LineMode; setMode: (m: LineMode) => void;
@@ -117,10 +221,13 @@ function Config(props: {
     engine: Engine; setEngine: (e: Engine) => void;
     voices: SpeechVoice[]; profiles: Record<string, VoiceProfile>;
     setProfiles: (fn: (p: Record<string, VoiceProfile>) => Record<string, VoiceProfile>) => void;
+    escenas: Scene[]; elegidas: Set<number>; setElegidas: (s: Set<number>) => void;
+    esGuionLargo: boolean; totalTurnos: number;
     onStart: () => void;
 }) {
-    const { speakers, role, setRole, mode, setMode, advance, setAdvance, engine, setEngine, voices, profiles, setProfiles, onStart } = props;
+    const { speakers, role, setRole, mode, setMode, advance, setAdvance, engine, setEngine, voices, profiles, setProfiles, escenas, elegidas, setElegidas, esGuionLargo, totalTurnos, onStart } = props;
     const update = (s: string, p: VoiceProfile) => setProfiles(prev => ({ ...prev, [s]: p }));
+    const listo = Boolean(role) && totalTurnos > 0;
 
     return (
         <div className="mt-6">
@@ -154,6 +261,10 @@ function Config(props: {
                             <Chip active={advance === 'voice'} onClick={() => setAdvance('voice')}>Por voz</Chip>
                         </div>
                     </div>
+
+                    {esGuionLargo && (
+                        <SelectorEscenas escenas={escenas} role={role} elegidas={elegidas} setElegidas={setElegidas} />
+                    )}
                 </div>
 
                 <div className="mt-8 space-y-6 lg:mt-0">
@@ -194,8 +305,13 @@ function Config(props: {
                 </div>
             </div>
 
-            <button onClick={() => { unlockAudio(); onStart(); }} disabled={!role} className="mt-8 w-full rounded-full bg-amber-500 py-4 text-base font-black text-black transition hover:bg-amber-400 disabled:opacity-50">
+            <button onClick={() => { unlockAudio(); onStart(); }} disabled={!listo} className="mt-8 w-full rounded-full bg-amber-500 py-4 text-base font-black text-black transition hover:bg-amber-400 disabled:opacity-50">
                 EMPEZAR
+                {esGuionLargo && listo && (
+                    <span className="ml-2 font-bold text-black/60">
+                        · {elegidas.size} {elegidas.size === 1 ? 'escena' : 'escenas'}, {totalTurnos} líneas
+                    </span>
+                )}
             </button>
         </div>
     );
@@ -277,10 +393,25 @@ function VoiceEditor(props: { speaker: string; isMine: boolean; engine: Engine; 
 }
 
 function ActivePlayer(props: {
-    turns: SceneTurn[]; role: string; mode: LineMode; advanceMode: AdvanceMode;
+    escenas: Scene[]; role: string; mode: LineMode; advanceMode: AdvanceMode;
     engine: Engine; profiles: Record<string, VoiceProfile>; onBack: () => void; onClose: () => void;
 }) {
-    const { turns, role, mode, advanceMode, engine, profiles, onBack, onClose } = props;
+    const { escenas, role, mode, advanceMode, engine, profiles, onBack, onClose } = props;
+
+    // Las escenas elegidas se ensayan SEGUIDAS, como una sola secuencia: el
+    // reparto se responde entre sí y se cruza de escena sin parar.
+    const turns = useMemo(() => escenas.flatMap(s => s.turns), [escenas]);
+    // Posición (en la secuencia plana) -> escena a la que pertenece ese turno.
+    const escenaDeTurno = useMemo(() => {
+        const out: Scene[] = [];
+        escenas.forEach(s => s.turns.forEach(() => out.push(s)));
+        return out;
+    }, [escenas]);
+    const indiceEscena = useMemo(() => {
+        const m = new Map<number, number>();
+        escenas.forEach((s, i) => m.set(s.id, i));
+        return m;
+    }, [escenas]);
 
     const r = useRehearsal(turns, role, { profiles, engine });
     const { state, current } = r;
@@ -417,6 +548,8 @@ function ActivePlayer(props: {
 
     const isMine = current?.speaker === role;
     const progress = `${Math.min(state.index + 1, turns.length)} / ${turns.length}`;
+    const escenaActual = escenaDeTurno[state.index];
+    const variasEscenas = escenas.length > 1;
     let lineText = current?.text ?? '';
     if (isMine) {
         if (mode === 'cue') lineText = cueOf(current?.text ?? '', 3);
@@ -426,9 +559,14 @@ function ActivePlayer(props: {
     return (
         <div className="mt-6 lg:grid lg:grid-cols-[1fr_19rem] lg:gap-8 lg:items-start">
             <div>
-                <div className="mb-3 flex items-center justify-between text-xs text-zinc-500">
-                    <span>{progress}</span>
-                    <span>{isMine ? 'TU TURNO' : 'RÉPLICA'}</span>
+                <div className="mb-3 flex items-center justify-between gap-3 text-xs text-zinc-500">
+                    <span className="shrink-0">{progress}</span>
+                    {variasEscenas && escenaActual && (
+                        <span className="min-w-0 flex-1 truncate text-center font-bold uppercase tracking-wider text-zinc-400">
+                            {sceneLabel(escenaActual, indiceEscena.get(escenaActual.id) ?? 0)}
+                        </span>
+                    )}
+                    <span className="shrink-0">{isMine ? 'TU TURNO' : 'RÉPLICA'}</span>
                 </div>
                 <div className={`min-h-[180px] rounded-2xl border p-6 text-center text-xl leading-relaxed sm:text-2xl ${isMine ? 'border-amber-500/50 bg-amber-500/5' : 'border-zinc-700 bg-zinc-900/60'}`}>
                     <p className={`mb-3 text-sm font-bold uppercase tracking-widest ${isMine ? 'text-amber-400' : 'text-zinc-400'}`}>{current?.speaker}</p>
@@ -494,12 +632,22 @@ function ActivePlayer(props: {
                     {turns.map((t, i) => {
                         const mine = t.speaker === role;
                         const active = i === state.index;
+                        // Encabezado de escena justo antes de su primera línea.
+                        const escena = escenaDeTurno[i];
+                        const abreEscena = variasEscenas && escena && escena.turns[0]?.id === t.id;
                         return (
-                            <div key={t.id} ref={active ? currentLineRef : undefined}
-                                className={`mb-2.5 rounded-sm px-1 ${active ? 'bg-amber-300/60' : ''}`}>
-                                <p className={`pl-10 text-[11px] font-bold uppercase ${mine ? 'text-amber-800' : 'text-zinc-600'}`}>{t.speaker}{mine ? ' (TÚ)' : ''}</p>
-                                <p className={`pl-4 text-[12px] leading-snug ${mine ? 'text-amber-950 font-semibold' : 'text-zinc-800'}`}>{t.text}</p>
-                            </div>
+                            <React.Fragment key={t.id}>
+                                {abreEscena && (
+                                    <p className={`mb-2 mt-1 border-b border-zinc-400/60 pb-1 text-[11px] font-bold uppercase tracking-wide text-zinc-700 ${i > 0 ? 'mt-5' : ''}`}>
+                                        {sceneLabel(escena, indiceEscena.get(escena.id) ?? 0)}
+                                    </p>
+                                )}
+                                <div ref={active ? currentLineRef : undefined}
+                                    className={`mb-2.5 rounded-sm px-1 ${active ? 'bg-amber-300/60' : ''}`}>
+                                    <p className={`pl-10 text-[11px] font-bold uppercase ${mine ? 'text-amber-800' : 'text-zinc-600'}`}>{t.speaker}{mine ? ' (TÚ)' : ''}</p>
+                                    <p className={`pl-4 text-[12px] leading-snug ${mine ? 'text-amber-950 font-semibold' : 'text-zinc-800'}`}>{t.text}</p>
+                                </div>
+                            </React.Fragment>
                         );
                     })}
                 </div>
