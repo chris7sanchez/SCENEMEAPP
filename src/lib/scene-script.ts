@@ -1,10 +1,24 @@
 // Parser de guion -> turnos ORDENADOS para el Modo Ensayo con réplicas.
 // Lógica pura, sin dependencias (testeable de forma aislada).
 
+/**
+ * Qué es cada turno:
+ *  - 'dialogo'   lo que dice un personaje.
+ *  - 'accion'    la prosa entre diálogos ("Ana friega. Entra Luis, mojado").
+ *  - 'acotacion' la indicación entre paréntesis en su propia línea
+ *                ("(sin volverse)"), justo antes de la frase a la que afecta.
+ * Las dos últimas las lee el NARRADOR, y sólo si el actor lo pide.
+ */
+export type TurnKind = 'dialogo' | 'accion' | 'acotacion';
+
+/** Hablante reservado para lo que lee el narrador. No es del reparto. */
+export const NARRADOR = 'NARRADOR';
+
 export interface SceneTurn {
     id: number;
     speaker: string; // SIEMPRE en mayúsculas, sin acotaciones
     text: string;
+    kind: TurnKind;
 }
 
 /** Una escena del guion: su encabezado y los turnos que contiene. */
@@ -52,7 +66,8 @@ export function parseScriptScenes(script: string): Scene[] {
     const scenes: Scene[] = [];
     let current: Scene | null = null;
     let speaker: string | null = null;
-    let buffer: string[] = [];
+    let dialogo: string[] = [];
+    let accion: string[] = [];
     let nextTurnId = 0;
 
     const abreEscena = (heading: string): Scene => {
@@ -62,25 +77,41 @@ export function parseScriptScenes(script: string): Scene[] {
         return escena;
     };
 
-    const flush = () => {
-        if (speaker && buffer.length) {
-            const text = buffer.join(' ').replace(/\s+/g, ' ').trim();
-            if (text) {
-                const escena = current ?? abreEscena('');
-                escena.turns.push({ id: nextTurnId++, speaker, text });
-            }
-        }
-        buffer = [];
+    const push = (sp: string, texto: string, kind: TurnKind) => {
+        const text = texto.replace(/\s+/g, ' ').trim();
+        if (!text) return;
+        const escena = current ?? abreEscena('');
+        escena.turns.push({ id: nextTurnId++, speaker: sp, text, kind });
     };
+
+    const flushDialogo = () => { if (speaker && dialogo.length) push(speaker, dialogo.join(' '), 'dialogo'); dialogo = []; };
+    const flushAccion = () => { if (accion.length) push(NARRADOR, accion.join(' '), 'accion'); accion = []; };
+    const flush = () => { flushDialogo(); flushAccion(); };
 
     for (const raw of lines) {
         const line = raw.trim();
-        if (!line) continue;
+        if (!line) {
+            // Un renglón en blanco cierra el bloque de diálogo, que es como el
+            // guion separa lo que dice un personaje de la acción que viene
+            // después. Sólo si ya se capturó algo: al extraer un PDF el pie de
+            // personaje y su primera frase pueden salir separados por un hueco,
+            // y cerrar ahí convertiría la frase en acción.
+            if (speaker && dialogo.length) { flushDialogo(); speaker = null; }
+            flushAccion();
+            continue;
+        }
 
         if (SCENE_START.test(line)) { flush(); speaker = null; abreEscena(line); continue; }
         if (SCENE_HEADING.test(line)) { flush(); speaker = null; continue; }
-        // Acotación en línea completa
-        if (/^\([^)]*\)$/.test(line)) continue;
+
+        // Acotación en línea completa: "(sin volverse)". Va DELANTE de la frase
+        // a la que afecta, que es donde estaba en el papel.
+        const soloParen = line.match(/^\(([^)]*)\)$/);
+        if (soloParen) {
+            flushDialogo(); flushAccion();
+            push(NARRADOR, soloParen[1], 'acotacion');
+            continue;
+        }
 
         // Formato "NOMBRE: diálogo"
         const inline = line.match(INLINE_NAME);
@@ -92,7 +123,7 @@ export function parseScriptScenes(script: string): Scene[] {
                 flush();
                 speaker = name.toUpperCase();
                 const body = stripParens(inline[2]);
-                if (body) buffer.push(body);
+                if (body) dialogo.push(body);
                 continue;
             }
         }
@@ -105,10 +136,13 @@ export function parseScriptScenes(script: string): Scene[] {
             continue;
         }
 
-        // Línea de diálogo del hablante actual
         if (speaker) {
+            // Sigue hablando el mismo personaje.
             const body = stripParens(line);
-            if (body) buffer.push(body);
+            if (body) dialogo.push(body);
+        } else {
+            // Prosa sin nadie hablando: es acción, y la lee el narrador.
+            accion.push(line);
         }
     }
     flush();
@@ -126,14 +160,29 @@ export function parseScriptTurns(script: string): SceneTurn[] {
     return parseScriptScenes(script).flatMap(s => s.turns);
 }
 
-/** Lista de personajes distintos, en orden de aparición. */
+/**
+ * Personajes distintos que HABLAN, en orden de aparición.
+ * El narrador queda fuera a propósito: no es del reparto, no puede ser tu
+ * personaje y no cuenta para saber si sales en una escena.
+ */
 export function speakersOf(turns: SceneTurn[]): string[] {
     const seen = new Set<string>();
     const out: string[] = [];
     for (const t of turns) {
+        if (t.kind !== 'dialogo') continue;
         if (!seen.has(t.speaker)) { seen.add(t.speaker); out.push(t.speaker); }
     }
     return out;
+}
+
+/** Los turnos que se van a reproducir, con o sin las acotaciones del narrador. */
+export function playableTurns(turns: SceneTurn[], conNarrador: boolean): SceneTurn[] {
+    return conNarrador ? turns : turns.filter(t => t.kind === 'dialogo');
+}
+
+/** ¿Hay algo que un narrador pueda leer? Si no, ni se ofrece la opción. */
+export function hasNarration(scenes: Scene[]): boolean {
+    return scenes.some(s => s.turns.some(t => t.kind !== 'dialogo'));
 }
 
 /** Todos los personajes del guion entero, en orden de aparición. */
@@ -148,7 +197,7 @@ export function scenesWith(scenes: Scene[], role: string): Scene[] {
 
 /** Las escenas que tienen diálogo (las de sólo acción no se pueden ensayar). */
 export function scenesWithDialogue(scenes: Scene[]): Scene[] {
-    return scenes.filter(s => s.turns.length > 0);
+    return scenes.filter(s => s.speakers.length > 0);
 }
 
 /**

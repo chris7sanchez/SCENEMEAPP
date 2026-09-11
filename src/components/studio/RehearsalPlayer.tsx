@@ -3,7 +3,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     parseScriptScenes, speakersOfScenes, scenesWith, scenesWithDialogue, sceneLabel, cueOf,
-    type SceneTurn, type Scene,
+    playableTurns, hasNarration, NARRADOR,
+    type Scene,
 } from '@/lib/scene-script';
 import {
     getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES, ELEVENLABS_VOICES, unlockAudio, getSharedAudioContext,
@@ -21,6 +22,8 @@ export interface AjustesEnsayo {
     reparto: Record<string, VoiceProfile>;
     miPersonaje: string;
     motor: string;
+    /** Si el narrador lee las acotaciones. */
+    narrador: boolean;
 }
 
 export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onClose }: {
@@ -38,6 +41,8 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
     const conDialogo = useMemo(() => scenesWithDialogue(scenes), [scenes]);
     /** Un guion de verdad (varias escenas) abre el selector; una escena pegada, no. */
     const esGuionLargo = conDialogo.length > 1;
+    /** Si el guion no trae acción ni acotaciones, no se ofrece el narrador. */
+    const hayNarracion = useMemo(() => hasNarration(conDialogo), [conDialogo]);
 
     const [role, setRole] = useState(ajustes?.miPersonaje ?? '');
     const [mode, setMode] = useState<LineMode>('full');
@@ -47,6 +52,8 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
     const [browserVoices, setBrowserVoices] = useState<SpeechVoice[]>([]);
     const [cartesiaVoices, setCartesiaVoices] = useState<SpeechVoice[]>([]);
     const [profiles, setProfiles] = useState<Record<string, VoiceProfile>>(ajustes?.reparto ?? {});
+    /** ¿Lee el narrador la acción y las acotaciones? */
+    const [conNarrador, setConNarrador] = useState<boolean>(ajustes?.narrador ?? false);
     /** Elección manual de escenas, atada al personaje para el que se hizo:
      *  al cambiar de personaje vuelve a mandar la preselección de sus escenas. */
     const [seleccion, setSeleccion] = useState<{ role: string; ids: Set<number> } | null>(null);
@@ -99,6 +106,13 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
         }
     }, []);
 
+    // A quién hay que ponerle voz: el reparto y, si el guion trae acotaciones,
+    // también el narrador.
+    const conVoz = useMemo(
+        () => (hayNarracion ? [...speakers, NARRADOR] : speakers),
+        [speakers, hayNarracion],
+    );
+
     // Asegura un perfil por personaje y una voz válida para el motor actual.
     useEffect(() => {
         const list = engine === 'ai' ? OPENAI_TTS_VOICES
@@ -107,7 +121,7 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
             : browserVoices;
         setProfiles(prev => {
             const next: Record<string, VoiceProfile> = {};
-            speakers.forEach((s, i) => {
+            conVoz.forEach((s, i) => {
                 const base = prev[s] ? { ...prev[s] } : { ...DEFAULT_PROFILE };
                 const ok = base.voiceId && list.some(v => v.id === base.voiceId);
                 if (!ok) base.voiceId = list.length ? list[i % list.length].id : undefined;
@@ -115,7 +129,7 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
             });
             return next;
         });
-    }, [engine, browserVoices, cartesiaVoices, speakers]);
+    }, [engine, browserVoices, cartesiaVoices, conVoz]);
 
     return (
         <div className="fixed inset-0 z-[200] flex flex-col bg-black/95 backdrop-blur-sm p-4 sm:p-6 text-white overflow-y-auto">
@@ -134,16 +148,18 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
                         engine={engine} setEngine={setEngine}
                         voices={voices} profiles={profiles} setProfiles={setProfiles}
                         escenas={conDialogo} elegidas={elegidas} setElegidas={setElegidas}
-                        esGuionLargo={esGuionLargo} totalTurnos={escenasEnsayo.reduce((n, s) => n + s.turns.length, 0)}
+                        esGuionLargo={esGuionLargo} conVoz={conVoz}
+                        hayNarracion={hayNarracion} conNarrador={conNarrador} setConNarrador={setConNarrador}
+                        totalTurnos={escenasEnsayo.reduce((n, s) => n + playableTurns(s.turns, conNarrador).length, 0)}
                         onStart={() => {
-                            onGuardarAjustes?.({ reparto: profiles, miPersonaje: role, motor: engine });
+                            onGuardarAjustes?.({ reparto: profiles, miPersonaje: role, motor: engine, narrador: conNarrador });
                             setStarted(true);
                         }}
                     />
                 ) : (
                     <ActivePlayer
-                        key={role + engine + escenasEnsayo.map(s => s.id).join(',')}
-                        escenas={escenasEnsayo} role={role}
+                        key={role + engine + String(conNarrador) + escenasEnsayo.map(s => s.id).join(',')}
+                        escenas={escenasEnsayo} role={role} conNarrador={conNarrador}
                         mode={mode} advanceMode={advance} engine={engine} profiles={profiles}
                         onBack={() => setStarted(false)} onClose={onClose}
                     />
@@ -222,10 +238,11 @@ function Config(props: {
     voices: SpeechVoice[]; profiles: Record<string, VoiceProfile>;
     setProfiles: (fn: (p: Record<string, VoiceProfile>) => Record<string, VoiceProfile>) => void;
     escenas: Scene[]; elegidas: Set<number>; setElegidas: (s: Set<number>) => void;
-    esGuionLargo: boolean; totalTurnos: number;
+    esGuionLargo: boolean; totalTurnos: number; conVoz: string[];
+    hayNarracion: boolean; conNarrador: boolean; setConNarrador: (v: boolean) => void;
     onStart: () => void;
 }) {
-    const { speakers, role, setRole, mode, setMode, advance, setAdvance, engine, setEngine, voices, profiles, setProfiles, escenas, elegidas, setElegidas, esGuionLargo, totalTurnos, onStart } = props;
+    const { speakers, role, setRole, mode, setMode, advance, setAdvance, engine, setEngine, voices, profiles, setProfiles, escenas, elegidas, setElegidas, esGuionLargo, totalTurnos, conVoz, hayNarracion, conNarrador, setConNarrador, onStart } = props;
     const update = (s: string, p: VoiceProfile) => setProfiles(prev => ({ ...prev, [s]: p }));
     const listo = Boolean(role) && totalTurnos > 0;
 
@@ -289,17 +306,34 @@ function Config(props: {
                         )}
                     </div>
 
+                    {hayNarracion && (
+                        <div>
+                            <p className="mb-2 text-xs uppercase tracking-widest text-zinc-400">Acotaciones</p>
+                            <div className="flex flex-wrap gap-2">
+                                <Chip active={!conNarrador} onClick={() => setConNarrador(false)}>Sólo diálogo</Chip>
+                                <Chip active={conNarrador} onClick={() => setConNarrador(true)}>Las lee un narrador</Chip>
+                            </div>
+                            <p className="mt-2 text-xs text-zinc-500">
+                                La acción del guion y las indicaciones entre paréntesis se leen en voz
+                                alta, con su propia voz, antes de la frase a la que acompañan.
+                            </p>
+                        </div>
+                    )}
+
                     <div>
                         <p className="mb-1 text-xs uppercase tracking-widest text-zinc-400">Voz de cada personaje</p>
                         <p className="mb-3 text-xs text-zinc-500">Ajusta cada personaje. (Tu personaje no se lee en voz alta.)</p>
                         <div className="space-y-3">
-                            {speakers.map(s => (
-                                <VoiceEditor
-                                    key={s} speaker={s} isMine={s === role} engine={engine} voices={voices}
-                                    profile={profiles[s] ?? DEFAULT_PROFILE}
-                                    onChange={(p) => update(s, p)}
-                                />
-                            ))}
+                            {conVoz
+                                .filter(s => s !== NARRADOR || conNarrador)
+                                .map(s => (
+                                    <VoiceEditor
+                                        key={s} speaker={s} isMine={s === role} esNarrador={s === NARRADOR}
+                                        engine={engine} voices={voices}
+                                        profile={profiles[s] ?? DEFAULT_PROFILE}
+                                        onChange={(p) => update(s, p)}
+                                    />
+                                ))}
                         </div>
                     </div>
                 </div>
@@ -319,14 +353,19 @@ function Config(props: {
 
 const AI_TONE_CHIPS = ['Tono frío y cortante', 'Con rabia contenida', 'Cálido y cercano', 'Nervioso, al borde del llanto', 'Irónico', 'Susurrando, íntimo'];
 
-function VoiceEditor(props: { speaker: string; isMine: boolean; engine: Engine; voices: SpeechVoice[]; profile: VoiceProfile; onChange: (p: VoiceProfile) => void; }) {
-    const { speaker, isMine, engine, voices, profile, onChange } = props;
-    const test = () => getSpeechProvider(engine).speak(`Hola, soy ${speaker}.`, { voiceId: profile.voiceId, rate: profile.rate, pitch: profile.pitch, instructions: profile.instructions });
+function VoiceEditor(props: { speaker: string; isMine: boolean; esNarrador?: boolean; engine: Engine; voices: SpeechVoice[]; profile: VoiceProfile; onChange: (p: VoiceProfile) => void; }) {
+    const { speaker, isMine, esNarrador, engine, voices, profile, onChange } = props;
+    const muestra = esNarrador ? 'Ana friega. Entra Luis, mojado.' : `Hola, soy ${speaker}.`;
+    const test = () => getSpeechProvider(engine).speak(muestra, { voiceId: profile.voiceId, rate: profile.rate, pitch: profile.pitch, instructions: profile.instructions });
 
     return (
-        <div className={`rounded-xl border p-3 ${isMine ? 'border-zinc-800 bg-zinc-900/30 opacity-70' : 'border-zinc-700 bg-zinc-900/60'}`}>
+        <div className={`rounded-xl border p-3 ${isMine ? 'border-zinc-800 bg-zinc-900/30 opacity-70' : esNarrador ? 'border-zinc-600 bg-zinc-800/40' : 'border-zinc-700 bg-zinc-900/60'}`}>
             <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-bold uppercase text-amber-300">{speaker}{isMine && <span className="ml-2 text-[10px] font-normal text-zinc-500">(tú — sin voz)</span>}</span>
+                <span className={`text-sm font-bold uppercase ${esNarrador ? 'text-zinc-300' : 'text-amber-300'}`}>
+                    {esNarrador ? 'Narrador' : speaker}
+                    {esNarrador && <span className="ml-2 text-[10px] font-normal normal-case text-zinc-500">lee las acotaciones</span>}
+                    {isMine && <span className="ml-2 text-[10px] font-normal text-zinc-500">(tú — sin voz)</span>}
+                </span>
                 <button onClick={test} className="rounded-full bg-zinc-800 px-3 py-1 text-xs font-bold text-zinc-200 hover:bg-zinc-700">▶ Probar</button>
             </div>
 
@@ -393,20 +432,24 @@ function VoiceEditor(props: { speaker: string; isMine: boolean; engine: Engine; 
 }
 
 function ActivePlayer(props: {
-    escenas: Scene[]; role: string; mode: LineMode; advanceMode: AdvanceMode;
+    escenas: Scene[]; role: string; conNarrador: boolean; mode: LineMode; advanceMode: AdvanceMode;
     engine: Engine; profiles: Record<string, VoiceProfile>; onBack: () => void; onClose: () => void;
 }) {
-    const { escenas, role, mode, advanceMode, engine, profiles, onBack, onClose } = props;
+    const { escenas, role, conNarrador, mode, advanceMode, engine, profiles, onBack, onClose } = props;
 
     // Las escenas elegidas se ensayan SEGUIDAS, como una sola secuencia: el
     // reparto se responde entre sí y se cruza de escena sin parar.
-    const turns = useMemo(() => escenas.flatMap(s => s.turns), [escenas]);
+    const bloques = useMemo(
+        () => escenas
+            .map(s => ({ escena: s, turns: playableTurns(s.turns, conNarrador) }))
+            .filter(b => b.turns.length > 0),
+        [escenas, conNarrador],
+    );
+    const turns = useMemo(() => bloques.flatMap(b => b.turns), [bloques]);
     // Posición (en la secuencia plana) -> escena a la que pertenece ese turno.
-    const escenaDeTurno = useMemo(() => {
-        const out: Scene[] = [];
-        escenas.forEach(s => s.turns.forEach(() => out.push(s)));
-        return out;
-    }, [escenas]);
+    const escenaDeTurno = useMemo(() => bloques.flatMap(b => b.turns.map(() => b.escena)), [bloques]);
+    /** Ids de los turnos con los que ARRANCA cada escena (para el rótulo). */
+    const abreEscena = useMemo(() => new Set(bloques.map(b => b.turns[0].id)), [bloques]);
     const indiceEscena = useMemo(() => {
         const m = new Map<number, number>();
         escenas.forEach((s, i) => m.set(s.id, i));
@@ -546,10 +589,11 @@ function ActivePlayer(props: {
         );
     }
 
-    const isMine = current?.speaker === role;
+    const esNarracion = current?.kind !== undefined && current.kind !== 'dialogo';
+    const isMine = !esNarracion && current?.speaker === role;
     const progress = `${Math.min(state.index + 1, turns.length)} / ${turns.length}`;
     const escenaActual = escenaDeTurno[state.index];
-    const variasEscenas = escenas.length > 1;
+    const variasEscenas = bloques.length > 1;
     let lineText = current?.text ?? '';
     if (isMine) {
         if (mode === 'cue') lineText = cueOf(current?.text ?? '', 3);
@@ -566,11 +610,13 @@ function ActivePlayer(props: {
                             {sceneLabel(escenaActual, indiceEscena.get(escenaActual.id) ?? 0)}
                         </span>
                     )}
-                    <span className="shrink-0">{isMine ? 'TU TURNO' : 'RÉPLICA'}</span>
+                    <span className="shrink-0">{isMine ? 'TU TURNO' : esNarracion ? 'ACOTACIÓN' : 'RÉPLICA'}</span>
                 </div>
-                <div className={`min-h-[180px] rounded-2xl border p-6 text-center text-xl leading-relaxed sm:text-2xl ${isMine ? 'border-amber-500/50 bg-amber-500/5' : 'border-zinc-700 bg-zinc-900/60'}`}>
-                    <p className={`mb-3 text-sm font-bold uppercase tracking-widest ${isMine ? 'text-amber-400' : 'text-zinc-400'}`}>{current?.speaker}</p>
-                    <p className={isMine && mode === 'hidden' ? 'text-zinc-500 italic' : 'text-white'}>{lineText}</p>
+                <div className={`min-h-[180px] rounded-2xl border p-6 text-center text-xl leading-relaxed sm:text-2xl ${isMine ? 'border-amber-500/50 bg-amber-500/5' : esNarracion ? 'border-zinc-700/60 border-dashed bg-zinc-900/40' : 'border-zinc-700 bg-zinc-900/60'}`}>
+                    <p className={`mb-3 text-sm font-bold uppercase tracking-widest ${isMine ? 'text-amber-400' : 'text-zinc-400'}`}>
+                        {esNarracion ? 'Narrador' : current?.speaker}
+                    </p>
+                    <p className={esNarracion ? 'italic text-zinc-300' : isMine && mode === 'hidden' ? 'text-zinc-500 italic' : 'text-white'}>{lineText}</p>
                 </div>
                 {isMine ? (
                     <>
@@ -630,22 +676,30 @@ function ActivePlayer(props: {
                 <div className="max-h-72 overflow-y-auto rounded-md bg-[#f4efe2] px-4 py-3 text-zinc-900 shadow-md ring-1 ring-black/10 lg:max-h-[64vh]"
                     style={{ fontFamily: '"Courier New", Courier, monospace' }}>
                     {turns.map((t, i) => {
-                        const mine = t.speaker === role;
+                        const narracion = t.kind !== 'dialogo';
+                        const mine = !narracion && t.speaker === role;
                         const active = i === state.index;
                         // Encabezado de escena justo antes de su primera línea.
                         const escena = escenaDeTurno[i];
-                        const abreEscena = variasEscenas && escena && escena.turns[0]?.id === t.id;
+                        const rotulo = variasEscenas && escena && abreEscena.has(t.id);
                         return (
                             <React.Fragment key={t.id}>
-                                {abreEscena && (
+                                {rotulo && (
                                     <p className={`mb-2 mt-1 border-b border-zinc-400/60 pb-1 text-[11px] font-bold uppercase tracking-wide text-zinc-700 ${i > 0 ? 'mt-5' : ''}`}>
                                         {sceneLabel(escena, indiceEscena.get(escena.id) ?? 0)}
                                     </p>
                                 )}
                                 <div ref={active ? currentLineRef : undefined}
                                     className={`mb-2.5 rounded-sm px-1 ${active ? 'bg-amber-300/60' : ''}`}>
-                                    <p className={`pl-10 text-[11px] font-bold uppercase ${mine ? 'text-amber-800' : 'text-zinc-600'}`}>{t.speaker}{mine ? ' (TÚ)' : ''}</p>
-                                    <p className={`pl-4 text-[12px] leading-snug ${mine ? 'text-amber-950 font-semibold' : 'text-zinc-800'}`}>{t.text}</p>
+                                    {narracion ? (
+                                        // La acción va al margen y en cursiva, como en el guion.
+                                        <p className="text-[12px] italic leading-snug text-zinc-600">{t.text}</p>
+                                    ) : (
+                                        <>
+                                            <p className={`pl-10 text-[11px] font-bold uppercase ${mine ? 'text-amber-800' : 'text-zinc-600'}`}>{t.speaker}{mine ? ' (TÚ)' : ''}</p>
+                                            <p className={`pl-4 text-[12px] leading-snug ${mine ? 'text-amber-950 font-semibold' : 'text-zinc-800'}`}>{t.text}</p>
+                                        </>
+                                    )}
                                 </div>
                             </React.Fragment>
                         );

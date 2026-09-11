@@ -32,6 +32,8 @@ export interface GuionEnsayo {
     miPersonaje?: string;
     /** Motor de voz elegido la última vez ('browser' | 'ai' | 'eleven' | 'cartesia'). */
     motor?: string;
+    /** Si el narrador lee la acción y las acotaciones. */
+    narrador?: boolean;
     creado: number;
     actualizado: number;
 }
