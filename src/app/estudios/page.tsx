@@ -6,6 +6,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import NavEstudios from '@/components/NavEstudios';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search, Star, Users, Clapperboard, FileText, Plus, Trash2,
@@ -198,6 +199,8 @@ export default function EstudiosPage() {
                     <p className="mt-10 text-sm text-[var(--cin-dim)]">Empieza por buscar una película que te haya marcado.</p>
                 )}
             </div>
+
+            <NavEstudios actual="produccion" />
 
             <AnimatePresence>
                 {ficha && <FichaPelicula pelicula={ficha} onClose={() => setFicha(null)} />}

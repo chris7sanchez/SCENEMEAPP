@@ -44,14 +44,17 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
     /** Si el guion no trae acción ni acotaciones, no se ofrece el narrador. */
     const hayNarracion = useMemo(() => hasNarration(conDialogo), [conDialogo]);
 
-    const [role, setRole] = useState(ajustes?.miPersonaje ?? '');
+    /** Personaje elegido a mano. Puede no estar en ESTE guion (viene guardado
+     *  de otro, o el guion ha cambiado): quien manda es `role`, más abajo. */
+    const [roleElegido, setRole] = useState(ajustes?.miPersonaje ?? '');
     const [mode, setMode] = useState<LineMode>('full');
     const [advance, setAdvance] = useState<AdvanceMode>('tap');
     const [engine, setEngine] = useState<Engine>((ajustes?.motor as Engine) ?? 'browser');
     const [started, setStarted] = useState(false);
     const [browserVoices, setBrowserVoices] = useState<SpeechVoice[]>([]);
     const [cartesiaVoices, setCartesiaVoices] = useState<SpeechVoice[]>([]);
-    const [profiles, setProfiles] = useState<Record<string, VoiceProfile>>(ajustes?.reparto ?? {});
+    /** Voces tocadas a mano. Lo que no esté aquí se rellena solo (`profiles`). */
+    const [repartoManual, setRepartoManual] = useState<Record<string, VoiceProfile>>(ajustes?.reparto ?? {});
     /** ¿Lee el narrador la acción y las acotaciones? */
     const [conNarrador, setConNarrador] = useState<boolean>(ajustes?.narrador ?? false);
     /** Elección manual de escenas, atada al personaje para el que se hizo:
@@ -63,11 +66,10 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
         : engine === 'cartesia' ? cartesiaVoices
         : browserVoices;
 
-    useEffect(() => {
-        if (!speakers.length) return;
-        // Si el personaje guardado ya no está en este guion, cae al primero.
-        if (!role || !speakers.includes(role)) setRole(speakers[0]);
-    }, [speakers, role]);
+    // Si el personaje guardado no está en este guion, manda el primero. Se
+    // deriva en vez de guardarse: así no hay un render de más con el personaje
+    // equivocado, ni un efecto que lo corrija después.
+    const role = roleElegido && speakers.includes(roleElegido) ? roleElegido : (speakers[0] ?? '');
 
     // Por defecto se ensayan TUS escenas, que es lo que se hace el 95% de las
     // veces; en cuanto tocas la lista manda tu elección, hasta que cambies de
@@ -113,23 +115,24 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
         [speakers, hayNarracion],
     );
 
-    // Asegura un perfil por personaje y una voz válida para el motor actual.
-    useEffect(() => {
-        const list = engine === 'ai' ? OPENAI_TTS_VOICES
-            : engine === 'eleven' ? ELEVENLABS_VOICES
-            : engine === 'cartesia' ? cartesiaVoices
-            : browserVoices;
-        setProfiles(prev => {
-            const next: Record<string, VoiceProfile> = {};
-            conVoz.forEach((s, i) => {
-                const base = prev[s] ? { ...prev[s] } : { ...DEFAULT_PROFILE };
-                const ok = base.voiceId && list.some(v => v.id === base.voiceId);
-                if (!ok) base.voiceId = list.length ? list[i % list.length].id : undefined;
-                next[s] = base;
-            });
-            return next;
+    // Un perfil por cada uno de los que hablan, con una voz que EXISTA en el
+    // motor elegido: al cambiar de motor las voces del anterior ya no valen y
+    // hay que repartir de nuevo. Se deriva del reparto tocado a mano, así que
+    // cambiar de motor no borra el tono ni la velocidad que ajustó el actor.
+    const profiles = useMemo(() => {
+        const next: Record<string, VoiceProfile> = {};
+        conVoz.forEach((s, i) => {
+            const base = repartoManual[s] ? { ...repartoManual[s] } : { ...DEFAULT_PROFILE };
+            const ok = base.voiceId && voices.some(v => v.id === base.voiceId);
+            if (!ok) base.voiceId = voices.length ? voices[i % voices.length].id : undefined;
+            next[s] = base;
         });
-    }, [engine, browserVoices, cartesiaVoices, conVoz]);
+        return next;
+    }, [conVoz, repartoManual, voices]);
+
+    /** Guardar un cambio del actor sobre el reparto derivado. */
+    const setProfiles = (fn: (p: Record<string, VoiceProfile>) => Record<string, VoiceProfile>) =>
+        setRepartoManual(fn(profiles));
 
     return (
         <div className="fixed inset-0 z-[200] flex flex-col bg-black/95 backdrop-blur-sm p-4 sm:p-6 text-white overflow-y-auto">

@@ -276,6 +276,18 @@ header.nav{ position:absolute; top:0; left:0; right:0; z-index:40; display:flex;
 #barra button b{ color:var(--gold-bright); font-weight:600; margin-right:.45em }
 #barra button:hover,#barra button:focus-visible{ border-color:var(--gold); color:#fff }
 #mundo.enfocado #barra{ opacity:0; pointer-events:none }
+/* La tienda: los tres servicios que se venden en el creator, accesibles sin
+   salir del patio. Van arriba a la izquierda para no pisar la barra de salas. */
+#tienda{ position:absolute; left:14px; top:calc(64px + env(safe-area-inset-top,0px)); z-index:113;
+  display:flex; flex-direction:column; gap:6px; pointer-events:none; transition:opacity .4s }
+#tienda .et{ font-family:var(--label); text-transform:uppercase; letter-spacing:.22em; font-size:.56rem; color:rgba(239,230,207,.5); padding-left:4px }
+#tienda a{ pointer-events:auto; font-family:var(--label); text-transform:uppercase; letter-spacing:.14em; font-size:.64rem;
+  color:#efe6cf; text-decoration:none; background:rgba(8,9,14,.6); border:1px solid rgba(230,180,90,.22);
+  padding:7px 12px; border-radius:100px; backdrop-filter:blur(8px); white-space:nowrap }
+#tienda a b{ color:var(--gold-bright); font-weight:600 }
+#tienda a:hover,#tienda a:focus-visible{ border-color:var(--gold); color:#fff }
+#mundo.enfocado #tienda,#mundo.cruzando #tienda{ opacity:0; pointer-events:none }
+@media (max-width:640px){ #tienda{ display:none } }
 /* En táctil no hay hover: el nombre ya se ve y la descripción se muestra fija. */
 @media (hover:none){ .zona .cartel i{ max-height:8em; opacity:1; margin-top:9px } .zona .cartel{ transform:none } }
 @media (max-width:640px){
@@ -426,6 +438,12 @@ header.nav{ position:absolute; top:0; left:0; right:0; z-index:40; display:flex;
     <video id="paso" muted playsinline preload="none" aria-hidden="true"></video>
   <div id="cromaSalida" aria-hidden="true"></div>
   <div class="hud" id="hudHint">Arrastra para recorrer el patio · Elige una sala para entrar</div>
+    <nav id="tienda" aria-label="Servicios de Scene Me">
+      <span class="et">La tienda</span>
+      <a href="/creator?flow=photo&amp;step=1"><b>1</b> · Tu Book</a>
+      <a href="/creator?flow=scene&amp;step=1"><b>2</b> · Tu Mejor Escena</a>
+      <a href="/booking?service=selftape"><b>3</b> · Self-Tapes</a>
+    </nav>
     <div id="barra">
       <button type="button" data-go="0"><b>Stage 5</b><span class="t">Sala de producción</span></button>
       <button type="button" data-go="1"><b>Stage 1</b><span class="t">Plató</span></button>
@@ -478,9 +496,9 @@ document.querySelectorAll('.stats').forEach(function(el){io2.observe(el);});
 "use strict";
 var STAGES=[
   {stage:'Stage 5', sec:'Sala de producción', title:'Sala de producción',
-   desc:'Crea un espacio de referencias que te definan, que te sirvan de inspiración…', url:'https://www.scenemeapp.com/estudios', cta:'Entrar en Mis Estudios', zx:.11, zy:.46, zoom:1.5},
+   desc:'Crea un espacio de referencias que te definan, que te sirvan de inspiración…', url:'/estudios', cta:'Entrar en Mis Estudios', zx:.11, zy:.46, zoom:1.5},
   {stage:'Stage 1', sec:'Plató',              title:'Plató',
-   desc:'Porque un actor se hace entrenando…', url:'https://www.scenemeapp.com/studio', cta:'Entrar en el Studio', zx:.50, zy:.46, zoom:1.6,
+   desc:'Porque un actor se hace entrenando…', url:'/studio', cta:'Entrar en el Studio', zx:.50, zy:.46, zoom:1.6,
    /* Encuadre con el que se corta al vídeo, medido y comparado fotograma a
       fotograma. El croma interior de la foto está centrado en (0.535, 0.624) y
       el del primer fotograma del clip en (0.528, 0.595). Con zoom 2.70 el
@@ -656,7 +674,8 @@ function entrar(i){
     pGo.textContent=S.cta;
     if(S.url){
       pGo.href=S.url; pGo.removeAttribute('aria-disabled');
-      pDest.innerHTML='Te lleva a <a href="'+S.url+'" rel="noopener">'+S.url.replace(/^https?:\/\//,'')+'</a>';
+      var destino=(location.host+S.url).replace(/^www\./,'');
+      pDest.innerHTML='Te lleva a <a href="'+S.url+'" rel="noopener">'+destino+'</a>';
       precargarPaso();
     }else{
       pGo.href='#'; pGo.setAttribute('aria-disabled','true');
@@ -698,7 +717,14 @@ function precargarPaso(){
   try{ paso.load(); }catch(e){}
 }
 function irA(url){
-  try{ top.location.href=url; }catch(err){ location.href=url; }
+  /* Si se ha llegado al backlot desde la propia web (lo normal: el boton "Los
+     estudios" del creator), esta pagina se REEMPLAZA en el historial. Asi,
+     volver atras desde una seccion aterriza en el creator y no otra vez aqui.
+     Viniendo de fuera se navega normal, para no echar al visitante del sitio. */
+  var interno=false;
+  try{ interno=!!document.referrer && new URL(document.referrer).origin===location.origin; }catch(e){}
+  try{ if(interno) top.location.replace(url); else top.location.href=url; }
+  catch(err){ if(interno) location.replace(url); else location.href=url; }
 }
 function cruzar(url){
   if(cruzando) return;
@@ -820,5 +846,17 @@ addEventListener('keydown',function(e){
 document.querySelectorAll('[data-nave]').forEach(function(a){
   a.addEventListener('click',function(e){ e.preventDefault(); abrir(parseInt(a.dataset.nave,10)); });
 });
+
+/* Enlace directo a una sala: /backlot?sala=0|1|2. Lo usa la barra que llevan
+   las propias secciones para saltar de una a otra, y para poder ENSENAR una
+   sala que todavia no tiene pagina (la de visionado) en vez de un boton muerto. */
+(function(){
+  var n;
+  try{ n=parseInt(new URLSearchParams(location.search).get('sala'),10); }catch(e){}
+  if(!(n>=0&&n<STAGES.length)) return;
+  /* Se limpia de la barra para que recargar no repita el salto. */
+  try{ history.replaceState({},'',location.pathname); }catch(e){}
+  abrir(n);
+})();
 })();
 </script>
