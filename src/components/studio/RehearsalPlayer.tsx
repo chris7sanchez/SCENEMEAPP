@@ -613,7 +613,9 @@ function ActivePlayer(props: {
                             {sceneLabel(escenaActual, indiceEscena.get(escenaActual.id) ?? 0)}
                         </span>
                     )}
-                    <span className="shrink-0">{isMine ? 'TU TURNO' : esNarracion ? 'ACOTACIÓN' : 'RÉPLICA'}</span>
+                    {/* La acción y la acotación no son lo mismo: una cuenta lo que
+                        pasa, la otra dice CÓMO se dice la frase que viene detrás. */}
+                    <span className="shrink-0">{isMine ? 'TU TURNO' : current?.kind === 'acotacion' ? 'ACOTACIÓN' : current?.kind === 'accion' ? 'ACCIÓN' : 'RÉPLICA'}</span>
                 </div>
                 <div className={`min-h-[180px] rounded-2xl border p-6 text-center text-xl leading-relaxed sm:text-2xl ${isMine ? 'border-amber-500/50 bg-amber-500/5' : esNarracion ? 'border-zinc-700/60 border-dashed bg-zinc-900/40' : 'border-zinc-700 bg-zinc-900/60'}`}>
                     <p className={`mb-3 text-sm font-bold uppercase tracking-widest ${isMine ? 'text-amber-400' : 'text-zinc-400'}`}>

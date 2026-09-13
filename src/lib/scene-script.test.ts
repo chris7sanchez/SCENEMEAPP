@@ -187,3 +187,80 @@ describe('selección de escenas', () => {
         expect(sceneLabel({ id: 0, heading: '', turns: [], speakers: [] }, 4)).toBe('Escena 5');
     });
 });
+
+// ---------------------------------------------------------------------------
+// Un guion TAL Y COMO SALE DE UN PDF: sin un solo renglón en blanco y con toda
+// la maquetación metida en las sangrías. Es el caso que fallaba: la acción se
+// le pegaba al personaje anterior y ANA acababa diciendo que Luis dejaba las
+// llaves sobre la mesa.
+const GUION_PDF = [
+    '1. INT. COCINA - NOCHE',
+    'Ana friega. Entra Luis, mojado.',
+    '                ANA',
+    '        ¿De verdad pensabas que no me iba a enterar?',
+    'Luis deja las llaves sobre la mesa. No responde.',
+    '                LUIS',
+    '            (sin mirarla)',
+    '        No quería hacerte daño.',
+    'Ana cierra el grifo y se gira despacio.',
+    '                ANA',
+    '        (riendo) Claro. Y yo me lo creo.',
+].join('\n');
+
+describe('guion sin renglones en blanco (el que llega de un PDF)', () => {
+    it('la sangría separa la acción del diálogo, sin necesidad de huecos', () => {
+        const [escena] = parseScriptScenes(GUION_PDF);
+        expect(escena.heading).toBe('1. INT. COCINA - NOCHE');
+        expect(escena.turns.map(t => [t.kind, t.speaker, t.text])).toEqual([
+            ['accion', NARRADOR, 'Ana friega. Entra Luis, mojado.'],
+            ['dialogo', 'ANA', '¿De verdad pensabas que no me iba a enterar?'],
+            ['accion', NARRADOR, 'Luis deja las llaves sobre la mesa. No responde.'],
+            ['acotacion', NARRADOR, 'sin mirarla'],
+            ['dialogo', 'LUIS', 'No quería hacerte daño.'],
+            ['accion', NARRADOR, 'Ana cierra el grifo y se gira despacio.'],
+            ['acotacion', NARRADOR, 'riendo'],
+            ['dialogo', 'ANA', 'Claro. Y yo me lo creo.'],
+        ]);
+    });
+
+    it('ningún personaje recita la acción que viene detrás de su frase', () => {
+        const dialogo = parseScriptTurns(GUION_PDF).filter(t => t.kind === 'dialogo');
+        expect(dialogo.every(t => !/llaves|grifo|mojado/.test(t.text))).toBe(true);
+        expect(speakersOfScenes(parseScriptScenes(GUION_PDF))).toEqual(['ANA', 'LUIS']);
+    });
+});
+
+describe('acotaciones dentro de la línea de diálogo', () => {
+    it('el paréntesis se lo queda el narrador y el resto lo dice el personaje', () => {
+        const turnos = parseScriptTurns('ANA: (al borde del llanto) No me toques.');
+        expect(turnos.map(t => [t.kind, t.speaker, t.text])).toEqual([
+            ['acotacion', NARRADOR, 'al borde del llanto'],
+            ['dialogo', 'ANA', 'No me toques.'],
+        ]);
+    });
+
+    it('una acotación en mitad de la frase parte el diálogo en dos', () => {
+        const turnos = parseScriptTurns('LUIS: Espera. (se gira) ¿Qué has dicho?');
+        expect(turnos.map(t => [t.kind, t.text])).toEqual([
+            ['dialogo', 'Espera.'],
+            ['acotacion', 'se gira'],
+            ['dialogo', '¿Qué has dicho?'],
+        ]);
+    });
+
+    it('las coletillas de oficio NO se las lee el narrador', () => {
+        const turnos = parseScriptTurns("ANA (V.O.): Estoy aquí.\n(CONT'D)\nLUIS: Ya.");
+        expect(turnos.map(t => [t.kind, t.speaker, t.text])).toEqual([
+            ['dialogo', 'ANA', 'Estoy aquí.'],
+            ['dialogo', 'LUIS', 'Ya.'],
+        ]);
+    });
+
+    it('sin sangrías (guion pegado a mano) todo sigue funcionando como antes', () => {
+        const turnos = parseScriptTurns('ANA: Hola.\nY también esto.\nLUIS: Adiós.');
+        expect(turnos.map(t => [t.speaker, t.text])).toEqual([
+            ['ANA', 'Hola. Y también esto.'],
+            ['LUIS', 'Adiós.'],
+        ]);
+    });
+});

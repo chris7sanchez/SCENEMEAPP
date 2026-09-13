@@ -18,6 +18,22 @@ export interface TrozoPdf {
 /** Dos trozos están en la misma línea si sus «y» se parecen tanto como esto. */
 const TOLERANCIA_LINEA = 0.35;
 
+// LA SANGRÍA HAY QUE CONSERVARLA. Un guion no separa la acción del diálogo con
+// renglones en blanco —un PDF no trae ninguno— sino con la COLUMNA en la que
+// empieza cada línea: la acción al margen, el diálogo metido hacia dentro y el
+// nombre del personaje más adentro todavía. Si se tira esa información, el
+// ensayo le cuelga a ANA la frase "Luis deja las llaves sobre la mesa".
+//
+// Como las unidades de un PDF no son las de nadie, no se traducen a caracteres
+// reales: se reparte lo que hay entre el margen izquierdo y la línea más
+// metida de la página sobre una escala fija. Al parser sólo le hace falta saber
+// qué líneas vuelven al margen, no en qué columna exacta estaban.
+
+/** Escala de la sangría reconstruida: 0 en el margen, esto en lo más metido. */
+const SANGRIA_MAX = 16;
+/** Por debajo de esta variación, los márgenes son ruido y no maquetación. */
+const SANGRIA_MINIMA = 0.15;
+
 /** Mediana: resiste los valores disparatados mucho mejor que la media. */
 function mediana(xs: number[]): number {
     if (!xs.length) return 0;
@@ -115,8 +131,26 @@ export function reconstruirPagina(trozos: TrozoPdf[]): string {
     }
     lineas.push(actual);
 
-    return lineas
-        .map(l => juntarLinea([...l].sort((a, b) => a.x - b.x)).trimEnd())
+    const filas = lineas.map(l => [...l].sort((a, b) => a.x - b.x));
+
+    // ¿Esta página está MAQUETADA, o es prosa corrida? Si todas las líneas
+    // arrancan casi en el mismo sitio, no hay sangrías que conservar y estirar
+    // esa diferencia mínima hasta la escala completa se inventaría una columna
+    // de diálogo donde sólo hay un párrafo con la primera línea entrada.
+    const inicios = filas.map(f => f[0].x);
+    const izquierda = Math.min(...inicios);
+    const extension = Math.max(...inicios) - izquierda;
+    const xs = trozos.map(t => t.x);
+    const anchoTexto = Math.max(...xs) - Math.min(...xs);
+    const maqueta = extension > 0 && anchoTexto > 0 && extension >= anchoTexto * SANGRIA_MINIMA;
+
+    return filas
+        .map(f => {
+            const texto = juntarLinea(f).trimEnd();
+            if (!texto || !maqueta) return texto;
+            const sangria = Math.round(((f[0].x - izquierda) / extension) * SANGRIA_MAX);
+            return ' '.repeat(sangria) + texto;
+        })
         .join('\n');
 }
 

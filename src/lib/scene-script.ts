@@ -39,14 +39,50 @@ const SCENE_HEADING = /^(INT\.|EXT\.|EST\.|INT\/EXT|FADE|CUT TO:|CORTE A:|DISSOL
 // que es como sale de casi todos los programas de guion, y los encabezados en
 // castellano por número ("ESCENA 4", "SECUENCIA 7").
 const SCENE_START = /^(\d{1,3}[.)\-]?\s*)?(INT\.|EXT\.|EST\.|INT\/EXT|INT-EXT|ESCENA\s+\d+|SECUENCIA\s+\d+)/i;
-// "NOMBRE: diálogo" (nombre admite mayúsc/minúsc, hasta 3 palabras)
-const INLINE_NAME = /^([\wÁÉÍÓÚÑÜáéíóúñü.'\- ]{1,28}?):\s*(\S.*)$/;
-// "NOMBRE" en su propia línea, TODO en mayúsculas, con acotación opcional
+// "NOMBRE: diálogo" — admite una coletilla técnica: "ANA (V.O.): ..."
+const INLINE_NAME = /^([\wÁÉÍÓÚÑÜáéíóúñü.'\- ]{1,28}?)(\s*\([^)]*\))?:\s*(\S.*)$/;
+// "NOMBRE" en su propia línea, TODO en mayúsculas, con coletilla opcional
 const STANDALONE_NAME = /^([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ.'\- ]{1,28})(\s*\([^)]*\))?$/;
 
-/** Quita acotaciones "(...)" dentro de una línea de diálogo. */
-function stripParens(s: string): string {
-    return s.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+/**
+ * Coletillas de oficio que van pegadas al nombre o sueltas y que NO son una
+ * indicación de interpretación: nadie quiere oír al narrador decir "punto o
+ * ese" antes de cada frase.
+ */
+const TECNICA = /^(V\.?\s?O\.?|O\.?\s?S\.?|O\.?\s?C\.?|OFF|EN OFF|CONT'?D|CONT\.?|CONTINÚA|CONTINUA|MÁS|MAS|MORE|SIGUE|P\.?\s?O\.?\s?V\.?|SUBT[ÍI]TULO)\.?$/i;
+
+export function esAcotacionTecnica(texto: string): boolean {
+    return TECNICA.test(texto.trim());
+}
+
+/** Un trozo de una línea de diálogo: lo que se dice o lo que se indica. */
+interface Fragmento { tipo: 'dialogo' | 'acotacion'; texto: string }
+
+/**
+ * Parte una línea de diálogo separando las acotaciones entre paréntesis.
+ * "(riendo) Claro que sí" -> [acotación "riendo", diálogo "Claro que sí"]
+ *
+ * Antes se BORRABAN sin más, así que "(al borde del llanto)" —que es justo lo
+ * que el actor necesita oír— se perdía por el camino.
+ */
+export function partirDialogo(linea: string): Fragmento[] {
+    const out: Fragmento[] = [];
+    const re = /\(([^)]*)\)/g;
+    let ultimo = 0;
+    let m: RegExpExecArray | null;
+
+    const empuja = (tipo: Fragmento['tipo'], t: string) => {
+        const limpio = t.replace(/\s+/g, ' ').trim();
+        if (limpio) out.push({ tipo, texto: limpio });
+    };
+
+    while ((m = re.exec(linea)) !== null) {
+        empuja('dialogo', linea.slice(ultimo, m.index));
+        if (!esAcotacionTecnica(m[1])) empuja('acotacion', m[1]);
+        ultimo = m.index + m[0].length;
+    }
+    empuja('dialogo', linea.slice(ultimo));
+    return out;
 }
 
 /**
@@ -62,13 +98,26 @@ function stripParens(s: string): string {
  * ensayarlas.
  */
 export function parseScriptScenes(script: string): Scene[] {
-    const lines = (script || '').split('\n');
+    const lines = (script || '').replace(/\t/g, '    ').split('\n');
     const scenes: Scene[] = [];
     let current: Scene | null = null;
     let speaker: string | null = null;
     let dialogo: string[] = [];
     let accion: string[] = [];
     let nextTurnId = 0;
+
+    // LA SANGRÍA ES LA SEÑAL BUENA. Un guion maquetado pone la acción al margen
+    // y el diálogo metido hacia dentro. Antes se hacía trim() en la primera
+    // línea y esa información se tiraba, así que sin renglones en blanco —que
+    // es justo como sale un PDF— la acción se le pegaba al personaje anterior:
+    // ANA acababa "diciendo" que Luis dejaba las llaves sobre la mesa.
+    const sangriaDe = (s: string) => s.length - s.trimStart().length;
+    const sangrias = lines.filter(l => l.trim()).map(sangriaDe);
+    const margen = sangrias.length ? Math.min(...sangrias) : 0;
+    /** Sólo sirve si el guion de verdad está maquetado con sangrías. */
+    const usaSangria = sangrias.length > 0 && Math.max(...sangrias) - margen >= 4;
+    /** A qué altura está el diálogo del personaje que habla ahora. */
+    let sangriaDialogo: number | null = null;
 
     const abreEscena = (heading: string): Scene => {
         const escena: Scene = { id: scenes.length, heading, turns: [], speakers: [] };
@@ -88,28 +137,43 @@ export function parseScriptScenes(script: string): Scene[] {
     const flushAccion = () => { if (accion.length) push(NARRADOR, accion.join(' '), 'accion'); accion = []; };
     const flush = () => { flushDialogo(); flushAccion(); };
 
+    /** Mete en su sitio los trozos de una línea de diálogo, acotaciones incluidas. */
+    const anotaDialogo = (texto: string) => {
+        for (const f of partirDialogo(texto)) {
+            if (f.tipo === 'dialogo') {
+                dialogo.push(f.texto);
+            } else {
+                // La acotación va DELANTE de lo que queda por decir, así que
+                // primero se cierra lo dicho hasta aquí.
+                flushDialogo();
+                push(NARRADOR, f.texto, 'acotacion');
+            }
+        }
+    };
+
     for (const raw of lines) {
         const line = raw.trim();
+        const sangria = sangriaDe(raw);
         if (!line) {
             // Un renglón en blanco cierra el bloque de diálogo, que es como el
             // guion separa lo que dice un personaje de la acción que viene
             // después. Sólo si ya se capturó algo: al extraer un PDF el pie de
             // personaje y su primera frase pueden salir separados por un hueco,
             // y cerrar ahí convertiría la frase en acción.
-            if (speaker && dialogo.length) { flushDialogo(); speaker = null; }
+            if (speaker && dialogo.length) { flushDialogo(); speaker = null; sangriaDialogo = null; }
             flushAccion();
             continue;
         }
 
-        if (SCENE_START.test(line)) { flush(); speaker = null; abreEscena(line); continue; }
-        if (SCENE_HEADING.test(line)) { flush(); speaker = null; continue; }
+        if (SCENE_START.test(line)) { flush(); speaker = null; sangriaDialogo = null; abreEscena(line); continue; }
+        if (SCENE_HEADING.test(line)) { flush(); speaker = null; sangriaDialogo = null; continue; }
 
         // Acotación en línea completa: "(sin volverse)". Va DELANTE de la frase
         // a la que afecta, que es donde estaba en el papel.
         const soloParen = line.match(/^\(([^)]*)\)$/);
         if (soloParen) {
             flushDialogo(); flushAccion();
-            push(NARRADOR, soloParen[1], 'acotacion');
+            if (!esAcotacionTecnica(soloParen[1])) push(NARRADOR, soloParen[1], 'acotacion');
             continue;
         }
 
@@ -122,8 +186,8 @@ export function parseScriptScenes(script: string): Scene[] {
             if (isShortName && !/[.!?,]/.test(name)) {
                 flush();
                 speaker = name.toUpperCase();
-                const body = stripParens(inline[2]);
-                if (body) dialogo.push(body);
+                sangriaDialogo = null;
+                anotaDialogo(inline[3]);
                 continue;
             }
         }
@@ -133,13 +197,30 @@ export function parseScriptScenes(script: string): Scene[] {
         if (standalone && line === line.toUpperCase()) {
             flush();
             speaker = standalone[1].trim().toUpperCase();
+            sangriaDialogo = null;
             continue;
         }
 
         if (speaker) {
-            // Sigue hablando el mismo personaje.
-            const body = stripParens(line);
-            if (body) dialogo.push(body);
+            // La primera línea después del pie marca a qué altura va el diálogo.
+            if (sangriaDialogo === null) sangriaDialogo = sangria;
+
+            // ¿Sigue hablando, o ha vuelto la prosa? En un guion maquetado el
+            // diálogo va metido hacia dentro y la acción vuelve al margen. Sin
+            // esto, y sin renglones en blanco, "Luis deja las llaves sobre la
+            // mesa" acababa saliendo por la boca de ANA.
+            const vuelveAlMargen = usaSangria
+                && sangriaDialogo > margen + 2
+                && sangria <= margen + 2;
+
+            if (vuelveAlMargen) {
+                flushDialogo();
+                speaker = null;
+                sangriaDialogo = null;
+                accion.push(line);
+            } else {
+                anotaDialogo(line);
+            }
         } else {
             // Prosa sin nadie hablando: es acción, y la lee el narrador.
             accion.push(line);

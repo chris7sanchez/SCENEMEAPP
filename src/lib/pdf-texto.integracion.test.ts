@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import { jsPDF } from 'jspdf';
 import PDFParser from 'pdf2json';
 import { reconstruirPagina, pareceDeletreado, type TrozoPdf } from './pdf-texto';
-import { parseScriptScenes, speakersOfScenes } from './scene-script';
+import { parseScriptScenes, speakersOfScenes, NARRADOR } from './scene-script';
 
 /** Un guion corto, maquetado como se maqueta un guion: cada cosa en su sangría. */
 const GUION: [string, number][] = [
@@ -17,7 +17,9 @@ const GUION: [string, number][] = [
     ['ANA', 60],
     ['¿De verdad pensabas que no me iba a enterar?', 40],
     ['LUIS', 60],
+    ['(sin mirarla)', 50],
     ['No quería hacerte daño.', 40],
+    ['Luis deja las llaves sobre la mesa. No responde.', 20],
     ['2. EXT. CALLE - AMANECER', 20],
     ['LUIS', 60],
     ['Debí decírselo.', 40],
@@ -87,6 +89,26 @@ describe('leer un PDF de guion de verdad', () => {
         ]);
     }, 30000);
 
+    it('distingue la acción y las acotaciones del diálogo, y las lee el narrador', async () => {
+        // El PDF no trae NI UN renglón en blanco: lo único que separa la acción
+        // del diálogo es la columna en la que empieza cada línea.
+        const paginas = await leerTrozos(construirPdf());
+        const turnos = parseScriptScenes(paginas.map(reconstruirPagina).join('\n\n'))
+            .flatMap(e => e.turns);
+
+        const narrador = turnos.filter(t => t.kind !== 'dialogo');
+        expect(narrador.every(t => t.speaker === NARRADOR)).toBe(true);
+        expect(narrador.map(t => t.text)).toEqual([
+            'Ana friega. Entra Luis, mojado.',
+            'sin mirarla',
+            'Luis deja las llaves sobre la mesa. No responde.',
+        ]);
+
+        // Y, sobre todo: nadie recita por su boca lo que era acción.
+        const dicho = turnos.filter(t => t.kind === 'dialogo').map(t => t.text).join(' ');
+        expect(dicho).not.toMatch(/llaves|mojado|sin mirarla/);
+    }, 30000);
+
     it('no arrastra el espacio de más que ponía el lector viejo', async () => {
         const paginas = await leerTrozos(construirPdf());
         const antes = comoAntes(paginas);
@@ -102,7 +124,13 @@ describe('leer un PDF de guion de verdad', () => {
         // pdf-texto.test.ts. Si algún día aparece un PDF real que deletree,
         // vale la pena guardarlo como fixture aquí.
         expect(paginas.flat().every(t => t.texto.length > 1)).toBe(true);
-        expect(ahora.length).toBeLessThan(antes.length);
-        expect(ahora).not.toMatch(/ \n/); // sin espacios colgando al final de línea
+        expect(antes).toMatch(/ \n/);     // el viejo dejaba un espacio colgando
+        expect(ahora).not.toMatch(/ \n/); // el nuevo no
+
+        // La comparación de longitud se hace SIN la sangría: el lector de ahora
+        // la conserva a propósito (es lo que distingue la acción del diálogo),
+        // así que el texto crece por la izquierda aunque sobren menos espacios.
+        const sinSangria = (t: string) => t.split('\n').map(l => l.trim()).join('\n');
+        expect(sinSangria(ahora).length).toBeLessThan(sinSangria(antes).length);
     }, 30000);
 });
