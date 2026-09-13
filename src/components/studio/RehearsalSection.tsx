@@ -74,10 +74,16 @@ export default function RehearsalSection({ dateKey }: { dateKey: string }) {
             const fd = new FormData();
             fd.append('file', file);
             const res = await parsePdfAction(fd);
-            if (res.error) { setAviso(`No se pudo leer el PDF: ${res.error}`); return; }
-            if (!res.text?.trim()) { setAviso('El PDF no traía texto legible (¿es un escaneo?).'); return; }
-            setScript(res.text);
-            setTitulo(t => t || file.name.replace(/\.pdf$/i, ''));
+            // Puede venir texto Y aviso a la vez (p. ej. salió partido en
+            // letras). En ese caso se carga igualmente: aquí hay un cuadro
+            // donde se puede arreglar a mano, que es mejor que quedarse sin nada.
+            if (res.text?.trim()) {
+                setScript(res.text);
+                setTitulo(t => t || file.name.replace(/\.pdf$/i, ''));
+                if (res.error) setAviso(`⚠️ ${res.error}`);
+            } else {
+                setAviso(res.error || 'El PDF no traía texto legible (¿es un escaneo?).');
+            }
         } catch (e) {
             console.error(e);
             setAviso('Ocurrió un error al procesar el PDF.');
