@@ -87,7 +87,7 @@ const TECNICA = new RegExp('^(' + [
     "V\\.?\\s?O\\.?", "O\\.?\\s?S\\.?", "O\\.?\\s?C\\.?", 'OFF', 'EN OFF', 'FUERA DE CAMPO',
     "P\\.?\\s?O\\.?\\s?V\\.?", 'PRELAP', 'AL TEL[ÉE]FONO', 'FILTRO', 'SUBT[ÍI]TULO',
     // Que la frase viene de antes o sigue en la página siguiente
-    "CONT'?D", "CONT\\.?", 'CONTIN[ÚU]A', 'CONTINUED', 'M[ÁA]S', 'MORE', 'SIGUE',
+    "CONT'?D", "CONT\\.?", 'CONTINU[A-ZÁÉÍÓÚÜÑa-záéíóúüñ]*', 'M[ÁA]S', 'MORE', 'SIGUE',
     // Que hablan a la vez: es estructura del guion, no una indicación de actuación
     'AL UN[ÍI]SONO', 'A LA VEZ', 'AL MISMO TIEMPO', 'A D[ÚU]O', 'JUNTOS', 'JUNTAS',
     'AMBOS', 'AMBAS', 'LOS DOS', 'LAS DOS', 'SIMULT[ÁA]NEO', 'SOLAPADO',
@@ -120,12 +120,18 @@ const TRANSICION = /^(CUT TO|CORTE A|CORTA A|SMASH CUT|MATCH CUT|HARD CUT|JUMP C
 
 /**
  * Muletillas de imprenta: lo que un programa de guion imprime al pie y a la
- * cabeza de cada página. "CONTINUED:", "(MORE)", "SIGUE", "FIN". Antes esto se
- * colaba como PERSONAJE —la línea es corta y va en mayúsculas, que es
- * exactamente lo que busca el detector de pies— y el reparto salía con un
- * actor llamado CONTINUED.
+ * cabeza de cada página. "CONTINUED:", "(MORE)", "SIGUE EN LA PÁGINA
+ * SIGUIENTE", "FIN DE LA PRIMERA PARTE". Esto se colaba como PERSONAJE —la
+ * línea es corta y va en mayúsculas, que es exactamente lo que busca el
+ * detector de pies— y el reparto salía con un actor llamado CONTINUED.
+ *
+ * Se admite CUALQUIER forma de "continuar" (CONTINU\p{L}*): la lista escrita a
+ * mano se dejaba fuera la castellana de toda la vida, CONTINUACIÓN, que según
+ * cómo estuviera maquetada la página o se convertía en personaje o se le
+ * pegaba a la frase del anterior. Y se dejan pasar unas palabras detrás, que
+ * es como se escriben de verdad: "SIGUE EN LA PÁGINA 12", no "SIGUE" a secas.
  */
-const MULETILLA = /^(CONTINUED|CONTINUA|CONTINÚA|CONTINUARÁ|CONTINUARA|CONT'?D|SIGUE|MÁS|MAS|MORE|THE END|FIN|TELÓN|TELON)\b[\s.:;·—–-]*(\([^)]*\))?[\s.:;·—–-]*$/;
+const MULETILLA = /^(CONTINU\p{L}*|CONT'?D|CONT|SIGUE|VIENE DE|PASA A|M[ÁA]S|MORE|THE END|FIN|TEL[ÓO]N)\b[\p{L}\s.:;·—–-]{0,40}(\([^)]*\))?[\s.:;·—–-]*$/u;
 
 /** El número de página, solo en su renglón: "12.", "- 12 -", "12". */
 const NUMERO_DE_PAGINA = /^[\s.\-–—]*\d{1,4}[\s.)\-–—]*$/;

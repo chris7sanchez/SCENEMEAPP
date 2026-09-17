@@ -24,7 +24,7 @@ function sinTildes(texto: string): string {
  * "ANA V.O." y "ANA" son la misma actriz diciendo la misma frase desde otro
  * sitio; que salgan como dos personajes es un error, no un matiz.
  */
-const COLETILLA = /\s+(V\s*O|O\s*S|O\s*C|OFF|EN OFF|CONT\s*D|CONT|CONTINUA|CONTINUED|MAS|MORE|SIGUE|P\s*O\s*V|PRELAP|FILTRO|TELEFONO|AL TELEFONO)$/;
+const COLETILLA = /\s+(V\s*O|O\s*S|O\s*C|OFF|EN OFF|CONT\s*D|CONTINU[A-Z]*|CONT|MAS|MORE|SIGUE|P\s*O\s*V|PRELAP|FILTRO|TELEFONO|AL TELEFONO)$/;
 
 /**
  * La CLAVE de un personaje: dos nombres con la misma clave son la misma

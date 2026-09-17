@@ -7,6 +7,7 @@ import {
     type Scene,
 } from '@/lib/scene-script';
 import { dudasDeReparto, claveDuda, type DudaReparto } from '@/lib/personajes';
+import { repartirVoces, generoDeNombre } from '@/lib/genero';
 import {
     getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES, ELEVENLABS_VOICES, unlockAudio, getSharedAudioContext,
     type VoiceProfile, type SpeechVoice,
@@ -130,10 +131,17 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
         }
     }, []);
 
-    // A quién hay que ponerle voz: el reparto y, si el guion trae acotaciones,
-    // también el narrador.
+    // A quién hay que ponerle voz. Los personajes van PRIMERO y el narrador
+    // detrás: así el reparto automático les deja a ellos las voces de su género
+    // y el narrador se queda con la que sobre, que es lo de menos.
     const conVoz = useMemo(
         () => (hayNarracion ? [...speakers, NARRADOR] : speakers),
+        [speakers, hayNarracion],
+    );
+    // En pantalla, en cambio, el narrador va ARRIBA: no es del reparto, es el
+    // que lee las acotaciones, y buscarlo al final de ocho personajes era raro.
+    const ordenVisible = useMemo(
+        () => (hayNarracion ? [NARRADOR, ...speakers] : speakers),
         [speakers, hayNarracion],
     );
 
@@ -142,13 +150,23 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
     // hay que repartir de nuevo. Se deriva del reparto tocado a mano, así que
     // cambiar de motor no borra el tono ni la velocidad que ajustó el actor.
     const profiles = useMemo(() => {
+        const valida = (s: string) => {
+            const v = repartoManual[s]?.voiceId;
+            return v && voices.some(x => x.id === v) ? v : null;
+        };
+        // Las que ya eligió el actor no se tocan NI se vuelven a repartir: se
+        // sacan del montón para que el automático no se las dé a otro.
+        const tomadas = new Set(conVoz.map(valida).filter(Boolean) as string[]);
+        const sinVoz = conVoz.filter(s => !valida(s));
+        const libres = voices.filter(v => !tomadas.has(v.id));
+        const auto = repartirVoces(sinVoz, libres.length ? libres : voices);
+
         const next: Record<string, VoiceProfile> = {};
-        conVoz.forEach((s, i) => {
+        for (const s of conVoz) {
             const base = repartoManual[s] ? { ...repartoManual[s] } : { ...DEFAULT_PROFILE };
-            const ok = base.voiceId && voices.some(v => v.id === base.voiceId);
-            if (!ok) base.voiceId = voices.length ? voices[i % voices.length].id : undefined;
+            base.voiceId = valida(s) ?? auto[s];
             next[s] = base;
-        });
+        }
         return next;
     }, [conVoz, repartoManual, voices]);
 
@@ -180,7 +198,7 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
                         engine={engine} setEngine={setEngine}
                         voices={voices} profiles={profiles} setProfiles={setProfiles}
                         escenas={conDialogo} elegidas={elegidas} setElegidas={setElegidas}
-                        esGuionLargo={esGuionLargo} conVoz={conVoz}
+                        esGuionLargo={esGuionLargo} conVoz={conVoz} ordenVisible={ordenVisible}
                         hayNarracion={hayNarracion} conNarrador={conNarrador} setConNarrador={setConNarrador}
                         totalTurnos={escenasEnsayo.reduce((n, s) => n + playableTurns(s.turns, conNarrador).length, 0)}
                         onStart={() => {
@@ -342,11 +360,11 @@ function Config(props: {
     voices: SpeechVoice[]; profiles: Record<string, VoiceProfile>;
     setProfiles: (fn: (p: Record<string, VoiceProfile>) => Record<string, VoiceProfile>) => void;
     escenas: Scene[]; elegidas: Set<number>; setElegidas: (s: Set<number>) => void;
-    esGuionLargo: boolean; totalTurnos: number; conVoz: string[];
+    esGuionLargo: boolean; totalTurnos: number; conVoz: string[]; ordenVisible: string[];
     hayNarracion: boolean; conNarrador: boolean; setConNarrador: (v: boolean) => void;
     onStart: () => void;
 }) {
-    const { speakers, role, setRole, mode, setMode, advance, setAdvance, engine, setEngine, voices, profiles, setProfiles, escenas, elegidas, setElegidas, esGuionLargo, totalTurnos, conVoz, hayNarracion, conNarrador, setConNarrador, onStart } = props;
+    const { speakers, role, setRole, mode, setMode, advance, setAdvance, engine, setEngine, voices, profiles, setProfiles, escenas, elegidas, setElegidas, esGuionLargo, totalTurnos, ordenVisible, hayNarracion, conNarrador, setConNarrador, onStart } = props;
     const update = (s: string, p: VoiceProfile) => setProfiles(prev => ({ ...prev, [s]: p }));
     const listo = Boolean(role) && totalTurnos > 0;
 
@@ -428,11 +446,12 @@ function Config(props: {
                         <p className="mb-1 text-xs uppercase tracking-widest text-zinc-400">Voz de cada personaje</p>
                         <p className="mb-3 text-xs text-zinc-500">Ajusta cada personaje. (Tu personaje no se lee en voz alta.)</p>
                         <div className="space-y-3">
-                            {conVoz
+                            {ordenVisible
                                 .filter(s => s !== NARRADOR || conNarrador)
                                 .map(s => (
                                     <VoiceEditor
                                         key={s} speaker={s} isMine={s === role} esNarrador={s === NARRADOR}
+                                        genero={s === NARRADOR ? null : generoDeNombre(s)}
                                         engine={engine} voices={voices}
                                         profile={profiles[s] ?? DEFAULT_PROFILE}
                                         onChange={(p) => update(s, p)}
@@ -457,8 +476,8 @@ function Config(props: {
 
 const AI_TONE_CHIPS = ['Tono frío y cortante', 'Con rabia contenida', 'Cálido y cercano', 'Nervioso, al borde del llanto', 'Irónico', 'Susurrando, íntimo'];
 
-function VoiceEditor(props: { speaker: string; isMine: boolean; esNarrador?: boolean; engine: Engine; voices: SpeechVoice[]; profile: VoiceProfile; onChange: (p: VoiceProfile) => void; }) {
-    const { speaker, isMine, esNarrador, engine, voices, profile, onChange } = props;
+function VoiceEditor(props: { speaker: string; isMine: boolean; esNarrador?: boolean; genero?: 'f' | 'm' | null; engine: Engine; voices: SpeechVoice[]; profile: VoiceProfile; onChange: (p: VoiceProfile) => void; }) {
+    const { speaker, isMine, esNarrador, genero, engine, voices, profile, onChange } = props;
     const muestra = esNarrador ? 'Ana friega. Entra Luis, mojado.' : `Hola, soy ${speaker}.`;
     const test = () => getSpeechProvider(engine).speak(muestra, { voiceId: profile.voiceId, rate: profile.rate, pitch: profile.pitch, instructions: profile.instructions });
 
@@ -467,6 +486,13 @@ function VoiceEditor(props: { speaker: string; isMine: boolean; esNarrador?: boo
             <div className="flex items-center justify-between gap-2">
                 <span className={`text-sm font-bold uppercase ${esNarrador ? 'text-zinc-300' : 'text-amber-300'}`}>
                     {esNarrador ? 'Narrador' : speaker}
+                    {/* Por qué le ha tocado esa voz. Si el guion no lo deja claro
+                        no se enseña nada, que es más honrado que adivinar. */}
+                    {!esNarrador && genero && (
+                        <span className="ml-2 text-[11px] font-normal text-zinc-500" title={genero === 'f' ? 'Voz de mujer' : 'Voz de hombre'}>
+                            {genero === 'f' ? '♀' : '♂'}
+                        </span>
+                    )}
                     {esNarrador && <span className="ml-2 text-[10px] font-normal normal-case text-zinc-500">lee las acotaciones</span>}
                     {isMine && <span className="ml-2 text-[10px] font-normal text-zinc-500">(tú — sin voz)</span>}
                 </span>

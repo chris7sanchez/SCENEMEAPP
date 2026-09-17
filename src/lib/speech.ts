@@ -481,16 +481,19 @@ export interface VoiceProfile {
 
 // Voces de OpenAI gpt-4o-mini-tts (para el motor IA).
 export const OPENAI_TTS_VOICES: SpeechVoice[] = [
+    // El género va en la etiqueta a propósito: además de verse al elegir a mano,
+    // es de donde lo saca el reparto automático (lib/genero.ts). Las que no
+    // tengo claras se quedan en "neutra" antes que decir una cosa por otra.
     { id: 'alloy', label: 'Alloy (neutra)', lang: 'multi' },
-    { id: 'ash', label: 'Ash (grave)', lang: 'multi' },
-    { id: 'ballad', label: 'Ballad (cálida)', lang: 'multi' },
+    { id: 'ash', label: 'Ash (masculina, grave)', lang: 'multi' },
+    { id: 'ballad', label: 'Ballad (neutra, cálida)', lang: 'multi' },
     { id: 'coral', label: 'Coral (femenina)', lang: 'multi' },
     { id: 'echo', label: 'Echo (masculina)', lang: 'multi' },
-    { id: 'fable', label: 'Fable (expresiva)', lang: 'multi' },
-    { id: 'onyx', label: 'Onyx (profunda)', lang: 'multi' },
-    { id: 'nova', label: 'Nova (joven)', lang: 'multi' },
-    { id: 'sage', label: 'Sage (serena)', lang: 'multi' },
-    { id: 'shimmer', label: 'Shimmer (luminosa)', lang: 'multi' },
+    { id: 'fable', label: 'Fable (neutra, expresiva)', lang: 'multi' },
+    { id: 'onyx', label: 'Onyx (masculina, profunda)', lang: 'multi' },
+    { id: 'nova', label: 'Nova (femenina, joven)', lang: 'multi' },
+    { id: 'sage', label: 'Sage (neutra, serena)', lang: 'multi' },
+    { id: 'shimmer', label: 'Shimmer (femenina, luminosa)', lang: 'multi' },
 ];
 
 // Voces premade de ElevenLabs (multilingüe v2, hablan español). El id es el voice_id.

@@ -64,6 +64,29 @@ describe('transiciones y muletillas de página', () => {
             .toEqual(['Sigue.', 'No puedo.']);
     });
 
+    it('reconoce CUALQUIER forma de "continuar", en los dos idiomas', () => {
+        const formas = [
+            'CONTINUED', 'CONTINUED:', 'CONTINUACIÓN', 'CONTINUACIÓN:', 'CONTINÚA',
+            'CONTINUARÁ', 'CONT.', "CONT'D", 'SIGUE EN LA PÁGINA SIGUIENTE',
+            'VIENE DE LA PÁGINA ANTERIOR', 'TELÓN', 'FIN DE LA PRIMERA PARTE',
+        ];
+        for (const forma of formas) {
+            // Maquetado como sale de un PDF: con sangrías y sin renglones en blanco.
+            const guion = [
+                '                ANA',
+                '        Hola, ¿qué tal?',
+                forma,
+                '                LUIS',
+                '        Bien, gracias.',
+            ].join('\n');
+            const turnos = parseScriptTurns(guion);
+            expect(turnos.map(t => [t.speaker, t.text]), forma).toEqual([
+                ['ANA', 'Hola, ¿qué tal?'],
+                ['LUIS', 'Bien, gracias.'],
+            ]);
+        }
+    });
+
     it('«(MORE)» y «(CONTINUED)» entre paréntesis tampoco se leen', () => {
         const turnos = parseScriptTurns('ANA: Una cosa.\n(MORE)\nANA: Y otra.');
         expect(turnos.map(t => [t.kind, t.text])).toEqual([
