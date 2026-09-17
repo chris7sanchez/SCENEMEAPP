@@ -12,8 +12,10 @@
 //   2. Una lista de NOMBRES corrientes en castellano y en inglés.
 //   3. La terminación, que en castellano es buena pista: -A mujer, -O hombre.
 //
-// Y una lista de los que NO se sabe (POLICÍA, PERIODISTA, JOVEN), para que la
-// regla de la terminación no se invente que el POLICÍA es una mujer.
+// Y una lista de los que NO se sabe (POLICÍA, PERIODISTA, JOVEN), que sirve
+// para UNA cosa muy concreta: frenar la regla de la terminación, para que no se
+// invente que el POLICÍA es una mujer. No descarta el nombre entero — si lo
+// hiciera, "VOZ DE HOMBRE" se quedaría sin género por empezar por VOZ.
 
 import { claveDePersonaje } from './personajes';
 
@@ -30,6 +32,7 @@ REINA PRINCESA CONDESA DUQUESA MARQUESA ALCALDESA
 DOCTORA DRA ENFERMERA PROFESORA MAESTRA CAMARERA SECRETARIA AZAFATA
 ABOGADA JUEZA MEDICA PSICOLOGA DIRECTORA JEFA ACTRIZ BAILARINA
 MONJA BRUJA REPORTERA DEPENDIENTA CAJERA PELUQUERA CRIADA SIRVIENTA
+FEMENINA FEMENINO HEMBRA
 MOTHER MOM MUM MOMMY MUMMY DAUGHTER GRANDMOTHER GRANDMA SISTER AUNT NIECE
 WIFE WIDOW GIRLFRIEND GIRL LADY WOMAN MRS MISS MS MADAM QUEEN PRINCESS
 WAITRESS ACTRESS NUN
@@ -44,6 +47,7 @@ DOCTOR DR ENFERMERO PROFESOR MAESTRO CAMARERO SECRETARIO
 ABOGADO JUEZ MEDICO PSICOLOGO DIRECTOR JEFE ACTOR BAILARIN
 CURA SACERDOTE OBISPO FRAILE MONJE REPORTERO CAJERO PELUQUERO
 CAPITAN SARGENTO SOLDADO CORONEL CHOFER PORTERO MAYORDOMO
+MASCULINA MASCULINO VARON
 FATHER DAD DADDY SON GRANDFATHER GRANDPA BROTHER UNCLE NEPHEW
 HUSBAND WIDOWER BOYFRIEND BOY GENTLEMAN MAN MR SIR KING PRINCE
 WAITER PRIEST
@@ -140,7 +144,6 @@ export function generoDeNombre(nombre: string): Genero {
 
     // 1 · El papel manda: en "MADRE DE ANA" la que habla es la madre.
     for (const p of palabras) {
-        if (AMBIGUOS.has(p)) return null;
         if (PAPELES_F.has(p)) return 'f';
         if (PAPELES_M.has(p)) return 'm';
     }
@@ -149,7 +152,13 @@ export function generoDeNombre(nombre: string): Genero {
         if (NOMBRES_F.has(p)) return 'f';
         if (NOMBRES_M.has(p)) return 'm';
     }
-    // 3 · La terminación, sólo sobre la primera palabra.
+    // 3 · La terminación, y sólo sobre la primera palabra.
+    //
+    // Aquí es donde estorba una palabra ambigua, y SÓLO aquí. Antes bastaba con
+    // que apareciera en cualquier sitio del nombre para devolver "no se sabe", y
+    // eso convertía a "VOZ DE HOMBRE" en un personaje sin género —se comía la
+    // palabra HOMBRE, que es justo la que lo dice— y le tocaba una voz de mujer.
+    if (AMBIGUOS.has(palabras[0])) return null;
     return porTerminacion(palabras[0]);
 }
 

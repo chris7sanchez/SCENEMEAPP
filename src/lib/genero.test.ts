@@ -31,6 +31,17 @@ describe('generoDeNombre', () => {
         expect(generoDeNombre('ANACLETO')).toBe('m');
     });
 
+    it('una palabra ambigua NO tapa a la que sí dice el género', () => {
+        // El caso que salió mal en pantalla: "VOZ DE HOMBRE" con voz de Rachel.
+        expect(generoDeNombre('VOZ DE HOMBRE')).toBe('m');
+        expect(generoDeNombre('VOZ DE MUJER')).toBe('f');
+        expect(generoDeNombre('VOZ MASCULINA')).toBe('m');
+        expect(generoDeNombre('VOZ FEMENINA')).toBe('f');
+        expect(generoDeNombre('POLICÍA MARÍA')).toBe('f');
+        expect(generoDeNombre('JOVEN CARLOS')).toBe('m');
+        expect(generoDeNombre('VOZ DE NIÑA')).toBe('f');
+    });
+
     it('lo que de verdad no se sabe se queda sin saber', () => {
         for (const n of ['POLICÍA', 'PERIODISTA', 'JOVEN', 'VOZ', 'TESTIGO', 'NARRADOR', 'ESTUDIANTE'])
             expect(generoDeNombre(n), n).toBeNull();
