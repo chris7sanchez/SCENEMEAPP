@@ -37,7 +37,7 @@ const SERVICES = [
   {
     id: "ai",
     title: "Ensayo con IA",
-    description: "Nuestra plataforma revolucionaria. Ensaya tus textos con nuestra IA interactiva en tiempo real. Perfecto para memorizar y explorar tonos.",
+    description: "Sube el guion entero, reparte la voz de cada personaje y ensaya. La réplica te contesta, se calla en tus líneas y el narrador lee las acotaciones.",
     icon: Sparkles,
     color: "hsl(42, 90%, 55%)",
     href: "/login",
@@ -148,13 +148,13 @@ export function ServicesGrid() {
   });
 
   return (
-    <section ref={containerRef} id="servicios" className="relative pb-[10vh] bg-black">
+    <section ref={containerRef} id="servicios" className="relative pb-[10vh] bg-[#0B0F18]">
       <div className="pt-[15vh] pb-[5vh] text-center max-w-4xl mx-auto px-4 sticky top-0 z-0">
         <h2 className="text-5xl md:text-7xl font-display mb-6" style={{ fontFamily: "'Cinzel', serif" }}>
           Servicios Premium
         </h2>
         <p className="text-xl text-white/50 tracking-widest uppercase font-light">
-          Eleva tu carrera al estándar de la industria
+          Book, escena y self-tape con dirección de casting
         </p>
       </div>
 

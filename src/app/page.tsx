@@ -11,7 +11,7 @@ export default function LandingPage() {
   return (
     <>
       
-      <main className="min-h-screen bg-black text-white selection:bg-white/20 selection:text-white">
+      <main className="min-h-screen bg-[#0B0F18] text-white selection:bg-white/20 selection:text-white">
         
         {/* JSON-LD Schema.org Data */}
         <script
@@ -38,7 +38,7 @@ export default function LandingPage() {
         <HeroSection />
         
         {/* Optional smoothing layer */}
-        <div className="relative z-10 bg-black">
+        <div className="relative z-10 bg-[#0B0F18]">
           <StatsCounter />
           <ServicesGrid />
           <AiRehearsalPreview />

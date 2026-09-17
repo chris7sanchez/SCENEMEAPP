@@ -31,9 +31,9 @@ export function HeroSection() {
   const gridOpacity = useTransform(scrollYProgress, [0.5, 0.6], [0, 1]);
 
   return (
-    <section ref={containerRef} className="relative h-[300vh] bg-black">
+    <section ref={containerRef} className="relative h-[300vh] bg-[#0B0F18]">
       {/* Sticky Container holds the actual visual experience */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden bg-black flex items-center justify-center">
+      <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#0B0F18] flex items-center justify-center">
         
         {/* The Text Mask Video layer */}
         <motion.div 
@@ -43,7 +43,7 @@ export function HeroSection() {
           {/* We use a div with text that masks the video behind it. 
               Using mix-blend-mode or WebkitBackgroundClip */}
           <motion.div 
-            className="w-full h-full flex items-center justify-center bg-black"
+            className="w-full h-full flex items-center justify-center bg-[#0B0F18]"
             style={{ 
               backgroundSize: maskSize,
               backgroundPosition: "center",

@@ -14,7 +14,7 @@ const BENEFITS = [
 
 export function PacktorProSection() {
   return (
-    <section className="py-12 px-4 bg-black relative overflow-hidden">
+    <section className="py-12 px-4 bg-[#0B0F18] relative overflow-hidden">
       {/* Glow effect */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[hsl(42,90%,55%,0.1)] rounded-full blur-[120px] pointer-events-none" />
 

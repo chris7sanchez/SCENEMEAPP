@@ -40,7 +40,7 @@ function Counter({ value, suffix }: { value: number, suffix: string }) {
 
 export function StatsCounter() {
   return (
-    <section className="py-8 bg-black border-y border-[hsl(222,20%,15%)] relative z-10">
+    <section className="py-8 bg-[#0B0F18] border-y border-[hsl(222,20%,15%)] relative z-10">
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-[hsl(222,20%,15%)]">
           {STATS.map((stat, index) => (
