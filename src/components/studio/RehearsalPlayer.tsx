@@ -3,9 +3,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     parseScriptScenes, speakersOfScenes, scenesWith, scenesWithDialogue, sceneLabel, cueOf,
-    playableTurns, hasNarration, NARRADOR,
+    playableTurns, hasNarration, esDe, aplicarAlias, censoDeReparto, parejasEnEscena, NARRADOR,
     type Scene,
 } from '@/lib/scene-script';
+import { dudasDeReparto, claveDuda, type DudaReparto } from '@/lib/personajes';
 import {
     getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES, ELEVENLABS_VOICES, unlockAudio, getSharedAudioContext,
     type VoiceProfile, type SpeechVoice,
@@ -24,6 +25,10 @@ export interface AjustesEnsayo {
     motor: string;
     /** Si el narrador lee las acotaciones. */
     narrador: boolean;
+    /** Personajes que el actor confirmó que eran el mismo: grafía -> nombre bueno. */
+    alias: Record<string, string>;
+    /** Parejas que dijo que NO eran el mismo. Para no volver a preguntarlo. */
+    distintos: string[];
 }
 
 export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onClose }: {
@@ -34,7 +39,24 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
     onGuardarAjustes?: (a: AjustesEnsayo) => void;
     onClose: () => void;
 }) {
-    const scenes = useMemo(() => parseScriptScenes(script), [script]);
+    /** Personajes que el actor ya confirmó que eran el mismo mal escrito. */
+    const [alias, setAlias] = useState<Record<string, string>>(ajustes?.alias ?? {});
+    /** Parejas que dijo que eran dos personajes distintos: no se vuelve a preguntar. */
+    const [distintos, setDistintos] = useState<string[]>(ajustes?.distintos ?? []);
+
+    const escenasCrudas = useMemo(() => parseScriptScenes(script), [script]);
+    const scenes = useMemo(() => aplicarAlias(escenasCrudas, alias), [escenasCrudas, alias]);
+
+    /**
+     * Nombres que se PARECEN tanto que huelen a errata del mismo personaje.
+     * No se unen solos: SONIA y SONÏA sí, pero MARC y MARCOS pueden ser dos
+     * actores distintos y eso sólo lo sabe quien se ha leído el guion.
+     */
+    const dudas = useMemo(() => {
+        const decididas = new Set(distintos);
+        return dudasDeReparto(censoDeReparto(scenes), parejasEnEscena(scenes))
+            .filter(d => !decididas.has(claveDuda(d.a, d.b)));
+    }, [scenes, distintos]);
     // El reparto se calcula sobre el GUION ENTERO, no sobre las escenas
     // elegidas: así la voz de un personaje no cambia al cambiar de escena.
     const speakers = useMemo(() => speakersOfScenes(scenes), [scenes]);
@@ -144,6 +166,13 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
 
                 {conDialogo.length === 0 ? (
                     <p className="mt-8 text-center text-zinc-400">No se detectaron diálogos. Pega una escena con personajes (NOMBRE: línea).</p>
+                ) : !started && dudas.length > 0 ? (
+                    <DudasReparto
+                        dudas={dudas}
+                        onMismo={d => setAlias(a => ({ ...a, [d.b]: d.a }))}
+                        onDistintos={d => setDistintos(x => [...x, claveDuda(d.a, d.b)])}
+                        onDejarlo={() => setDistintos(x => [...x, ...dudas.map(d => claveDuda(d.a, d.b))])}
+                    />
                 ) : !started ? (
                     <Config
                         speakers={speakers} role={role} setRole={setRole}
@@ -155,7 +184,7 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
                         hayNarracion={hayNarracion} conNarrador={conNarrador} setConNarrador={setConNarrador}
                         totalTurnos={escenasEnsayo.reduce((n, s) => n + playableTurns(s.turns, conNarrador).length, 0)}
                         onStart={() => {
-                            onGuardarAjustes?.({ reparto: profiles, miPersonaje: role, motor: engine, narrador: conNarrador });
+                            onGuardarAjustes?.({ reparto: profiles, miPersonaje: role, motor: engine, narrador: conNarrador, alias, distintos });
                             setStarted(true);
                         }}
                     />
@@ -168,6 +197,78 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
                     />
                 )}
             </div>
+        </div>
+    );
+}
+
+/**
+ * ¿SONIA y SONÏA son la misma? Eso se une solo. ¿MARC y MARCOS? Eso NO.
+ *
+ * Una errata en el nombre parte a un personaje en dos: sale dos veces en el
+ * reparto, hay que ponerle voz dos veces y la réplica le contesta con la voz
+ * equivocada según la página. Pero unir por parecido a ciegas es peor: MARC y
+ * MARCOS pueden ser dos actores. Así que aquí se pregunta, una sola vez por
+ * guion, y la respuesta se guarda con él.
+ */
+function DudasReparto({ dudas, onMismo, onDistintos, onDejarlo }: {
+    dudas: DudaReparto[];
+    onMismo: (d: DudaReparto) => void;
+    onDistintos: (d: DudaReparto) => void;
+    onDejarlo: () => void;
+}) {
+    const d = dudas[0];
+    const lineas = (n: number) => `${n} ${n === 1 ? 'línea' : 'líneas'}`;
+
+    return (
+        <div className="mt-8">
+            <p className="text-xs uppercase tracking-[0.25em] text-amber-500/80">Antes de repartir las voces</p>
+            <h3 className="mt-2 text-xl font-black text-white">¿Son el mismo personaje?</h3>
+            <p className="mt-1 text-sm text-zinc-400">
+                En el guion hay dos nombres casi iguales. Si es una errata, los junto en uno;
+                si son dos personajes, los dejo como están.
+                {dudas.length > 1 && <> Quedan <strong className="text-zinc-300">{dudas.length}</strong> por aclarar.</>}
+            </p>
+
+            <div className="mt-5 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5">
+                <div className="flex flex-wrap items-center justify-center gap-3 text-center">
+                    <div className="min-w-[8rem]">
+                        <p className="text-lg font-black text-amber-300">{d.a}</p>
+                        <p className="text-[11px] text-zinc-500">{lineas(d.vecesA)}</p>
+                    </div>
+                    <span className="text-zinc-600">·</span>
+                    <div className="min-w-[8rem]">
+                        <p className="text-lg font-black text-amber-300">{d.b}</p>
+                        <p className="text-[11px] text-zinc-500">{lineas(d.vecesB)}</p>
+                    </div>
+                </div>
+                <p className="mt-3 text-center text-xs text-zinc-500">
+                    {d.motivo === 'errata'
+                        ? 'Se diferencian en una letra: suele ser un dedo de más al escribir.'
+                        : 'Uno es el nombre corto del otro. A veces es la misma persona; a veces no.'}
+                </p>
+
+                <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+                    <button
+                        onClick={() => onMismo(d)}
+                        className="flex-1 rounded-full bg-amber-500 py-3 text-sm font-black text-black transition hover:bg-amber-400"
+                    >
+                        Es el mismo · se queda «{d.a}»
+                    </button>
+                    <button
+                        onClick={() => onDistintos(d)}
+                        className="flex-1 rounded-full bg-zinc-800 py-3 text-sm font-bold text-zinc-200 transition hover:bg-zinc-700"
+                    >
+                        Son dos personajes
+                    </button>
+                </div>
+            </div>
+
+            <button
+                onClick={onDejarlo}
+                className="mt-4 w-full rounded-full px-4 py-2 text-xs text-zinc-500 transition hover:text-zinc-300"
+            >
+                Dejarlo como está y empezar a repartir
+            </button>
         </div>
     );
 }
@@ -593,7 +694,8 @@ function ActivePlayer(props: {
     }
 
     const esNarracion = current?.kind !== undefined && current.kind !== 'dialogo';
-    const isMine = !esNarracion && current?.speaker === role;
+    // Una línea al unísono es tuya si eres uno de los que la dicen.
+    const isMine = !!current && esDe(current, role);
     const progress = `${Math.min(state.index + 1, turns.length)} / ${turns.length}`;
     const escenaActual = escenaDeTurno[state.index];
     const variasEscenas = bloques.length > 1;

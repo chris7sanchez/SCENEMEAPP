@@ -660,13 +660,28 @@ function aplicarZoom(S,animar){
   patio.style.transform='translate(calc(-50% + '+dx+'px), calc(-50% + '+dy+'px)) scale('+S.zoom+')';
   if(!animar) requestAnimationFrame(function(){ patio.style.transition=''; });
 }
-function entrar(i){
-  var S=STAGES[i]; if(!S||(modo==='zoom'&&activa===S)) return;
+/* Entrar en una sala.
+   `directo` es lo normal desde el patio: la descripción ya se ha leído al
+   pasar el ratón por encima (en un móvil se ve siempre), así que el menú de
+   después sobraba — era un segundo clic para leer lo mismo otra vez. La
+   cámara no se para: el vuelo hacia la sala encadena con el empuje de la
+   puerta y se entra de una pieza.
+   Sin `directo` se abre el panel de siempre, que sigue haciendo falta para
+   una sala que aún no tenga página. */
+function entrar(i, directo){
+  var S=STAGES[i]; if(!S||(modo==='zoom'&&activa===S&&!directo)) return;
   activa=S; modo='zoom'; tpanX=0; tpanY=0;
   mundo.classList.add('enfocado'); hint.style.opacity=0;
   document.querySelectorAll('.zona').forEach(function(b){ b.classList.toggle('activa', parseInt(b.dataset.idx,10)===i); });
   panel.classList.remove('on');                       /* se cierra mientras la cámara vuela */
   aplicarZoom(S,true);
+
+  if(directo && S.url){
+    precargarPaso();
+    later(function(){ if(activa===S) cruzar(S.url); }, reduce?60:620);
+    return;
+  }
+
   later(function(){
     if(activa!==S) return;                            /* si ya saltó a otro stage, este panel no abre */
     pSec.textContent=S.stage+' · '+S.sec; pTitle.textContent=S.title; pDesc.textContent=S.desc;
@@ -695,13 +710,13 @@ function volver(){
   later(function(){ modo='patio'; activa=null; hint.style.opacity=1; }, reduce?60:1450);
 }
 document.querySelectorAll('.zona').forEach(function(b){
-  b.addEventListener('click',function(){ if(dragDist>10) return; entrar(parseInt(b.dataset.idx,10)); });
+  b.addEventListener('click',function(){ if(dragDist>10) return; entrar(parseInt(b.dataset.idx,10), true); });
 });
 $('pBack').addEventListener('click',volver);
 pPrev.addEventListener('click',function(){ if(activa) entrar((STAGES.indexOf(activa)+2)%3); });
 pNext.addEventListener('click',function(){ if(activa) entrar((STAGES.indexOf(activa)+1)%3); });
 document.querySelectorAll('#barra button').forEach(function(b){
-  b.addEventListener('click',function(){ entrar(parseInt(b.dataset.go,10)); });
+  b.addEventListener('click',function(){ entrar(parseInt(b.dataset.go,10), true); });
 });
 /* el sandbox del artifact puede tragarse la navegación: red de seguridad en cascada */
 /* ---------- El paso de la puerta ----------
@@ -787,30 +802,58 @@ $('pGo').addEventListener('click',function(e){
   cruzar(activa.url);
 });
 
-/* ACTO 2: travelling de la aérea hasta el patio */
-function abrir(idx){
+/* ACTO 2: travelling de la aérea hasta el patio.
+
+   Duraba siete segundos a velocidad normal y se hacía largo: entre pulsar
+   ENTRAR y poder tocar algo pasaba demasiado. Ahora dura 3,6 s y el clip se
+   pasa ACELERANDO —de 1,7x a 3x— así que no se pierde ningún plano: se ven
+   los mismos, con la prisa de quien llega. Y el tramo se calcula desde el
+   final del vídeo, no desde un segundo fijo, para que el aterrizaje caiga
+   siempre en el último fotograma aunque algún día se cambie el clip. */
+var VIAJE_MS=3600, RITMO_INICIAL=1.7, RITMO_FINAL=3.0;
+var rampa=null;
+function pararRampa(){ if(rampa){ clearInterval(rampa); rampa=null; } }
+
+function abrir(idx, opciones){
   if(abierto) return; abierto=true;
+  var op=opciones||{};
   exp.classList.add('on'); exp.setAttribute('aria-hidden','false');
   document.body.style.overflow='hidden';
   inm.classList.remove('off'); mundo.classList.remove('on');
   inmVid.classList.remove('acelera');
   requestAnimationFrame(function(){ exp.classList.add('listo'); });
-  if(reduce){ aterrizar(idx); return; }
+  /* Saltar de una sala a otra no es "entrar en los estudios": ahí la intro
+     sobra, lo que se quiere es estar ya dentro. */
+  if(reduce||op.sinIntro){ aterrizar(idx, op); return; }
   inmVid.src=window.__MP4__;
   var arranca=function(){                              /* iOS ignora currentTime antes de los metadatos */
-    try{ inmVid.currentTime=6.5; }catch(e){}
-    var p=inmVid.play(); if(p&&p.catch) p.catch(function(){ later(function(){ aterrizar(idx); },600); });
+    var ritmoMedio=(RITMO_INICIAL+RITMO_FINAL)/2;
+    var tramo=(VIAJE_MS/1000)*ritmoMedio;              /* segundos de clip que se van a gastar */
+    var dur=inmVid.duration||0;
+    try{ inmVid.playbackRate=RITMO_INICIAL; }catch(e){}
+    try{ inmVid.currentTime=(dur>tramo)?Math.max(0,dur-tramo):0; }catch(e){}
+    var p=inmVid.play(); if(p&&p.catch) p.catch(function(){ later(function(){ aterrizar(idx, op); },600); });
+
+    /* La aceleración, repartida: el último tercio es el que de verdad corre. */
+    var t0r=performance.now();
+    pararRampa();
+    rampa=setInterval(function(){
+      var k=Math.min(1,(performance.now()-t0r)/VIAJE_MS);
+      try{ inmVid.playbackRate=RITMO_INICIAL+(RITMO_FINAL-RITMO_INICIAL)*k*k; }catch(e){}
+      if(k>=1) pararRampa();
+    }, 120);
   };
   if(inmVid.readyState>=1) arranca(); else inmVid.addEventListener('loadedmetadata',arranca,{once:true});
-  later(function(){ inmTitle.classList.add('on'); }, 700);
-  later(function(){ inmTitle.classList.remove('on'); }, 3900);
-  later(function(){ inmVid.classList.add('acelera'); }, 5200);
-  later(function(){ aterrizar(idx); }, 7000);
+  later(function(){ inmTitle.classList.add('on'); }, 260);
+  later(function(){ inmTitle.classList.remove('on'); }, 2100);
+  later(function(){ inmVid.classList.add('acelera'); }, 2400);
+  later(function(){ aterrizar(idx, op); }, VIAJE_MS);
 }
 
 /* fogonazo; el patio entra ampliado y desenfocado y se asienta */
-function aterrizar(idx){
-  clearTimers();
+function aterrizar(idx, opciones){
+  var op=opciones||{};
+  clearTimers(); pararRampa();
   flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
   try{ inmVid.pause(); }catch(e){}
   layout();
@@ -821,11 +864,12 @@ function aterrizar(idx){
     corriendo=true; t0=performance.now(); cancelAnimationFrame(rafId); rafId=requestAnimationFrame(loop);
     encenderPantalla();
     requestAnimationFrame(function(){ requestAnimationFrame(function(){ patio.classList.remove('aterrizando'); }); });
-    if(idx!=null) later(function(){ entrar(idx); }, 1900);
+    /* Con la sala ya elegida no hay nada que mirar en el patio: se entra. */
+    if(idx!=null) later(function(){ entrar(idx, op.directo!==false); }, op.directo!==false?700:1900);
   }, 240);
 }
 function cerrar(){
-  if(!abierto) return; abierto=false; clearTimers();
+  if(!abierto) return; abierto=false; clearTimers(); pararRampa();
   exp.classList.remove('listo');
   later(function(){
     exp.classList.remove('on'); exp.setAttribute('aria-hidden','true');
@@ -856,7 +900,10 @@ document.querySelectorAll('[data-nave]').forEach(function(a){
   if(!(n>=0&&n<STAGES.length)) return;
   /* Se limpia de la barra para que recargar no repita el salto. */
   try{ history.replaceState({},'',location.pathname); }catch(e){}
-  abrir(n);
+  /* Esto lo usa la barra de las propias secciones para ir de una sala a la de
+     al lado. Ahí la intro de bienvenida no pinta nada —ya estabas dentro— y el
+     menú tampoco: lo que se ha pedido es ir a esa sala. */
+  abrir(n, {sinIntro:true, directo:true});
 })();
 })();
 </script>

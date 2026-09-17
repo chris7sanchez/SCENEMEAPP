@@ -16,14 +16,19 @@ export function fallbackEngine(engine: EngineId): EngineId | null {
     return engine === 'browser' ? 'ai' : null;
 }
 
-/** Índice del siguiente turno de la RÉPLICA a partir de `from` (exclusivo). */
+/**
+ * Índice del siguiente turno de la RÉPLICA a partir de `from` (exclusivo).
+ * Un turno con `conjunto` lo dicen varios a la vez: es tuyo si estás dentro.
+ */
 export function nextPartnerIndex(
-    turns: { speaker: string }[],
+    turns: { speaker: string; conjunto?: string[] }[],
     from: number,
     myRole: string,
 ): number {
     for (let i = from + 1; i < turns.length; i++) {
-        if (turns[i].speaker !== myRole) return i;
+        const t = turns[i];
+        const mio = t.conjunto ? t.conjunto.includes(myRole) : t.speaker === myRole;
+        if (!mio) return i;
     }
     return -1;
 }

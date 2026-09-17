@@ -117,7 +117,11 @@ export default function RehearsalSection({ dateKey }: { dateKey: string }) {
     /** Al empezar un ensayo se guarda el reparto: no se reparte dos veces. */
     const recordarAjustes = async (g: GuionEnsayo, a: AjustesEnsayo) => {
         if (!guiones.some(x => x.id === g.id)) return; // ensayo suelto: no se guarda
-        const actualizado = { ...g, reparto: a.reparto, miPersonaje: a.miPersonaje, motor: a.motor, narrador: a.narrador };
+        const actualizado = {
+            ...g,
+            reparto: a.reparto, miPersonaje: a.miPersonaje, motor: a.motor, narrador: a.narrador,
+            alias: a.alias, distintos: a.distintos,
+        };
         setEnEnsayo(actualizado);
         setGuiones(await guardarGuion(uid, actualizado));
     };
@@ -250,7 +254,11 @@ export default function RehearsalSection({ dateKey }: { dateKey: string }) {
             {enEnsayo && (
                 <RehearsalPlayer
                     script={enEnsayo.texto}
-                    ajustes={{ reparto: enEnsayo.reparto, miPersonaje: enEnsayo.miPersonaje, motor: enEnsayo.motor, narrador: enEnsayo.narrador }}
+                    ajustes={{
+                        reparto: enEnsayo.reparto, miPersonaje: enEnsayo.miPersonaje,
+                        motor: enEnsayo.motor, narrador: enEnsayo.narrador,
+                        alias: enEnsayo.alias, distintos: enEnsayo.distintos,
+                    }}
                     onGuardarAjustes={a => recordarAjustes(enEnsayo, a)}
                     onClose={() => setEnEnsayo(null)}
                 />

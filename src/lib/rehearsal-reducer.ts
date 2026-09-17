@@ -1,5 +1,5 @@
 // Máquina de estados del reproductor de ensayo. Pura y testeable (sin React/TTS).
-import type { SceneTurn } from './scene-script';
+import { esDe, type SceneTurn } from './scene-script';
 
 export type RehearsalPhase = 'idle' | 'speaking' | 'awaiting-user' | 'finished';
 
@@ -27,7 +27,11 @@ export function initRehearsal(turns: SceneTurn[], myRole: string): RehearsalStat
 
 function phaseForIndex(state: RehearsalState, index: number): RehearsalPhase {
     if (index >= state.turns.length) return 'finished';
-    return state.turns[index].speaker === state.myRole ? 'awaiting-user' : 'speaking';
+    // Una línea que dicen dos a la vez también es TUYA si eres uno de ellos.
+    // Lo que lee el narrador nunca lo es, aunque te llames como él.
+    const t = state.turns[index];
+    const mio = t.kind === 'dialogo' ? esDe(t, state.myRole) : false;
+    return mio ? 'awaiting-user' : 'speaking';
 }
 
 function goTo(state: RehearsalState, index: number): RehearsalState {

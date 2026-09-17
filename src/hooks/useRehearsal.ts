@@ -2,7 +2,7 @@
 
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { rehearsalReducer, initRehearsal } from '@/lib/rehearsal-reducer';
-import type { SceneTurn } from '@/lib/scene-script';
+import { vozDeTurno, type SceneTurn } from '@/lib/scene-script';
 import { getSpeechProvider, waitVisible, type VoiceProfile, type SpeakResult } from '@/lib/speech';
 import { estimateReadingMs, fallbackEngine, nextPartnerIndex, delayAfterReply, type EngineId } from '@/lib/speech-plan';
 
@@ -41,7 +41,7 @@ export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: Rehearsa
         const i = nextPartnerIndex(state.turns, state.index, state.myRole);
         if (i < 0) return;
         const t = state.turns[i];
-        const p = opts?.profiles?.[t.speaker];
+        const p = opts?.profiles?.[vozDeTurno(t, state.myRole)];
         provider.current.prefetch(t.text, { voiceId: p?.voiceId, rate: p?.rate ?? 1, pitch: p?.pitch ?? 1, instructions: p?.instructions }).catch(() => {});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.phase, state.index]);
@@ -51,7 +51,8 @@ export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: Rehearsa
         if (state.phase !== 'speaking') { setVoiceStatus('idle'); return; }
 
         const turn = state.turns[state.index];
-        const p = opts?.profiles?.[turn.speaker];
+        // En un coro no hay una voz "del turno": se usa la del compañero.
+        const p = opts?.profiles?.[vozDeTurno(turn, state.myRole)];
         const speakOpts = { voiceId: p?.voiceId, rate: p?.rate ?? 1, pitch: p?.pitch ?? 1, instructions: p?.instructions };
         let cancelled = false;
         let advanced = false;
@@ -113,7 +114,10 @@ export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: Rehearsa
                 setVoiceStatus('silencio');
                 setVoiceFailed(res.reason || 'sin-sonido');
             }
-            timer = setTimeout(goNext, delayAfterReply(res.spoken, p?.pauseMs ?? 300, turn.text, speakOpts.rate));
+            // El silencio de un "(beat)" se suma a la pausa del personaje: el
+            // guion pide ahí un respiro, y sin esto la réplica entraba encima.
+            const pausa = (p?.pauseMs ?? 300) + (turn.pausaMs ?? 0);
+            timer = setTimeout(goNext, delayAfterReply(res.spoken, pausa, turn.text, speakOpts.rate));
         })();
 
         return () => {

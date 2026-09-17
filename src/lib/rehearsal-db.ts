@@ -34,6 +34,14 @@ export interface GuionEnsayo {
     motor?: string;
     /** Si el narrador lee la acción y las acotaciones. */
     narrador?: boolean;
+    /**
+     * Personajes que el actor confirmó que eran el mismo mal escrito:
+     * grafía suelta -> nombre con el que se queda. Se pregunta UNA vez por
+     * guion y la respuesta vive con él; al reabrirlo no se vuelve a preguntar.
+     */
+    alias?: Record<string, string>;
+    /** Parejas que dijo que eran dos personajes distintos (nombres unidos por \u0000). */
+    distintos?: string[];
     creado: number;
     actualizado: number;
 }
