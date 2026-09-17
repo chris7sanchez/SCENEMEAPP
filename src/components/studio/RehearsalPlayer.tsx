@@ -8,6 +8,8 @@ import {
 } from '@/lib/scene-script';
 import { dudasDeReparto, claveDuda, type DudaReparto } from '@/lib/personajes';
 import { repartirVoces, generoDeNombre } from '@/lib/genero';
+import { claveDeLinea, idDeGuion, tomasDeGuion, type TomaVoz } from '@/lib/voces-grabadas';
+import GrabadorDeVoces, { type LineaGrabable } from '@/components/studio/GrabadorDeVoces';
 import {
     getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES, ELEVENLABS_VOICES, unlockAudio, getSharedAudioContext,
     type VoiceProfile, type SpeechVoice,
@@ -32,8 +34,10 @@ export interface AjustesEnsayo {
     distintos: string[];
 }
 
-export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onClose }: {
+export default function RehearsalPlayer({ script, guionId, ajustes, onGuardarAjustes, onClose }: {
     script: string;
+    /** Identidad del guion: con ella se buscan sus voces grabadas. */
+    guionId?: string;
     /** Reparto y elecciones guardadas de este guion, si las hay. */
     ajustes?: Partial<AjustesEnsayo>;
     /** Se llama al pulsar EMPEZAR: así el reparto queda guardado en la cuenta. */
@@ -64,6 +68,20 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
     const conDialogo = useMemo(() => scenesWithDialogue(scenes), [scenes]);
     /** Un guion de verdad (varias escenas) abre el selector; una escena pegada, no. */
     const esGuionLargo = conDialogo.length > 1;
+
+    // --- Voces grabadas de verdad ---
+    const idVoces = useMemo(() => idDeGuion(guionId ?? '', script), [guionId, script]);
+    const [tomas, setTomas] = useState<Map<string, TomaVoz>>(() => new Map());
+    /** Sube cada vez que se graba o se borra algo, para recargar el almacén. */
+    const [revisionTomas, setRevisionTomas] = useState(0);
+    /** El personaje que se está grabando ahora, si hay alguno. */
+    const [grabandoA, setGrabandoA] = useState<string | null>(null);
+
+    useEffect(() => {
+        let vivo = true;
+        tomasDeGuion(idVoces).then(m => { if (vivo) setTomas(m); }).catch(() => { /* sin tomas */ });
+        return () => { vivo = false; };
+    }, [idVoces, revisionTomas]);
     /** Si el guion no trae acción ni acotaciones, no se ofrece el narrador. */
     const hayNarracion = useMemo(() => hasNarration(conDialogo), [conDialogo]);
 
@@ -170,6 +188,33 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
         return next;
     }, [conVoz, repartoManual, voices]);
 
+    /**
+     * Las líneas que puede grabar un personaje, sin repetidas. Un pie
+     * compartido ("ANA Y LUIS") sale en la lista de los dos: la toma es una
+     * sola y vale para ambos, que es lo que se graba de verdad.
+     */
+    const lineasDe = React.useCallback((personaje: string): LineaGrabable[] => {
+        const vistas = new Set<string>();
+        const out: LineaGrabable[] = [];
+        conDialogo.forEach((escena, idx) => {
+            for (const t of escena.turns) {
+                const suya = personaje === NARRADOR ? t.kind !== 'dialogo' : esDe(t, personaje);
+                if (!suya) continue;
+                const clave = claveDeLinea(t.speaker, t.text);
+                if (vistas.has(clave)) continue;
+                vistas.add(clave);
+                out.push({ clave, texto: t.text, escena: sceneLabel(escena, idx) });
+            }
+        });
+        return out;
+    }, [conDialogo]);
+
+    /** Cuántas líneas tiene grabadas cada personaje, para enseñarlo al lado. */
+    const grabadasDe = React.useCallback((personaje: string) => {
+        const lineas = lineasDe(personaje);
+        return { hechas: lineas.filter(l => tomas.has(l.clave)).length, total: lineas.length };
+    }, [lineasDe, tomas]);
+
     /** Guardar un cambio del actor sobre el reparto derivado. */
     const setProfiles = (fn: (p: Record<string, VoiceProfile>) => Record<string, VoiceProfile>) =>
         setRepartoManual(fn(profiles));
@@ -184,6 +229,15 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
 
                 {conDialogo.length === 0 ? (
                     <p className="mt-8 text-center text-zinc-400">No se detectaron diálogos. Pega una escena con personajes (NOMBRE: línea).</p>
+                ) : grabandoA ? (
+                    <GrabadorDeVoces
+                        guionId={idVoces}
+                        personaje={grabandoA}
+                        lineas={lineasDe(grabandoA)}
+                        tomas={tomas}
+                        onCambio={() => setRevisionTomas(n => n + 1)}
+                        onClose={() => setGrabandoA(null)}
+                    />
                 ) : !started && dudas.length > 0 ? (
                     <DudasReparto
                         dudas={dudas}
@@ -199,6 +253,7 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
                         voices={voices} profiles={profiles} setProfiles={setProfiles}
                         escenas={conDialogo} elegidas={elegidas} setElegidas={setElegidas}
                         esGuionLargo={esGuionLargo} conVoz={conVoz} ordenVisible={ordenVisible}
+                        grabadasDe={grabadasDe} onGrabar={setGrabandoA}
                         hayNarracion={hayNarracion} conNarrador={conNarrador} setConNarrador={setConNarrador}
                         totalTurnos={escenasEnsayo.reduce((n, s) => n + playableTurns(s.turns, conNarrador).length, 0)}
                         onStart={() => {
@@ -210,7 +265,7 @@ export default function RehearsalPlayer({ script, ajustes, onGuardarAjustes, onC
                     <ActivePlayer
                         key={role + engine + String(conNarrador) + escenasEnsayo.map(s => s.id).join(',')}
                         escenas={escenasEnsayo} role={role} conNarrador={conNarrador}
-                        mode={mode} advanceMode={advance} engine={engine} profiles={profiles}
+                        mode={mode} advanceMode={advance} engine={engine} profiles={profiles} tomas={tomas}
                         onBack={() => setStarted(false)} onClose={onClose}
                     />
                 )}
@@ -361,10 +416,12 @@ function Config(props: {
     setProfiles: (fn: (p: Record<string, VoiceProfile>) => Record<string, VoiceProfile>) => void;
     escenas: Scene[]; elegidas: Set<number>; setElegidas: (s: Set<number>) => void;
     esGuionLargo: boolean; totalTurnos: number; conVoz: string[]; ordenVisible: string[];
+    grabadasDe: (p: string) => { hechas: number; total: number };
+    onGrabar: (p: string) => void;
     hayNarracion: boolean; conNarrador: boolean; setConNarrador: (v: boolean) => void;
     onStart: () => void;
 }) {
-    const { speakers, role, setRole, mode, setMode, advance, setAdvance, engine, setEngine, voices, profiles, setProfiles, escenas, elegidas, setElegidas, esGuionLargo, totalTurnos, ordenVisible, hayNarracion, conNarrador, setConNarrador, onStart } = props;
+    const { speakers, role, setRole, mode, setMode, advance, setAdvance, engine, setEngine, voices, profiles, setProfiles, escenas, elegidas, setElegidas, esGuionLargo, totalTurnos, ordenVisible, hayNarracion, conNarrador, setConNarrador, grabadasDe, onGrabar, onStart } = props;
     const update = (s: string, p: VoiceProfile) => setProfiles(prev => ({ ...prev, [s]: p }));
     const listo = Boolean(role) && totalTurnos > 0;
 
@@ -452,6 +509,7 @@ function Config(props: {
                                     <VoiceEditor
                                         key={s} speaker={s} isMine={s === role} esNarrador={s === NARRADOR}
                                         genero={s === NARRADOR ? null : generoDeNombre(s)}
+                                        grabadas={grabadasDe(s)} onGrabar={() => onGrabar(s)}
                                         engine={engine} voices={voices}
                                         profile={profiles[s] ?? DEFAULT_PROFILE}
                                         onChange={(p) => update(s, p)}
@@ -476,8 +534,8 @@ function Config(props: {
 
 const AI_TONE_CHIPS = ['Tono frío y cortante', 'Con rabia contenida', 'Cálido y cercano', 'Nervioso, al borde del llanto', 'Irónico', 'Susurrando, íntimo'];
 
-function VoiceEditor(props: { speaker: string; isMine: boolean; esNarrador?: boolean; genero?: 'f' | 'm' | null; engine: Engine; voices: SpeechVoice[]; profile: VoiceProfile; onChange: (p: VoiceProfile) => void; }) {
-    const { speaker, isMine, esNarrador, genero, engine, voices, profile, onChange } = props;
+function VoiceEditor(props: { speaker: string; isMine: boolean; esNarrador?: boolean; genero?: 'f' | 'm' | null; grabadas?: { hechas: number; total: number }; onGrabar?: () => void; engine: Engine; voices: SpeechVoice[]; profile: VoiceProfile; onChange: (p: VoiceProfile) => void; }) {
+    const { speaker, isMine, esNarrador, genero, grabadas, onGrabar, engine, voices, profile, onChange } = props;
     const muestra = esNarrador ? 'Ana friega. Entra Luis, mojado.' : `Hola, soy ${speaker}.`;
     const test = () => getSpeechProvider(engine).speak(muestra, { voiceId: profile.voiceId, rate: profile.rate, pitch: profile.pitch, instructions: profile.instructions });
 
@@ -494,9 +552,26 @@ function VoiceEditor(props: { speaker: string; isMine: boolean; esNarrador?: boo
                         </span>
                     )}
                     {esNarrador && <span className="ml-2 text-[10px] font-normal normal-case text-zinc-500">lee las acotaciones</span>}
+                    {!!grabadas?.hechas && (
+                        <span className="ml-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold normal-case text-emerald-400">
+                            🎙 {grabadas.hechas}/{grabadas.total} con voz real
+                        </span>
+                    )}
                     {isMine && <span className="ml-2 text-[10px] font-normal text-zinc-500">(tú — sin voz)</span>}
                 </span>
-                <button onClick={test} className="rounded-full bg-zinc-800 px-3 py-1 text-xs font-bold text-zinc-200 hover:bg-zinc-700">▶ Probar</button>
+                <div className="flex shrink-0 gap-1.5">
+                    {/* Tu personaje no lo lee nadie, así que tampoco hay nada que grabarle. */}
+                    {onGrabar && !isMine && (
+                        <button
+                            onClick={onGrabar}
+                            title={`Grabar las líneas de ${speaker} con un micrófono`}
+                            className="rounded-full bg-zinc-800 px-3 py-1 text-xs font-bold text-zinc-200 transition hover:bg-emerald-600 hover:text-white"
+                        >
+                            🎙 Voz real
+                        </button>
+                    )}
+                    <button onClick={test} className="rounded-full bg-zinc-800 px-3 py-1 text-xs font-bold text-zinc-200 hover:bg-zinc-700">▶ Probar</button>
+                </div>
             </div>
 
             <div className="mt-2">
@@ -563,9 +638,10 @@ function VoiceEditor(props: { speaker: string; isMine: boolean; esNarrador?: boo
 
 function ActivePlayer(props: {
     escenas: Scene[]; role: string; conNarrador: boolean; mode: LineMode; advanceMode: AdvanceMode;
-    engine: Engine; profiles: Record<string, VoiceProfile>; onBack: () => void; onClose: () => void;
+    engine: Engine; profiles: Record<string, VoiceProfile>; tomas: Map<string, TomaVoz>;
+    onBack: () => void; onClose: () => void;
 }) {
-    const { escenas, role, conNarrador, mode, advanceMode, engine, profiles, onBack, onClose } = props;
+    const { escenas, role, conNarrador, mode, advanceMode, engine, profiles, tomas, onBack, onClose } = props;
 
     // Las escenas elegidas se ensayan SEGUIDAS, como una sola secuencia: el
     // reparto se responde entre sí y se cruza de escena sin parar.
@@ -586,7 +662,14 @@ function ActivePlayer(props: {
         return m;
     }, [escenas]);
 
-    const r = useRehearsal(turns, role, { profiles, engine });
+    // Las tomas grabadas mandan sobre la voz sintética: si esa línea la dijo una
+    // persona, se oye a la persona.
+    const audios = useMemo(() => {
+        const m = new Map<string, Blob>();
+        for (const [clave, t] of tomas) m.set(clave, t.audio);
+        return m;
+    }, [tomas]);
+    const r = useRehearsal(turns, role, { profiles, engine, tomas: audios });
     const { state, current } = r;
     const [micDenied, setMicDenied] = useState(false);
     const [micError, setMicError] = useState('');

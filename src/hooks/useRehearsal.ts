@@ -3,12 +3,19 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { rehearsalReducer, initRehearsal } from '@/lib/rehearsal-reducer';
 import { vozDeTurno, type SceneTurn } from '@/lib/scene-script';
+import { claveDeLinea } from '@/lib/voces-grabadas';
 import { getSpeechProvider, waitVisible, type VoiceProfile, type SpeakResult } from '@/lib/speech';
 import { estimateReadingMs, fallbackEngine, nextPartnerIndex, delayAfterReply, type EngineId } from '@/lib/speech-plan';
 
 interface RehearsalOpts {
     profiles?: Record<string, VoiceProfile>;
     engine?: EngineId;
+    /**
+     * Voces grabadas de verdad, por clave de línea. Lo que esté aquí MANDA
+     * sobre el sintetizador: si esa frase la dijo una persona delante de un
+     * micrófono, se oye a la persona.
+     */
+    tomas?: Map<string, Blob>;
 }
 
 /**
@@ -26,6 +33,8 @@ interface RehearsalOpts {
  */
 export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: RehearsalOpts) {
     const [state, dispatch] = useReducer(rehearsalReducer, undefined, () => initRehearsal(turns, myRole));
+    /** La toma que está sonando, para poder cortarla al cambiar de turno. */
+    const tomaRef = useRef<HTMLAudioElement | null>(null);
     const engine: EngineId = opts?.engine ?? 'browser';
     const provider = useRef(getSpeechProvider(engine));
     const [paused, setPaused] = useState(false);
@@ -41,6 +50,8 @@ export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: Rehearsa
         const i = nextPartnerIndex(state.turns, state.index, state.myRole);
         if (i < 0) return;
         const t = state.turns[i];
+        // Si esa línea ya está grabada con voz real, no hay nada que sintetizar.
+        if (opts?.tomas?.has(claveDeLinea(t.speaker, t.text))) return;
         const p = opts?.profiles?.[vozDeTurno(t, state.myRole)];
         provider.current.prefetch(t.text, { voiceId: p?.voiceId, rate: p?.rate ?? 1, pitch: p?.pitch ?? 1, instructions: p?.instructions }).catch(() => {});
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,7 +92,19 @@ export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: Rehearsa
                 try { return await provider.current.speakChecked(turn.text, speakOpts); }
                 catch (e: any) { return { spoken: false, reason: 'throw:' + String(e?.message || e) }; }
             };
-            let res = await intenta();
+
+            // LA VOZ GRABADA VA PRIMERO. Si falla (el navegador no la deja
+            // sonar, el fichero se corrompió) NO se salta la línea en silencio:
+            // se cae al sintetizador como si no hubiera toma.
+            const grabada = opts?.tomas?.get(claveDeLinea(turn.speaker, turn.text));
+            let res: SpeakResult | null = null;
+            if (grabada) {
+                setVoiceStatus('sonando');
+                res = await suenaToma(grabada, tomaRef);
+                if (cancelled) return;
+                if (!res.spoken) { setVoiceStatus('preparando'); res = null; }
+            }
+            if (!res) res = await intenta();
             if (cancelled) return;
             // 'cancelled' sin que este turno haya cambiado = nos pisó otra llamada
             // (dos efectos solapados). Reintentar una vez en limpio.
@@ -124,12 +147,13 @@ export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: Rehearsa
             cancelled = true;
             if (timer) clearTimeout(timer);
             if (safety) clearTimeout(safety);
+            pararToma(tomaRef);
             provider.current.cancel();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.phase, state.index, state.seq, paused]);
 
-    useEffect(() => () => provider.current.cancel(), []);
+    useEffect(() => () => { pararToma(tomaRef); provider.current.cancel(); }, []);
 
     return {
         state,
@@ -146,4 +170,47 @@ export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: Rehearsa
         restart: () => dispatch({ type: 'RESTART' }),
         togglePause: () => setPaused(p => !p),
     };
+}
+
+
+// ---------------------------------------------------------------------------
+// Reproducir una toma grabada
+// ---------------------------------------------------------------------------
+
+type RefAudio = { current: HTMLAudioElement | null };
+
+function pararToma(ref: RefAudio): void {
+    const a = ref.current;
+    if (!a) return;
+    ref.current = null;
+    try { a.pause(); a.src = ''; } catch { /* da igual */ }
+}
+
+/**
+ * Suena la toma y resuelve cuando termina. El URL del blob se crea aquí y se
+ * suelta al acabar: uno cada vez, sin listas que mantener ni fugas de memoria
+ * en un ensayo de doscientas réplicas.
+ */
+function suenaToma(audio: Blob, ref: RefAudio): Promise<SpeakResult> {
+    return new Promise(resolve => {
+        let url = '';
+        try { url = URL.createObjectURL(audio); }
+        catch { return resolve({ spoken: false, reason: 'toma-ilegible' }); }
+
+        const el = new Audio(url);
+        pararToma(ref);
+        ref.current = el;
+
+        let hecho = false;
+        const acaba = (spoken: boolean, reason?: string) => {
+            if (hecho) return;
+            hecho = true;
+            try { URL.revokeObjectURL(url); } catch { /* */ }
+            if (ref.current === el) ref.current = null;
+            resolve({ spoken, reason });
+        };
+        el.onended = () => acaba(true);
+        el.onerror = () => acaba(false, 'toma-no-suena');
+        el.play().catch(() => acaba(false, 'toma-bloqueada'));
+    });
 }
