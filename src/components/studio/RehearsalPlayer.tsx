@@ -363,49 +363,174 @@ function SelectorEscenas(props: {
     elegidas: Set<number>; setElegidas: (s: Set<number>) => void;
 }) {
     const { escenas, role, elegidas, setElegidas } = props;
-    const mias = useMemo(() => scenesWith(escenas, role), [escenas, role]);
-    const soloMias = mias.length > 0 && mias.length === elegidas.size && mias.every(s => elegidas.has(s.id));
-    const todas = elegidas.size === escenas.length;
+    const [busqueda, setBusqueda] = useState('');
+    // Para marcar un tramo de un tirón con la tecla Mayúsculas.
+    const ultima = useRef<number | null>(null);
 
-    const alternar = (id: number) => {
+    const mias = useMemo(() => scenesWith(escenas, role), [escenas, role]);
+
+    /** Cuántas líneas TUYAS hay en cada escena. Es el dato que importa: una
+     *  escena de sesenta líneas en la que dices dos no es un ensayo, es
+     *  escuchar. Se calcula una vez y se reutiliza. */
+    const misLineas = useMemo(() => {
+        const m = new Map<number, number>();
+        for (const e of escenas) m.set(e.id, e.turns.filter(t => esDe(t, role)).length);
+        return m;
+    }, [escenas, role]);
+
+    const misTotales = useMemo(() => {
+        let n = 0;
+        for (const v of misLineas.values()) n += v;
+        return n;
+    }, [misLineas]);
+
+    const elegidasMias = useMemo(() => {
+        let n = 0;
+        for (const id of elegidas) n += misLineas.get(id) ?? 0;
+        return n;
+    }, [elegidas, misLineas]);
+
+    const visibles = useMemo(() => {
+        const q = busqueda.trim().toLowerCase();
+        if (!q) return escenas;
+        return escenas.filter((e, i) => `${sceneLabel(e, i)} ${e.speakers.join(' ')}`.toLowerCase().includes(q));
+    }, [escenas, busqueda]);
+
+    const soloMias = mias.length > 0 && mias.length === elegidas.size && mias.every(e => elegidas.has(e.id));
+    const todas = elegidas.size === escenas.length;
+    const filtrando = visibles.length !== escenas.length;
+    const visiblesMarcadas = visibles.length > 0 && visibles.every(e => elegidas.has(e.id));
+
+    /** Un clic normal alterna una. Con Mayúsculas, todo el tramo desde la
+     *  última que tocaste: ensayar "de la 12 a la 18" es una secuencia, y
+     *  hacerlo a base de siete clics sueltos es trabajo de más. */
+    const pulsar = (e: Scene, conMayusculas: boolean) => {
         const next = new Set(elegidas);
-        if (next.has(id)) next.delete(id); else next.add(id);
+        const desde = ultima.current;
+        const iAhora = escenas.findIndex(x => x.id === e.id);
+        const iAntes = desde === null ? -1 : escenas.findIndex(x => x.id === desde);
+        if (conMayusculas && iAntes >= 0) {
+            const [a, b] = iAhora < iAntes ? [iAhora, iAntes] : [iAntes, iAhora];
+            const encender = !next.has(e.id);
+            for (let i = a; i <= b; i++) {
+                if (encender) next.add(escenas[i].id); else next.delete(escenas[i].id);
+            }
+        } else if (next.has(e.id)) {
+            next.delete(e.id);
+        } else {
+            next.add(e.id);
+        }
+        ultima.current = e.id;
+        setElegidas(next);
+    };
+
+    const marcarVisibles = (encender: boolean) => {
+        const next = new Set(elegidas);
+        for (const e of visibles) { if (encender) next.add(e.id); else next.delete(e.id); }
         setElegidas(next);
     };
 
     return (
         <div>
-            <p className="mb-2 text-xs uppercase tracking-widest text-zinc-400">Qué ensayas</p>
-            <div className="flex flex-wrap gap-2">
-                <Chip active={soloMias} onClick={() => setElegidas(new Set(mias.map(s => s.id)))}>
-                    Sólo mis escenas ({mias.length})
-                </Chip>
-                <Chip active={todas} onClick={() => setElegidas(new Set(escenas.map(s => s.id)))}>
-                    Película entera ({escenas.length})
-                </Chip>
+            <div className="mb-2 flex items-baseline justify-between gap-2">
+                <p className="text-xs uppercase tracking-widest text-zinc-400">Qué ensayas</p>
+                {/* Lo que de verdad se está eligiendo, en números, mientras se elige. */}
+                <p className="text-[11px] text-zinc-500">
+                    {elegidas.size === 0 ? 'nada marcado' : (
+                        <>
+                            <span className="font-bold text-amber-400/90">{elegidas.size}</span> {elegidas.size === 1 ? 'escena' : 'escenas'}
+                            {misTotales > 0 && <> · <span className="font-bold text-amber-400/90">{elegidasMias}</span> de tus {misTotales} líneas</>}
+                        </>
+                    )}
+                </p>
             </div>
 
-            <div className="mt-3 max-h-56 overflow-y-auto rounded-xl border border-zinc-800 bg-black/30">
-                {escenas.map((s, i) => {
-                    const salgo = s.speakers.includes(role);
-                    const marcada = elegidas.has(s.id);
+            <div className="flex flex-wrap gap-2">
+                <Chip active={soloMias} onClick={() => setElegidas(new Set(mias.map(e => e.id)))}>
+                    Sólo mis escenas ({mias.length})
+                </Chip>
+                <Chip active={todas} onClick={() => setElegidas(new Set(escenas.map(e => e.id)))}>
+                    Película entera ({escenas.length})
+                </Chip>
+                {elegidas.size > 0 && (
+                    <Chip active={false} onClick={() => setElegidas(new Set())}>Ninguna</Chip>
+                )}
+            </div>
+
+            {/* El buscador aparece cuando hace falta. En un guion de ocho escenas
+                estorba; en uno de noventa, sin él no se encuentra nada. */}
+            {escenas.length > 8 && (
+                <input
+                    value={busqueda}
+                    onChange={ev => setBusqueda(ev.target.value)}
+                    placeholder="Buscar escena o personaje…"
+                    className="mt-3 w-full rounded-lg border border-zinc-800 bg-black/40 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-amber-500/60 focus:outline-none"
+                />
+            )}
+
+            {filtrando && visibles.length > 0 && (
+                <div className="mt-2 flex items-center justify-between gap-2 text-[11px]">
+                    <span className="text-zinc-500">{visibles.length} de {escenas.length}</span>
+                    <button
+                        onClick={() => marcarVisibles(!visiblesMarcadas)}
+                        className="rounded-full bg-zinc-800 px-2.5 py-1 font-bold text-zinc-300 transition hover:bg-zinc-700"
+                    >
+                        {visiblesMarcadas ? 'Quitar las que se ven' : `Marcar las ${visibles.length} que se ven`}
+                    </button>
+                </div>
+            )}
+
+            <div className="mt-2 max-h-72 overflow-y-auto rounded-xl border border-zinc-800 bg-black/30">
+                {visibles.length === 0 && (
+                    <p className="px-3 py-5 text-center text-xs text-zinc-500">
+                        Ninguna escena se llama así ni tiene a ese personaje.
+                    </p>
+                )}
+                {visibles.map(e => {
+                    const i = escenas.indexOf(e);
+                    const salgo = e.speakers.includes(role);
+                    const marcada = elegidas.has(e.id);
+                    const tuyas = misLineas.get(e.id) ?? 0;
                     return (
-                        <label key={s.id} className="flex cursor-pointer items-start gap-3 border-b border-zinc-800/60 px-3 py-2 last:border-0 hover:bg-white/5">
-                            <input type="checkbox" checked={marcada} onChange={() => alternar(s.id)} className="mt-1 accent-amber-500" />
+                        <button
+                            key={e.id}
+                            type="button"
+                            role="checkbox"
+                            aria-checked={marcada}
+                            onClick={ev => pulsar(e, ev.shiftKey)}
+                            className="flex w-full items-start gap-3 border-b border-zinc-800/60 px-3 py-2 text-left transition last:border-0 hover:bg-white/5"
+                        >
+                            <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] font-black ${marcada ? 'border-amber-500 bg-amber-500 text-black' : 'border-zinc-600'}`}>
+                                {marcada ? '✓' : ''}
+                            </span>
                             <span className="min-w-0 flex-1">
                                 <span className={`block truncate text-xs font-bold ${salgo ? 'text-amber-300' : 'text-zinc-400'}`}>
-                                    {sceneLabel(s, i)}{salgo && <span className="ml-2 font-normal text-amber-500/70">· sales tú</span>}
+                                    {sceneLabel(e, i)}
                                 </span>
                                 <span className="block truncate text-[11px] text-zinc-500">
-                                    {s.speakers.join(' · ')} — {s.turns.length} {s.turns.length === 1 ? 'línea' : 'líneas'}
+                                    {e.speakers.join(' · ')} — {e.turns.length} {e.turns.length === 1 ? 'línea' : 'líneas'}
                                 </span>
                             </span>
-                        </label>
+                            {/* Tus líneas, a la derecha y en columna propia, para
+                                poder recorrerlas con la vista de arriba abajo. */}
+                            <span className={`mt-0.5 shrink-0 text-[11px] font-bold ${tuyas > 0 ? 'text-amber-400/90' : 'text-zinc-700'}`}>
+                                {tuyas > 0 ? `${tuyas} tuyas` : '—'}
+                            </span>
+                        </button>
                     );
                 })}
             </div>
+
+            {/* El truco sólo se cuenta cuando sirve de algo. Con tres escenas
+                delante, explicar cómo marcar un tramo es ruido. */}
+            {escenas.length > 4 && (
+                <p className="mt-2 text-[11px] text-zinc-600">
+                    Mayúsculas + clic marca todo el tramo desde la última que tocaste.
+                </p>
+            )}
+
             {elegidas.size === 0 && (
-                <p className="mt-2 text-xs text-amber-400/90">Marca al menos una escena para poder empezar.</p>
+                <p className="mt-1 text-xs text-amber-400/90">Marca al menos una escena para poder empezar.</p>
             )}
         </div>
     );
