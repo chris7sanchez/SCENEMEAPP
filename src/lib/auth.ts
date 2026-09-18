@@ -17,6 +17,7 @@ import { auth as firebaseAuth, db, firebaseApiKey, firebaseProjectId, isFirebase
 import { UserProfile } from "./types";
 import { esperarSesion, type Sesion } from "./sesion";
 import { explicarFalloDeAcceso, PUERTA_DEL_LOGIN } from "./diagnostico-acceso";
+import { conReintentoDeRed } from "./login-reintento";
 
 // Crea el documento del usuario en Firestore si aún no existe (primer login social).
 async function ensureUserDoc(uid: string, email: string, provider: string): Promise<void> {
@@ -325,9 +326,16 @@ export const auth = {
     // que se entienda, pero al esconder el código de Firebase se perdían tardes
     // enteras adivinando cuál de los diez fallos posibles era éste.
     login: async (email: string, password: string): Promise<{ success: boolean; error?: string; codigo?: string }> => {
-        if (!firebaseAuth) return { success: false, error: NOT_CONFIGURED };
+        const instancia = firebaseAuth;
+        if (!instancia) return { success: false, error: NOT_CONFIGURED };
         try {
-            await signInWithEmailAndPassword(firebaseAuth, email, password);
+            // Si lo que falla es el cable y no la contraseña, se reintenta solo.
+            // Las credenciales mal puestas NO se reintentan: cada intento acerca
+            // la cuenta al bloqueo por número de intentos de Google.
+            await conReintentoDeRed(
+                () => signInWithEmailAndPassword(instancia, email, password),
+                (e) => String((e as { code?: string })?.code || "").includes("network-request-failed"),
+            );
             return { success: true };
         } catch (error: any) {
             console.error("Login error FULL:", error);
