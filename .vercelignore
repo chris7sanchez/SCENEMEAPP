@@ -4,31 +4,16 @@ src/data/exquisit/design_elements/
 src/data/exquisit/documents/
 src/data/exquisit/esencias/
 src/data/exquisit/guides/
-*.mp4
+# LOS .mp4 YA NO SE EXCLUEN EN BLOQUE.
+#
+# Habia un `*.mp4` y debajo una lista de excepciones escrita a mano. Esa
+# combinacion es una trampa: cualquier clip nuevo se queda fuera del despliegue
+# EN SILENCIO -esta en git, pasa las pruebas, se ve en local- y en produccion da
+# 404. Paso con los cortes de la portada y costo media tarde.
+#
+# Todos los .mp4 del repositorio juntos son 31 MB y viven en public/, o sea que
+# no habia nada que ahorrar. Ahora se despliegan todos, y si algun dia sobra
+# alguno se excluye POR SU NOMBRE, que es un fallo que se ve al escribirlo.
 *.mov
 src/app/tools/video/
 
-# excepcion: el bucle aereo de la landing /backlot (2 MB) si debe desplegarse
-!public/backlot/hero-loop.mp4
-!public/backlot/pantalla.mp4
-!public/backlot/paso.mp4
-
-# Los videos de la landing de la raiz. La carpeta public/videos/ ya NO se excluye
-# entera, porque una carpeta excluida no admite reincluir su contenido con '!';
-# se dejan pasar los que la pagina usa (el resto lo tapa *.mp4).
-#
-# CUIDADO CON ESTE FICHERO. Un clip que falte aqui esta en git, pasa las
-# pruebas, se ve en local... y en produccion da 404, asi que la portada se queda
-# con los fotogramas quietos y parece una galeria de fotos. Ya paso con los
-# cortes cortos: estaban subidos y Vercel no los desplegaba.
-# Por eso los de la portada van por PATRON y no uno a uno, y hay una prueba
-# (assets-desplegados.test.ts) que comprueba que todo lo que el codigo pide
-# llega de verdad al despliegue.
-!public/videos/*-loop.mp4
-!public/videos/MIX-cine-web.mp4
-!public/videos/MUDANZA-cut-web.mp4
-!public/videos/Mel_cuban-web.mp4
-!public/videos/AMANDA_OK_22_01-web.mp4
-!public/videos/SONIA_DORADO_DW2-web.mp4
-!public/videos/Acting1 OLIVER-web.mp4
-!public/videos/ACTING RODRIGUES SHOGUN2-web.mp4
