@@ -38,6 +38,47 @@ export interface UserAccount {
 
 const NOT_CONFIGURED = "Firebase no está configurado en este entorno (faltan las claves NEXT_PUBLIC_FIREBASE_*).";
 
+/**
+ * ¿Hasta dónde llega este navegador? Se prueban DOS sitios y la diferencia
+ * entre ellos es la que dice qué pasa:
+ *
+ *   - la propia web responde, Google no  -> algo corta Google en concreto:
+ *     un bloqueador de contenido, una extensión, el DNS de la red o un firewall.
+ *   - no responde ninguno                 -> no hay internet (o hay un portal
+ *     de wifi de esos que piden aceptar).
+ *   - responden los dos                   -> el corte no es de red, y entonces
+ *     la culpa es nuestra y hay que mirar otra cosa.
+ *
+ * Se usa `no-cors` a propósito: no interesa LEER la respuesta, sólo saber si la
+ * petición llega a salir. Con eso basta y no hace falta permiso de nadie.
+ */
+async function alcanzaLaRed(url: string): Promise<boolean> {
+    try {
+        await fetch(url, { mode: "no-cors", cache: "no-store" });
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+export async function diagnosticoDeAcceso(): Promise<string> {
+    if (typeof window === "undefined") return "";
+    if (navigator.onLine === false) return "El navegador dice que estás sin conexión.";
+
+    const [propia, google] = await Promise.all([
+        alcanzaLaRed(`${window.location.origin}/favicon.ico?d=${Date.now()}`),
+        alcanzaLaRed("https://identitytoolkit.googleapis.com/v1/projects"),
+    ]);
+
+    if (propia && !google)
+        return "Diagnóstico: esta web sí responde, pero Google NO. Algo está cortando la conexión con Google en concreto: un bloqueador de contenido o de anuncios (Safari, AdBlock, Coupert…), una extensión del navegador, o el DNS de tu red. Desactívalo para scenemeapp.com, o prueba en una ventana privada o con los datos del móvil.";
+    if (!propia && !google)
+        return "Diagnóstico: no sale ninguna petición de este navegador. No hay internet, o estás en una wifi que pide aceptar unas condiciones antes de dejarte salir.";
+    if (propia && google)
+        return "Diagnóstico: la red llega bien a los dos sitios, así que esto NO es un bloqueador. El fallo es de la aplicación: pásame esta frase entera y lo miro.";
+    return "Diagnóstico: Google responde pero esta web no. Raro; pásame esta frase entera.";
+}
+
 // Errores de Firebase Auth en lenguaje humano (los códigos crudos en inglés
 // confunden al actor que solo quiere entrar).
 function humanAuthError(error: any, fallback: string): string {
@@ -51,7 +92,7 @@ function humanAuthError(error: any, fallback: string): string {
         return "Ese email ya tiene cuenta. Inicia sesión (o usa «Continuar con Google» si la creaste así).";
     if (code.includes("weak-password")) return "La contraseña debe tener al menos 6 caracteres.";
     if (code.includes("network-request-failed"))
-        return "No se pudo conectar con el servidor de acceso. Si tu internet funciona, lo más probable es que un bloqueador de anuncios o de contenido (Safari, AdBlock, Coupert…) esté cortando la conexión con Google: desactívalo para scenemeapp.com e inténtalo de nuevo.";
+        return "No se pudo conectar con el servidor de acceso.";
     if (code.includes("user-disabled")) return "Esta cuenta está deshabilitada.";
     return error?.message || fallback;
 }

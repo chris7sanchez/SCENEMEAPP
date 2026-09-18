@@ -23,13 +23,20 @@ export default function LoginPage() {
         setError('');
         setIsLoading(true);
 
-        import('@/lib/auth').then(async ({ auth }) => {
+        import('@/lib/auth').then(async ({ auth, diagnosticoDeAcceso }) => {
             if (isLogin) {
                 const result = await auth.login(email, password);
                 if (result.success) {
                     window.location.href = '/creator';
                 } else {
-                    setError(result.error || 'Credenciales incorrectas o usuario no encontrado.');
+                    let mensaje = result.error || 'Credenciales incorrectas o usuario no encontrado.';
+                    // Si no se pudo ni salir a la red, la app AVERIGUA por qué en
+                    // vez de soltar una conjetura. Decirle a alguien "será tu
+                    // bloqueador" cuando no lo sabes le hace perder la tarde.
+                    if (mensaje.includes('No se pudo conectar con el servidor de acceso')) {
+                        mensaje += ' ' + await diagnosticoDeAcceso();
+                    }
+                    setError(mensaje);
                     setIsLoading(false);
                 }
             } else {
