@@ -56,10 +56,21 @@ export default function RootLayout({
         <html lang="es" className="dark" data-theme="dark" suppressHydrationWarning>
             <head>
                 {/* Limpia cualquier service worker/caché viejo (PWA) para que los
-                    despliegues nuevos lleguen siempre sin quedarse en versión cacheada. */}
+                    despliegues nuevos lleguen siempre sin quedarse en versión cacheada.
+
+                    Y RECARGA UNA VEZ si hacía falta. Desinstalar el service
+                    worker no cambia la página que ya estás viendo: ésa la sirvió
+                    él antes de que este script existiera. Sin la recarga, la
+                    primera visita después de la limpieza sigue enseñando lo
+                    viejo, y si cierras ahí, la siguiente también. Es justo lo
+                    que se notaba en Safari.
+
+                    Sólo recarga cuando había un service worker Y estaba
+                    sirviendo esta página. Un pestillo en sessionStorage impide
+                    que se recargue en bucle. */}
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `try{if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}).catch(function(){});}if(window.caches&&caches.keys){caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});}).catch(function(){});}}catch(e){}`,
+                        __html: `try{var R=function(){try{if(sessionStorage.getItem('sm_sw_limpiado'))return;sessionStorage.setItem('sm_sw_limpiado','1');location.reload();}catch(e){}};if('serviceWorker' in navigator){var C=!!navigator.serviceWorker.controller;navigator.serviceWorker.getRegistrations().then(function(rs){if(!rs.length)return;return Promise.all(rs.map(function(r){return r.unregister();})).then(function(){if(C)R();});}).catch(function(){});}if(window.caches&&caches.keys){caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});}).catch(function(){});}}catch(e){}`,
                     }}
                 />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />

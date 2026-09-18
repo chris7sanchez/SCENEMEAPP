@@ -167,6 +167,7 @@ export function useRehearsal(turns: SceneTurn[], myRole: string, opts?: Rehearsa
         repeat: () => dispatch({ type: 'REPEAT' }),
         skip: () => dispatch({ type: 'SKIP' }),
         prev: () => dispatch({ type: 'PREV' }),
+        goTo: (index: number) => dispatch({ type: 'GO_TO', index }),
         restart: () => dispatch({ type: 'RESTART' }),
         togglePause: () => setPaused(p => !p),
     };

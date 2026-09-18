@@ -19,6 +19,7 @@ export type RehearsalAction =
     | { type: 'REPEAT' }
     | { type: 'SKIP' }
     | { type: 'PREV' }
+    | { type: 'GO_TO'; index: number }
     | { type: 'RESTART' };
 
 export function initRehearsal(turns: SceneTurn[], myRole: string): RehearsalState {
@@ -63,6 +64,13 @@ export function rehearsalReducer(state: RehearsalState, action: RehearsalAction)
         case 'PREV':
             if (state.phase === 'idle') return state;
             return goTo(state, Math.max(0, (state.phase === 'finished' ? state.turns.length : state.index) - 1));
+
+        // Saltar a una línea concreta: la separata es clicable y ésta es la
+        // acción que hay detrás. Sin ella, volver ocho líneas atrás para repetir
+        // un trozo son ocho pulsaciones de "Anterior".
+        case 'GO_TO':
+            if (state.turns.length === 0) return state;
+            return goTo(state, Math.min(Math.max(0, action.index), state.turns.length - 1));
 
         case 'REPEAT':
             // Reinicia la fase del turno actual sin mover el índice (re-leer / re-esperar).
