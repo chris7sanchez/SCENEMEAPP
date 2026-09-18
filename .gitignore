@@ -44,7 +44,16 @@ media_backups/
 *.JPG
 *.jpg
 *.png
-!public/**  # Allow images in public/
-public/videos/ # <-- AI FIX: Do not track massive 24GB video folder in GitHub/Vercel
-!src/**     # Allow assets in src/ (if any)
+# Lo que hay en public/ SÍ se publica: es lo que sirve la web.
+# (Antes estas reglas llevaban el comentario en la MISMA línea. En .gitignore
+#  eso no es un comentario: forma parte del patrón, así que ninguna de las tres
+#  hacía nada. Los clips cortos de la portada se quedaban fuera del despliegue
+#  sin que nadie se enterara.)
+!public/**
+# Menos los vídeos máster, que pesan de más y el navegador no los pide.
+public/videos/*
+# Salvo los clips cortos de la portada y sus fotogramas, que sí hacen falta.
+!public/videos/*-loop.mp4
+!public/videos/*-poster.jpg
+!src/**
 

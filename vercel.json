@@ -10,6 +10,24 @@
   "trailingSlash": false,
   "headers": [
     {
+      "source": "/trabajos/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/videos/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
       "source": "/(sw.js|manifest.json|manifest-admin.json|manifest.webmanifest)",
       "headers": [
         {
@@ -46,7 +64,16 @@
   ],
   "images": {
     "sizes": [
-      256, 384, 640, 750, 828, 1080, 1200, 1920, 2048, 3840
+      256,
+      384,
+      640,
+      750,
+      828,
+      1080,
+      1200,
+      1920,
+      2048,
+      3840
     ],
     "domains": [
       "placehold.co",

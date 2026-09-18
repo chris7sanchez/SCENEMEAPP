@@ -5,12 +5,12 @@ import { ArrowRight, Play } from "lucide-react";
 import Link from "next/link";
 
 const PORTFOLIO_ITEMS = [
-  { id: 1, type: "Book", actor: "María G.", image: "/trabajos/1.jpg", size: "large" },
-  { id: 2, type: "Escena", actor: "Carlos Ruiz", image: "/trabajos/3.jpg", size: "medium", video: true },
-  { id: 3, type: "Book", actor: "Ana S.", image: "/trabajos/5.jpg", size: "medium" },
-  { id: 4, type: "Escena", actor: "David M.", image: "/trabajos/7.jpg", size: "large", video: true },
-  { id: 5, type: "Book", actor: "Laura V.", image: "/trabajos/9.jpg", size: "medium" },
-  { id: 6, type: "Self-Tape", actor: "Javier T.", image: "/trabajos/11.jpg", size: "medium" },
+  { id: 1, type: "Book", actor: "María G.", image: "/trabajos/web/1.webp", size: "large" },
+  { id: 2, type: "Escena", actor: "Carlos Ruiz", image: "/trabajos/web/3.webp", size: "medium", video: true },
+  { id: 3, type: "Book", actor: "Ana S.", image: "/trabajos/web/5.webp", size: "medium" },
+  { id: 4, type: "Escena", actor: "David M.", image: "/trabajos/web/7.webp", size: "large", video: true },
+  { id: 5, type: "Book", actor: "Laura V.", image: "/trabajos/web/9.webp", size: "medium" },
+  { id: 6, type: "Self-Tape", actor: "Javier T.", image: "/trabajos/web/11.webp", size: "medium" },
 ];
 
 export function PortfolioGallery() {

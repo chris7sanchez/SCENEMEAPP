@@ -54,16 +54,11 @@ export function HeroSection() {
               WebkitMaskRepeat: "no-repeat",
             }}
           >
-            <video
-              poster="/videos/mix-cine-poster.jpg"
-              autoPlay
-              loop
-              muted
-              playsInline
+            <LazyVideo
+              src="/videos/MIX-cine-loop.mp4"
+              poster="/videos/MIX-cine-loop-poster.jpg"
               className="w-full h-full object-cover"
-            >
-              <source src="/videos/MIX-cine-web.mp4" type="video/mp4" />
-            </video>
+            />
           </motion.div>
         </motion.div>
 
@@ -72,16 +67,11 @@ export function HeroSection() {
           className="absolute inset-0 z-10"
           style={{ y: mainVideoY, opacity: mainVideoOpacity }}
         >
-          <video
-            poster="/videos/mix-cine-poster.jpg"
-            autoPlay
-            loop
-            muted
-            playsInline
+          <LazyVideo
+            src="/videos/MIX-cine-loop.mp4"
+            poster="/videos/MIX-cine-loop-poster.jpg"
             className="w-full h-full object-cover opacity-60"
-          >
-            <source src="/videos/MIX-cine-web.mp4" type="video/mp4" />
-          </video>
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-50" />
         </motion.div>
 
@@ -93,17 +83,17 @@ export function HeroSection() {
           {/* Column 1 */}
           <motion.div className="flex-1 flex flex-col gap-4" style={{ y: gridY1 }}>
             <div className="h-[40vh] rounded-2xl overflow-hidden relative">
-              <LazyVideo src="/videos/MUDANZA-cut-web.mp4#t=15" className="w-full h-full object-cover" />
+              <LazyVideo src="/videos/MUDANZA-loop.mp4" poster="/videos/MUDANZA-loop-poster.jpg" className="w-full h-full object-cover" />
             </div>
             <div className="h-[60vh] rounded-2xl overflow-hidden relative">
-              <LazyVideo src="/videos/Mel_cuban-web.mp4" className="w-full h-full object-cover" />
+              <LazyVideo src="/videos/Mel_cuban-loop.mp4" poster="/videos/Mel_cuban-loop-poster.jpg" className="w-full h-full object-cover" />
             </div>
           </motion.div>
 
           {/* Column 2 */}
           <motion.div className="flex-1 flex flex-col gap-4 mt-20" style={{ y: gridY2 }}>
             <div className="h-[50vh] rounded-2xl overflow-hidden relative">
-              <LazyVideo src="/videos/AMANDA_OK_22_01-web.mp4" className="w-full h-full object-cover" />
+              <LazyVideo src="/videos/AMANDA-loop.mp4" poster="/videos/AMANDA-loop-poster.jpg" className="w-full h-full object-cover" />
             </div>
             <div className="h-[40vh] rounded-2xl overflow-hidden relative bg-zinc-900 flex flex-col items-center justify-center p-8 text-center border border-white/5">
                <h2 className="text-3xl font-display mb-4 leading-tight" style={{ fontFamily: "'Cinzel', serif" }}>
@@ -116,10 +106,10 @@ export function HeroSection() {
           {/* Column 3 (Hidden on mobile) */}
           <motion.div className="hidden md:flex flex-1 flex-col gap-4" style={{ y: gridY3 }}>
             <div className="h-[45vh] rounded-2xl overflow-hidden relative">
-              <LazyVideo src="/videos/SONIA_DORADO_DW2-web.mp4" className="w-full h-full object-cover" />
+              <LazyVideo src="/videos/SONIA_DORADO-loop.mp4" poster="/videos/SONIA_DORADO-loop-poster.jpg" className="w-full h-full object-cover" />
             </div>
             <div className="h-[55vh] rounded-2xl overflow-hidden relative">
-              <LazyVideo src="/videos/Acting1 OLIVER-web.mp4" className="w-full h-full object-cover" />
+              <LazyVideo src="/videos/OLIVER-loop.mp4" poster="/videos/OLIVER-loop-poster.jpg" className="w-full h-full object-cover" />
             </div>
           </motion.div>
 

@@ -22,10 +22,12 @@ export function SplashScreen() {
             return;
         }
         // Splash breve y FIJO (no depende de que cargue el vídeo): nunca deja la
-        // app "colgada" en negro. Funde a ~1,2s y se oculta del todo a ~1,9s.
+        // app "colgada" en negro. Eran 1,9s de espera obligatoria antes de ver
+        // nada, sumados a lo que tardara la página; ahora son 1,1s, que siguen
+        // dando el golpe de marca sin que parezca que la web no arranca.
         sessionStorage.setItem('sceneme_splash_shown', 'true');
-        const fadeTimer = setTimeout(() => setIsFading(true), 1200);
-        const hideTimer = setTimeout(() => setIsVisible(false), 1900);
+        const fadeTimer = setTimeout(() => setIsFading(true), 600);
+        const hideTimer = setTimeout(() => setIsVisible(false), 1100);
         return () => {
             clearTimeout(fadeTimer);
             clearTimeout(hideTimer);
@@ -44,8 +46,12 @@ export function SplashScreen() {
                     /logo-animation.gif: ninguno de los dos archivos existe, asi
                     que la cortinilla salia en negro y cada carga de pagina
                     disparaba dos 404. */}
+                {/* Copia ligera del icono SOLO para la cortinilla: el PNG de
+                    512 pesa 279 KB y es lo primero que se descarga en cada
+                    página; en WebP son 23 KB y se ve igual. El PNG original se
+                    queda donde estaba, que es el icono de la aplicación. */}
                 <img
-                    src="/android-chrome-512x512.png"
+                    src="/splash-logo.webp"
                     alt="Scene Me"
                     className="w-full h-full object-contain"
                 />

@@ -14,7 +14,7 @@ const SERVICES = [
     icon: Camera,
     color: "hsl(42, 90%, 65%)",
     href: "/login",
-    images: ["/trabajos/1.jpg", "/trabajos/5.2.jpg", "/trabajos/6.2.jpg", "/trabajos/8.jpg", "/trabajos/10.jpg"]
+    images: ["/trabajos/web/1.webp", "/trabajos/web/5.2.webp", "/trabajos/web/6.2.webp", "/trabajos/web/8.webp", "/trabajos/web/10.webp"]
   },
   {
     id: "escenas",
@@ -23,7 +23,8 @@ const SERVICES = [
     icon: Video,
     color: "hsl(42, 90%, 65%)",
     href: "/login",
-    video: "/videos/MIX-cine-web.mp4"
+    video: "/videos/MIX-cine-loop.mp4",
+    poster: "/videos/MIX-cine-loop-poster.jpg"
   },
   {
     id: "selftapes",
@@ -32,7 +33,8 @@ const SERVICES = [
     icon: Mic,
     color: "hsl(42, 90%, 65%)",
     href: "/login",
-    video: "/videos/ACTING RODRIGUES SHOGUN2-web.mp4"
+    video: "/videos/SHOGUN-loop.mp4",
+    poster: "/videos/SHOGUN-loop-poster.jpg"
   },
   {
     id: "ai",
@@ -41,7 +43,8 @@ const SERVICES = [
     icon: Sparkles,
     color: "hsl(42, 90%, 55%)",
     href: "/login",
-    video: "/videos/Acting1 OLIVER-web.mp4",
+    video: "/videos/OLIVER-loop.mp4",
+    poster: "/videos/OLIVER-loop-poster.jpg",
     featured: true
   }
 ];
@@ -125,6 +128,8 @@ const Card = ({ service, index, progress, range, targetScale }: any) => {
               loop
               muted
               playsInline
+              preload="none"
+              poster={service.poster}
               className="w-full h-full object-cover animate-in fade-in duration-1000"
             >
               <source src={service.video} type="video/mp4" />
