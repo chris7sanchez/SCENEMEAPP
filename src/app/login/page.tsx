@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Clapperboard, Eye, EyeOff, Lock } from 'lucide-react';
@@ -11,7 +11,7 @@ import type { EstadoAcceso } from '@/lib/auth';
 // tarde discutiendo cuál de los dos es.
 const VERSION = (process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || 'local').slice(0, 7);
 
-export default function LoginPage() {
+function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -29,6 +29,9 @@ export default function LoginPage() {
     // El código crudo de Firebase, tal cual. Feo, pero es el dato que convierte
     // "no va" en algo que se puede buscar y arreglar.
     const [codigo, setCodigo] = useState('');
+    // Venimos rebotados de /creator: decirlo, en vez de plantar una pantalla de
+    // contraseña sin explicación y que parezca que la sección está rota.
+    const desdeCreator = useSearchParams().get('desde') === 'creator';
     const router = useRouter();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -212,6 +215,14 @@ export default function LoginPage() {
                             {isLogin ? 'ACCESO ACTORES' : 'CREAR CUENTA'}
                         </h2>
 
+                        {desdeCreator && (
+                            <p className="-mt-2 mb-4 text-center text-xs leading-snug" style={{ color: 'hsl(220, 15%, 70%)' }}>
+                                El estudio necesita sesión iniciada. Entra aquí, o pulsa
+                                <span style={{ color: 'hsl(42, 80%, 65%)' }}> Entrar sin cuenta </span>
+                                y empieza ya.
+                            </p>
+                        )}
+
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-1">
                                 <Input
@@ -331,6 +342,24 @@ export default function LoginPage() {
                             </div>
                         </div>
 
+                        {/* ENTRAR SIN CUENTA, A LA VISTA.
+                            Existía desde siempre, pero había que adivinar que se
+                            pulsaba la claqueta de arriba. Alguien a quien le falla
+                            el acceso se queda fuera de una aplicación en la que
+                            podría estar trabajando desde hace media hora. */}
+                        <button
+                            type="button"
+                            onClick={() => router.push('/creator?guest=true')}
+                            className="mt-3 w-full h-11 rounded-xl font-bold text-[11px] uppercase tracking-widest transition-all active:scale-95"
+                            style={{
+                                background: 'transparent',
+                                border: '1px dashed hsla(42, 60%, 50%, 0.45)',
+                                color: 'hsl(42, 80%, 65%)',
+                            }}
+                        >
+                            Entrar sin cuenta
+                        </button>
+
                         <div className="mt-6 text-center pt-2" style={{ borderTop: '1px solid hsla(220, 18%, 30%, 0.5)' }}>
                             <button
                                 onClick={() => { setIsLogin(!isLogin); setError(''); }}
@@ -385,5 +414,15 @@ export default function LoginPage() {
                 </Button>
             </div>
         </div>
+    );
+}
+
+// useSearchParams obliga a un límite de Suspense en una página estática. El
+// envoltorio es sólo eso: el formulario entero vive en LoginPage.
+export default function LoginPageConSuspense() {
+    return (
+        <React.Suspense fallback={null}>
+            <LoginPage />
+        </React.Suspense>
     );
 }

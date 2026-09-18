@@ -66,7 +66,11 @@ function CreatorContent() {
                 if (isGuest) {
                     setIsLoading(false);
                 } else {
-                    router.push('/login');
+                    // Te echaba al login SIN DECIR POR QUÉ. Quien pulsa "creator"
+                    // y aparece en una pantalla de contraseña cree que la sección
+                    // está rota, no que le falta la sesión. Ahora el login lo
+                    // explica y ofrece entrar sin cuenta, que funciona.
+                    router.push('/login?desde=creator');
                 }
             } else {
                 setCurrentUserEmail(user.email);

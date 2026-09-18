@@ -208,9 +208,13 @@ export async function comprobarAcceso(): Promise<EstadoAcceso> {
         };
     }
 
-    const [propia, { codigo, motivo }] = await Promise.all([
-        alcanzaLaRed(`${window.location.origin}/favicon.ico?d=${Date.now()}`),
+    // Las DOS peticiones, no una: el GET normal y el POST que es el que usa el
+    // login de verdad. Comprobar sólo el GET ya dio una vez un "todo correcto"
+    // impecable mientras nadie podía entrar.
+    const [propia, { codigo, motivo }, post] = await Promise.all([
+        alcanzaLaRed(`${window.location.origin}/favicon-32x32.png?d=${Date.now()}`),   // .ico no existe: daba 404
         preguntaAFirebase(),
+        probarPeticionDeAcceso(""),
     ]);
 
     // La petición no salió: alguien la está cortando.
@@ -230,7 +234,21 @@ export async function comprobarAcceso(): Promise<EstadoAcceso> {
         };
     }
 
-    if (codigo === 200) return { ok: true, proyecto, texto: "Conexión con el servidor de acceso: correcta." };
+    if (codigo === 200) {
+        // Aquí está el caso que se escapaba: lo normal pasa, lo del acceso no.
+        // Un POST con JSON obliga al navegador a pedir permiso antes (la
+        // "preflight"), y hay bloqueadores, extensiones y antivirus que tumban
+        // eso mientras dejan pasar todo lo demás.
+        if (!post.salio) {
+            return {
+                ok: false,
+                proyecto,
+                texto: "Google responde, pero la petición de ENTRAR no llega a salir.",
+                detalle: "Algo de este navegador corta justo esa llamada: un bloqueador de contenido o de anuncios, una extensión, o un antivirus con «protección web». Desactívalo para scenemeapp.com y recarga, o entra desde otro navegador o con los datos del móvil. Mientras tanto puedes usar «Entrar sin cuenta», que no necesita esto.",
+            };
+        }
+        return { ok: true, proyecto, texto: "Conexión con el servidor de acceso: correcta." };
+    }
 
     // El proyecto existe y la clave viaja bien, pero Firebase Authentication no
     // tiene configuración: no hay login posible para NADIE, no es cosa de este
