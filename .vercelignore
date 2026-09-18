@@ -46,3 +46,8 @@ public/videos/SONIA_DORADO_DW2-web.mp4
 
 # 8 MB de skills de diseño. Las lee el agente, no el navegador.
 .claude/
+
+# 8,6 GB de masters originales. git ya la ignora, no la referencia nadie en src/
+# y dentro hay .mp4 de 255 MB, o sea que rompia el despliegue con "File size
+# limit exceeded (100 MB)". El `*.mov` de arriba solo cubria la mitad.
+video_originals_backup/
