@@ -245,7 +245,8 @@ export default function RehearsalPlayer({ script, guionId, uid, ajustes, onGuard
                 ) : !started && dudas.length > 0 ? (
                     <DudasReparto
                         dudas={dudas}
-                        onMismo={d => setAlias(a => ({ ...a, [d.b]: d.a }))}
+                        escenas={scenes}
+                        onMismo={(d, queSeQueda) => setAlias(a => ({ ...a, [queSeQueda === d.a ? d.b : d.a]: queSeQueda }))}
                         onDistintos={d => setDistintos(x => [...x, claveDuda(d.a, d.b)])}
                         onDejarlo={() => setDistintos(x => [...x, ...dudas.map(d => claveDuda(d.a, d.b))])}
                     />
@@ -287,65 +288,140 @@ export default function RehearsalPlayer({ script, guionId, uid, ajustes, onGuard
  * MARCOS pueden ser dos actores. Así que aquí se pregunta, una sola vez por
  * guion, y la respuesta se guarda con él.
  */
-function DudasReparto({ dudas, onMismo, onDistintos, onDejarlo }: {
+/**
+ * Un ejemplo de verdad: la primera frase que dice ese nombre, con dónde la dice.
+ * Es LO ÚNICO que permite decidir. "MARC · 1 línea" no dice nada; leer
+ * «MARC: ¿Vienes o qué?» debajo de «MARCOS: ¿Vienes o qué?» lo decide solo.
+ */
+function primeraFraseDe(escenas: Scene[], nombre: string): { texto: string; donde: string } | null {
+    for (let i = 0; i < escenas.length; i++) {
+        for (const t of escenas[i].turns) {
+            if (t.kind !== 'dialogo') continue;
+            const suyo = t.conjunto ? t.conjunto.includes(nombre) : t.speaker === nombre;
+            if (!suyo) continue;
+            const texto = t.text.trim();
+            return {
+                texto: texto.length <= 90 ? texto : texto.slice(0, 89) + '…',
+                donde: sceneLabel(escenas[i], i),
+            };
+        }
+    }
+    return null;
+}
+
+function DudasReparto({ dudas, escenas, onMismo, onDistintos, onDejarlo }: {
     dudas: DudaReparto[];
-    onMismo: (d: DudaReparto) => void;
+    escenas: Scene[];
+    onMismo: (d: DudaReparto, queSeQueda: string) => void;
     onDistintos: (d: DudaReparto) => void;
     onDejarlo: () => void;
 }) {
     const d = dudas[0];
-    const lineas = (n: number) => `${n} ${n === 1 ? 'línea' : 'líneas'}`;
 
     return (
         <div className="mt-8">
-            <p className="text-xs uppercase tracking-[0.25em] text-amber-500/80">Antes de repartir las voces</p>
+            <div className="flex items-baseline justify-between gap-3">
+                <p className="text-xs uppercase tracking-[0.25em] text-amber-500/80">Antes de repartir las voces</p>
+                {dudas.length > 1 && <p className="shrink-0 text-[11px] text-zinc-500">quedan {dudas.length}</p>}
+            </div>
             <h3 className="mt-2 text-xl font-black text-white">¿Son el mismo personaje?</h3>
             <p className="mt-1 text-sm text-zinc-400">
                 En el guion hay dos nombres casi iguales. Si es una errata, los junto en uno;
                 si son dos personajes, los dejo como están.
-                {dudas.length > 1 && <> Quedan <strong className="text-zinc-300">{dudas.length}</strong> por aclarar.</>}
             </p>
 
-            <div className="mt-5 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5">
-                <div className="flex flex-wrap items-center justify-center gap-3 text-center">
-                    <div className="min-w-[8rem]">
-                        <p className="text-lg font-black text-amber-300">{d.a}</p>
-                        <p className="text-[11px] text-zinc-500">{lineas(d.vecesA)}</p>
-                    </div>
-                    <span className="text-zinc-600">·</span>
-                    <div className="min-w-[8rem]">
-                        <p className="text-lg font-black text-amber-300">{d.b}</p>
-                        <p className="text-[11px] text-zinc-500">{lineas(d.vecesB)}</p>
-                    </div>
-                </div>
-                <p className="mt-3 text-center text-xs text-zinc-500">
-                    {d.motivo === 'errata'
-                        ? 'Se diferencian en una letra: suele ser un dedo de más al escribir.'
-                        : 'Uno es el nombre corto del otro. A veces es la misma persona; a veces no.'}
-                </p>
-
-                <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-                    <button
-                        onClick={() => onMismo(d)}
-                        className="flex-1 rounded-full bg-amber-500 py-3 text-sm font-black text-black transition hover:bg-amber-400"
-                    >
-                        Es el mismo · se queda «{d.a}»
-                    </button>
-                    <button
-                        onClick={() => onDistintos(d)}
-                        className="flex-1 rounded-full bg-zinc-800 py-3 text-sm font-bold text-zinc-200 transition hover:bg-zinc-700"
-                    >
-                        Son dos personajes
-                    </button>
-                </div>
-            </div>
+            {/* La clave del par como key: al resolver una duda entra la siguiente
+                con su estado limpio, sin efectos ni sincronizaciones. */}
+            <UnaDuda key={claveDuda(d.a, d.b)} duda={d} escenas={escenas} onMismo={onMismo} onDistintos={onDistintos} />
 
             <button
                 onClick={onDejarlo}
                 className="mt-4 w-full rounded-full px-4 py-2 text-xs text-zinc-500 transition hover:text-zinc-300"
             >
-                Dejarlo como está y empezar a repartir
+                {dudas.length > 1 ? `Dejarlas las ${dudas.length} como están y empezar a repartir` : 'Dejarlo como está y empezar a repartir'}
             </button>
+        </div>
+    );
+}
+
+function UnaDuda({ duda: d, escenas, onMismo, onDistintos }: {
+    duda: DudaReparto;
+    escenas: Scene[];
+    onMismo: (d: DudaReparto, queSeQueda: string) => void;
+    onDistintos: (d: DudaReparto) => void;
+}) {
+    // Se queda el que más habla, que casi siempre es el bueno... pero casi.
+    // "SONIA" (20) y "SONÏA" (3) es evidente; "PACO" (9) y "PACA" (11) no, y
+    // ahí quien decide es quien se ha leído el guion.
+    const [queSeQueda, setQueSeQueda] = useState(d.a);
+    const juntos = useMemo(() => parejasEnEscena(escenas).has(claveDuda(d.a, d.b)), [escenas, d.a, d.b]);
+    const ejemploA = useMemo(() => primeraFraseDe(escenas, d.a), [escenas, d.a]);
+    const ejemploB = useMemo(() => primeraFraseDe(escenas, d.b), [escenas, d.b]);
+    const lineas = (n: number) => `${n} ${n === 1 ? 'línea' : 'líneas'}`;
+
+    const columna = (nombre: string, veces: number, ejemplo: { texto: string; donde: string } | null) => (
+        <div className="min-w-0 flex-1 rounded-xl border border-zinc-800 bg-black/30 p-3">
+            <p className="truncate text-base font-black text-amber-300">{nombre}</p>
+            <p className="text-[11px] text-zinc-500">{lineas(veces)}</p>
+            {ejemplo ? (
+                <>
+                    <p className="mt-2 text-sm italic leading-snug text-zinc-300">«{ejemplo.texto}»</p>
+                    <p className="mt-1 truncate text-[10px] uppercase tracking-wide text-zinc-600">{ejemplo.donde}</p>
+                </>
+            ) : (
+                <p className="mt-2 text-xs text-zinc-600">sin diálogo</p>
+            )}
+        </div>
+    );
+
+    return (
+        <div className="mt-5 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row">
+                {columna(d.a, d.vecesA, ejemploA)}
+                {columna(d.b, d.vecesB, ejemploB)}
+            </div>
+
+            {/* La prueba que de verdad decide, por encima del parecido de los
+                nombres: dos que se contestan en la misma escena son dos. */}
+            <p className={`mt-3 text-center text-xs ${juntos ? 'font-bold text-amber-300' : 'text-zinc-500'}`}>
+                {juntos
+                    ? 'Ojo: los dos hablan en la misma escena. Eso suele querer decir que son dos personajes.'
+                    : 'No coinciden en ninguna escena.'}
+                {' '}
+                <span className="font-normal text-zinc-500">
+                    {d.motivo === 'errata'
+                        ? 'Se diferencian en una letra: suele ser un dedo de más al escribir.'
+                        : 'Uno es el nombre corto del otro; a veces es la misma persona y a veces no.'}
+                </span>
+            </p>
+
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
+                <span className="text-zinc-500">Si son el mismo, se queda con el nombre:</span>
+                {[d.a, d.b].map(n => (
+                    <button
+                        key={n}
+                        onClick={() => setQueSeQueda(n)}
+                        className={`rounded-full px-3 py-1 font-bold transition ${queSeQueda === n ? 'bg-amber-500 text-black' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
+                    >
+                        {n}
+                    </button>
+                ))}
+            </div>
+
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                <button
+                    onClick={() => onMismo(d, queSeQueda)}
+                    className="flex-1 rounded-full bg-amber-500 py-3 text-sm font-black text-black transition hover:bg-amber-400"
+                >
+                    Es el mismo · se queda «{queSeQueda}»
+                </button>
+                <button
+                    onClick={() => onDistintos(d)}
+                    className="flex-1 rounded-full bg-zinc-800 py-3 text-sm font-bold text-zinc-200 transition hover:bg-zinc-700"
+                >
+                    Son dos personajes
+                </button>
+            </div>
         </div>
     );
 }
@@ -818,6 +894,9 @@ function ActivePlayer(props: {
     const r = useRehearsal(turns, role, { profiles, engine, tomas: audios });
     const { state, current } = r;
     const [micDenied, setMicDenied] = useState(false);
+    /** Reiniciar estaba junto a Repetir, con la misma pinta: un clic de más y
+     *  perdías el sitio. Ahora pregunta antes. */
+    const [confirmarReinicio, setConfirmarReinicio] = useState(false);
     const [micError, setMicError] = useState('');
     const [micAttempt, setMicAttempt] = useState(0);
     // El detector de voz SOLO puede armarse cuando el micro ya está abierto.
@@ -832,7 +911,7 @@ function ActivePlayer(props: {
     const audioCtxRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const vuRef = useRef<HTMLDivElement | null>(null);
-    const currentLineRef = useRef<HTMLDivElement | null>(null);
+    const currentLineRef = useRef<HTMLButtonElement | null>(null);
 
     // Desplaza la separata para que la línea actual quede siempre visible.
     useEffect(() => {
@@ -954,6 +1033,14 @@ function ActivePlayer(props: {
     const progress = `${Math.min(state.index + 1, turns.length)} / ${turns.length}`;
     const escenaActual = escenaDeTurno[state.index];
     const variasEscenas = bloques.length > 1;
+    /** Quién habla en la siguiente línea, y a cuántas está la tuya. Ensayar es
+     *  prepararse para entrar: saber que te toca dentro de tres réplicas cambia
+     *  cómo escuchas las tres. */
+    const siguiente = turns[state.index + 1];
+    const faltanParaMia = (() => {
+        for (let i = state.index + 1; i < turns.length; i++) if (esDe(turns[i], role)) return i - state.index;
+        return null;
+    })();
     let lineText = current?.text ?? '';
     if (isMine) {
         if (mode === 'cue') lineText = cueOf(current?.text ?? '', 3);
@@ -1024,17 +1111,43 @@ function ActivePlayer(props: {
                         <button onClick={r.skip} className="mt-3 rounded-full bg-zinc-800 px-6 py-2.5 text-sm font-bold text-zinc-200 transition hover:bg-zinc-700">Continuar ▸ <span className="font-normal text-zinc-500">(si no se oye)</span></button>
                     </div>
                 )}
-                <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm">
-                    <button onClick={r.prev} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">◂ Anterior</button>
-                    <button onClick={r.repeat} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">⟲ Repetir</button>
-                    <button onClick={r.togglePause} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">{r.paused ? '▶ Reanudar' : '⏸ Pausa'}</button>
-                    <button onClick={r.skip} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">Saltar ▸</button>
-                    <button onClick={r.restart} className="rounded-full bg-zinc-800 px-4 py-2 text-zinc-300 hover:bg-zinc-700">Reiniciar</button>
+
+                {/* Cuánto falta para entrar. Un actor que sabe que le tocan tres
+                    réplicas más escucha esas tres de otra manera. */}
+                <p className="mt-3 text-center text-xs text-zinc-600">
+                        {siguiente && (
+                            <>Luego: <span className="text-zinc-400">{siguiente.kind !== 'dialogo' ? 'acotación' : siguiente.speaker}</span></>
+                        )}
+                        {faltanParaMia !== null
+                            ? <> · entras <span className="font-bold text-amber-500/80">{faltanParaMia === 1 ? 'en la siguiente' : `dentro de ${faltanParaMia}`}</span></>
+                        : <> · ya no vuelves a hablar</>}
+                </p>
+                {/* Cinco píldoras idénticas obligaban a leerlas todas cada vez, y
+                    ponían "Reiniciar" a un dedo de "Repetir". Ensayando se usan
+                    dos: repetir la réplica y parar. Las demás bajan de tamaño, y
+                    la que hace daño pregunta antes. */}
+                <div className="mt-5 flex items-center justify-center gap-2 text-sm">
+                    <button onClick={r.repeat} className="rounded-full bg-zinc-700 px-6 py-2.5 font-bold text-white transition hover:bg-zinc-600">⟲ Repetir</button>
+                    <button onClick={r.togglePause} className="rounded-full bg-zinc-700 px-6 py-2.5 font-bold text-white transition hover:bg-zinc-600">{r.paused ? '▶ Reanudar' : '⏸ Pausa'}</button>
+                </div>
+                <div className="mt-2 flex items-center justify-center gap-4 text-xs text-zinc-500">
+                    <button onClick={r.prev} className="transition hover:text-zinc-200">◂ Anterior</button>
+                    <button onClick={r.skip} className="transition hover:text-zinc-200">Saltar ▸</button>
+                    {confirmarReinicio ? (
+                        <span className="flex items-center gap-2">
+                            <button onClick={() => { setConfirmarReinicio(false); r.restart(); }} className="font-bold text-amber-400 transition hover:text-amber-300">Sí, desde el principio</button>
+                            <button onClick={() => setConfirmarReinicio(false)} className="transition hover:text-zinc-200">No</button>
+                        </span>
+                    ) : (
+                        <button onClick={() => setConfirmarReinicio(true)} className="transition hover:text-zinc-200">Reiniciar</button>
+                    )}
                 </div>
             </div>
 
             <div className="mt-8 lg:mt-0 lg:sticky lg:top-4">
-                <p className="mb-2 text-[10px] uppercase tracking-[0.3em] text-zinc-500">Separata</p>
+                <p className="mb-2 text-[10px] uppercase tracking-[0.3em] text-zinc-500">
+                    Separata <span className="normal-case tracking-normal text-zinc-600">· pulsa una línea para empezar por ahí</span>
+                </p>
                 <div className="max-h-72 overflow-y-auto rounded-md bg-[#f4efe2] px-4 py-3 text-zinc-900 shadow-md ring-1 ring-black/10 lg:max-h-[64vh]"
                     style={{ fontFamily: '"Courier New", Courier, monospace' }}>
                     {turns.map((t, i) => {
@@ -1051,8 +1164,16 @@ function ActivePlayer(props: {
                                         {sceneLabel(escena, indiceEscena.get(escena.id) ?? 0)}
                                     </p>
                                 )}
-                                <div ref={active ? currentLineRef : undefined}
-                                    className={`mb-2.5 rounded-sm px-1 ${active ? 'bg-amber-300/60' : ''}`}>
+                                {/* La separata se PULSA. Retomar desde ocho líneas
+                                    atrás eran ocho pulsaciones de "Anterior";
+                                    ahora es señalar el sitio, que es como se
+                                    trabaja con el guion en la mano. */}
+                                <button
+                                    type="button"
+                                    ref={active ? currentLineRef : undefined}
+                                    onClick={() => r.goTo(i)}
+                                    title="Empezar por aquí"
+                                    className={`mb-2.5 block w-full rounded-sm px-1 text-left transition ${active ? 'bg-amber-300/60' : 'hover:bg-amber-300/25'}`}>
                                     {narracion ? (
                                         // La acción va al margen y en cursiva, como en el guion.
                                         <p className="text-[12px] italic leading-snug text-zinc-600">{t.text}</p>
@@ -1062,7 +1183,7 @@ function ActivePlayer(props: {
                                             <p className={`pl-4 text-[12px] leading-snug ${mine ? 'text-amber-950 font-semibold' : 'text-zinc-800'}`}>{t.text}</p>
                                         </>
                                     )}
-                                </div>
+                                </button>
                             </React.Fragment>
                         );
                     })}
