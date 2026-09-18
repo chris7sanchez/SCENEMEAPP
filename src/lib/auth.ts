@@ -13,7 +13,7 @@ import {
     User
 } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import { auth as firebaseAuth, db, firebaseApiKey, isFirebaseConfigured } from "./firebase";
+import { auth as firebaseAuth, db, firebaseApiKey, firebaseProjectId, isFirebaseConfigured } from "./firebase";
 import { UserProfile } from "./types";
 
 // Crea el documento del usuario en Firestore si aún no existe (primer login social).
@@ -65,6 +65,8 @@ export interface EstadoAcceso {
     texto: string;
     /** Qué hacer, cuando hay algo que hacer. */
     detalle?: string;
+    /** A qué proyecto de Firebase está hablando ESTA copia desplegada. */
+    proyecto: string;
 }
 
 async function alcanzaLaRed(url: string): Promise<boolean> {
@@ -102,11 +104,13 @@ async function preguntaAFirebase(): Promise<{ codigo: number; motivo: string }> 
 }
 
 export async function comprobarAcceso(): Promise<EstadoAcceso> {
-    if (typeof window === "undefined") return { ok: true, texto: "" };
+    const proyecto = firebaseProjectId;
+    if (typeof window === "undefined") return { ok: true, texto: "", proyecto };
 
     if (!isFirebaseConfigured) {
         return {
             ok: false,
+            proyecto,
             texto: "Esta copia de la web no tiene las claves de Firebase.",
             detalle: "Faltan las variables NEXT_PUBLIC_FIREBASE_* en el despliegue. Sin ellas no hay login posible; hay que ponerlas en Vercel y volver a desplegar.",
         };
@@ -115,6 +119,7 @@ export async function comprobarAcceso(): Promise<EstadoAcceso> {
     if (navigator.onLine === false) {
         return {
             ok: false,
+            proyecto,
             texto: "El navegador dice que estás sin conexión.",
             detalle: "Conéctate a una red y recarga la página.",
         };
@@ -130,17 +135,19 @@ export async function comprobarAcceso(): Promise<EstadoAcceso> {
         if (!propia)
             return {
                 ok: false,
+                proyecto,
                 texto: "No sale ninguna petición de este navegador.",
                 detalle: "No hay internet, o estás en una wifi que pide aceptar unas condiciones antes de dejarte salir. Prueba con los datos del móvil.",
             };
         return {
             ok: false,
+            proyecto,
             texto: "Esta web sí responde, pero Google NO.",
             detalle: "Algo corta la conexión con Google en concreto: un bloqueador de contenido o de anuncios (Safari, AdBlock, Coupert…), una extensión del navegador, un antivirus o el DNS de tu red. Desactívalo para scenemeapp.com y recarga, o prueba con los datos del móvil.",
         };
     }
 
-    if (codigo === 200) return { ok: true, texto: "Conexión con el servidor de acceso: correcta." };
+    if (codigo === 200) return { ok: true, proyecto, texto: "Conexión con el servidor de acceso: correcta." };
 
     // El proyecto existe y la clave viaja bien, pero Firebase Authentication no
     // tiene configuración: no hay login posible para NADIE, no es cosa de este
@@ -149,14 +156,16 @@ export async function comprobarAcceso(): Promise<EstadoAcceso> {
     if (motivo === "CONFIGURATION_NOT_FOUND") {
         return {
             ok: false,
-            texto: "Firebase Authentication no está activo en este proyecto.",
-            detalle: "Google contesta que el proyecto no tiene configuración de acceso (CONFIGURATION_NOT_FOUND). No falla tu contraseña ni tu red: no puede entrar nadie. Se arregla en la consola de Firebase → Authentication → Sign-in method, activando «Correo electrónico/contraseña» (y «Google» si se usa).",
+            proyecto,
+            texto: `Firebase Authentication no está activo en el proyecto «${proyecto}».`,
+            detalle: `Google contesta que ese proyecto no tiene configuración de acceso (CONFIGURATION_NOT_FOUND). No falla tu contraseña ni tu red: no puede entrar nadie. O bien hay que activar Authentication en «${proyecto}», o bien esta web está apuntando al proyecto equivocado y hay que cambiar las variables NEXT_PUBLIC_FIREBASE_* del despliegue.`,
         };
     }
 
     if (motivo.includes("API_KEY") || motivo.includes("blocked") || motivo.includes("BLOCKED")) {
         return {
             ok: false,
+            proyecto,
             texto: "Google rechaza la clave de esta web.",
             detalle: `La clave de Firebase está restringida y no admite peticiones desde ${window.location.hostname}. Se cambia en Google Cloud → APIs y servicios → Credenciales. (${motivo})`,
         };
@@ -165,6 +174,7 @@ export async function comprobarAcceso(): Promise<EstadoAcceso> {
     if (codigo === 400 || codigo === 403) {
         return {
             ok: false,
+            proyecto,
             texto: "Google responde, pero rechaza la petición de esta web.",
             detalle: `Código ${codigo}${motivo ? ` (${motivo})` : ""}. Es configuración del proyecto de Firebase, no de tu navegador.`,
         };
@@ -172,6 +182,7 @@ export async function comprobarAcceso(): Promise<EstadoAcceso> {
 
     return {
         ok: false,
+        proyecto,
         texto: `El servidor de acceso responde con un error (${codigo}).`,
         detalle: "No es cosa tuya ni de tu red: es Google o la configuración del proyecto. Vuelve a intentarlo en un rato.",
     };

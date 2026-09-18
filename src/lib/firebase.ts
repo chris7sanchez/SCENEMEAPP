@@ -26,6 +26,7 @@ export const isFirebaseConfigured = Boolean(
 // viajan en cada petición del navegador; quien protege los datos son las reglas
 // de Firestore, no el secreto de esta clave.
 export const firebaseApiKey = firebaseConfig.apiKey ?? "";
+export const firebaseProjectId = firebaseConfig.projectId ?? "";
 export const firebaseAuthDomain = firebaseConfig.authDomain ?? "";
 
 let app: FirebaseApp | null = null;

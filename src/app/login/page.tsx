@@ -346,7 +346,7 @@ export default function LoginPage() {
                             </p>
                         ) : red.ok ? (
                             <p className="text-[10px] font-mono" style={{ color: 'hsl(150, 35%, 50%)' }}>
-                                ✓ {red.texto} · versión {VERSION}
+                                ✓ {red.texto} · proyecto {red.proyecto} · versión {VERSION}
                             </p>
                         ) : (
                             <div className="rounded-lg p-2.5 text-left" style={{ background: 'hsla(38, 90%, 50%, 0.12)', border: '1px solid hsla(38, 90%, 50%, 0.3)' }}>
@@ -354,7 +354,7 @@ export default function LoginPage() {
                                 {red.detalle && (
                                     <p className="mt-1 text-[11px] leading-snug" style={{ color: 'hsl(220, 15%, 72%)' }}>{red.detalle}</p>
                                 )}
-                                <p className="mt-1.5 text-[10px] font-mono" style={{ color: 'hsl(220, 12%, 50%)' }}>versión {VERSION}</p>
+                                <p className="mt-1.5 text-[10px] font-mono" style={{ color: 'hsl(220, 12%, 50%)' }}>proyecto {red.proyecto || '—'} · versión {VERSION}</p>
                             </div>
                         )}
                     </div>
