@@ -26,6 +26,9 @@ export default function LoginPage() {
     // fallar un login para enterarse de por qué fallaba; ahora lo pone en
     // pantalla sin escribir nada.
     const [red, setRed] = useState<EstadoAcceso | null>(null);
+    // El código crudo de Firebase, tal cual. Feo, pero es el dato que convierte
+    // "no va" en algo que se puede buscar y arreglar.
+    const [codigo, setCodigo] = useState('');
     const router = useRouter();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -33,20 +36,23 @@ export default function LoginPage() {
         setError('');
         setIsLoading(true);
 
-        import('@/lib/auth').then(async ({ auth, diagnosticoDeAcceso }) => {
+        import('@/lib/auth').then(async ({ auth, porQueNoEntra }) => {
             if (isLogin) {
                 const result = await auth.login(email, password);
                 if (result.success) {
                     window.location.href = '/creator';
                 } else {
                     let mensaje = result.error || 'Credenciales incorrectas o usuario no encontrado.';
-                    // Si no se pudo ni salir a la red, la app AVERIGUA por qué en
-                    // vez de soltar una conjetura. Decirle a alguien "será tu
-                    // bloqueador" cuando no lo sabes le hace perder la tarde.
+                    // Cuando el fallo es de red, la página REPITE la petición que
+                    // acaba de fallar, en su versión inofensiva, y cuenta lo que
+                    // pasó. Antes se hacía un GET y podía salir "todo correcto"
+                    // mientras el POST del acceso seguía sin pasar: la respuesta
+                    // era verdad y a la vez inútil.
                     if (mensaje.includes('No se pudo conectar con el servidor de acceso')) {
-                        mensaje += ' ' + await diagnosticoDeAcceso();
+                        mensaje = await porQueNoEntra(email.trim(), result.codigo || '');
                     }
                     setError(mensaje);
+                    setCodigo(result.codigo || '');
                     setIsLoading(false);
                 }
             } else {
@@ -249,6 +255,9 @@ export default function LoginPage() {
                             {error && (
                                 <div className="p-2 rounded-lg" style={{ background: 'hsla(0, 70%, 50%, 0.12)' }}>
                                     <p className="text-xs font-bold text-center" style={{ color: 'hsl(0, 90%, 72%)' }}>{error}</p>
+                                    {codigo && (
+                                        <p className="mt-1 text-center text-[10px] font-mono" style={{ color: 'hsl(0, 30%, 62%)' }}>{codigo}</p>
+                                    )}
                                 </div>
                             )}
                             {info && <p className="text-xs font-bold text-center p-2 rounded-lg" style={{ color: 'hsl(150, 60%, 55%)', background: 'hsla(150, 60%, 40%, 0.12)' }}>{info}</p>}

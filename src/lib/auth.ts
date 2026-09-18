@@ -103,6 +103,89 @@ async function preguntaAFirebase(): Promise<{ codigo: number; motivo: string }> 
     }
 }
 
+/**
+ * LA SEGUNDA PRUEBA, LA QUE DE VERDAD IMPORTA.
+ *
+ * `comprobarAcceso` hace un GET y puede salir "correcta" mientras el login sigue
+ * fallando: eso ya ha pasado, y con ello se descartó que fuera cosa de la red o
+ * del proyecto. Lo que hace el SDK al iniciar sesión es otra cosa -un POST con
+ * JSON al mismo servidor- y hay bloqueadores, extensiones y antivirus que dejan
+ * pasar lo primero y cortan lo segundo.
+ *
+ * Así que se repite la petición EXACTA que hace el SDK, en su forma inofensiva:
+ * `accounts:createAuthUri` es el mismo host, la misma clave, el mismo método y
+ * la misma cabecera, pero sólo pregunta "¿existe este email y con qué ha
+ * entrado?". No inicia sesión, no crea nada y no necesita la contraseña.
+ *
+ * Con eso, cuando el login falle se sabe de qué lado está el fallo sin tener que
+ * pedirle a nadie que abra la consola del navegador.
+ */
+export interface PruebaDePost {
+    salio: boolean;        // ¿llegó a salir la petición?
+    codigo: number;
+    motivo: string;
+    proveedores: string[]; // con qué ha entrado antes ese email
+    registrado: boolean | null;
+}
+
+export async function probarPeticionDeAcceso(email: string): Promise<PruebaDePost> {
+    const vacio: PruebaDePost = { salio: false, codigo: 0, motivo: "", proveedores: [], registrado: null };
+    if (!firebaseApiKey) return vacio;
+    try {
+        const r = await fetch(
+            `https://identitytoolkit.googleapis.com/v1/accounts:createAuthUri?key=${encodeURIComponent(firebaseApiKey)}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                cache: "no-store",
+                body: JSON.stringify({
+                    identifier: email || "prueba@scenemeapp.com",
+                    continueUri: `${window.location.origin}/login`,
+                }),
+            },
+        );
+        let cuerpo: Record<string, unknown> = {};
+        try { cuerpo = await r.json(); } catch { /* da igual: el código ya dice bastante */ }
+        const error = cuerpo.error as { message?: string } | undefined;
+        return {
+            salio: true,
+            codigo: r.status,
+            motivo: error?.message || "",
+            proveedores: (cuerpo.allProviders as string[] | undefined) || (cuerpo.signinMethods as string[] | undefined) || [],
+            registrado: typeof cuerpo.registered === "boolean" ? cuerpo.registered : null,
+        };
+    } catch {
+        return vacio;
+    }
+}
+
+/**
+ * Lo que se le enseña a quien acaba de fallar al entrar: una frase que dice de
+ * qué lado está el problema, escrita a partir de lo que respondió el servidor y
+ * no de lo que parecía más probable.
+ */
+export async function porQueNoEntra(email: string, codigoFirebase: string): Promise<string> {
+    const prueba = await probarPeticionDeAcceso(email);
+
+    if (!prueba.salio) {
+        return "La página sí habla con Google, pero la petición de ENTRAR no llega a salir. Eso es un bloqueador de contenido, una extensión del navegador o un antivirus que corta justo esa llamada: dejan pasar lo demás y bloquean el acceso. Desactívalo para scenemeapp.com, o prueba con los datos del móvil o en otro navegador.";
+    }
+
+    if (prueba.registrado === false) {
+        return `Ese email no tiene cuenta en este proyecto. Regístrate con «¿No tienes cuenta?», o comprueba si te registraste con otra dirección. (respuesta del servidor: ${prueba.codigo})`;
+    }
+
+    if (prueba.proveedores.length && !prueba.proveedores.includes("password")) {
+        return `Esa cuenta existe, pero entró con ${prueba.proveedores.join(" y ")}, no con contraseña. Usa «Continuar con Google».`;
+    }
+
+    if (prueba.motivo) {
+        return `El servidor contesta «${prueba.motivo}» (código ${prueba.codigo}). Es configuración del proyecto de Firebase, no de tu navegador.`;
+    }
+
+    return `La red llega bien y la petición de acceso sale y vuelve (código ${prueba.codigo}), así que no es tu conexión ni un bloqueador. El fallo lo da Firebase como «${codigoFirebase || "sin código"}». Pásame esta frase entera.`;
+}
+
 export async function comprobarAcceso(): Promise<EstadoAcceso> {
     const proyecto = firebaseProjectId;
     if (typeof window === "undefined") return { ok: true, texto: "", proyecto };
@@ -218,14 +301,17 @@ function humanAuthError(error: any, fallback: string): string {
 }
 
 export const auth = {
-    login: async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    // `codigo` viaja hacia fuera a propósito: el mensaje humano se escribió para
+    // que se entienda, pero al esconder el código de Firebase se perdían tardes
+    // enteras adivinando cuál de los diez fallos posibles era éste.
+    login: async (email: string, password: string): Promise<{ success: boolean; error?: string; codigo?: string }> => {
         if (!firebaseAuth) return { success: false, error: NOT_CONFIGURED };
         try {
             await signInWithEmailAndPassword(firebaseAuth, email, password);
             return { success: true };
         } catch (error: any) {
             console.error("Login error FULL:", error);
-            return { success: false, error: humanAuthError(error, "No se pudo iniciar sesión.") };
+            return { success: false, error: humanAuthError(error, "No se pudo iniciar sesión."), codigo: error?.code || "" };
         }
     },
 
