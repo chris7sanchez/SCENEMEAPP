@@ -60,9 +60,17 @@ function CreatorContent() {
     useEffect(() => {
         const isGuest = searchParams.get('guest') === 'true';
 
+        let vivo = true;
+
         import('@/lib/auth').then(async ({ auth }) => {
-            const user = await auth.getCurrentUser();
-            if (!user) {
+            // Sólo la sesión: el perfil vive en Firestore y pedirlo aquí añadía un
+            // segundo viaje a la red DELANTE de la pantalla. Quien entra con su
+            // cuenta se comía los dos seguidos mirando el giro de carga. Ahora se
+            // pinta con el primero y el perfil entra cuando llega.
+            const sesion = await auth.getSesion();
+            if (!vivo) return;
+
+            if (!sesion) {
                 if (isGuest) {
                     setIsLoading(false);
                 } else {
@@ -72,14 +80,17 @@ function CreatorContent() {
                     // explica y ofrece entrar sin cuenta, que funciona.
                     router.push('/login?desde=creator');
                 }
-            } else {
-                setCurrentUserEmail(user.email);
-                if (user.profile) {
-                    setUserProfile(user.profile);
-                }
-                setIsLoading(false);
+                return;
             }
+
+            setCurrentUserEmail(sesion.email);
+            setIsLoading(false);
+
+            const perfil = await auth.getPerfil(sesion.uid);
+            if (vivo && perfil) setUserProfile(perfil);
         });
+
+        return () => { vivo = false; };
     }, [router, searchParams]);
 
     const [formData, setFormData] = useState<FormData>({
