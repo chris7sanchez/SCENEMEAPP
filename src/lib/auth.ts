@@ -13,7 +13,7 @@ import {
     User
 } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import { auth as firebaseAuth, db } from "./firebase";
+import { auth as firebaseAuth, db, firebaseApiKey, isFirebaseConfigured } from "./firebase";
 import { UserProfile } from "./types";
 
 // Crea el documento del usuario en Firestore si aún no existe (primer login social).
@@ -39,21 +39,38 @@ export interface UserAccount {
 const NOT_CONFIGURED = "Firebase no está configurado en este entorno (faltan las claves NEXT_PUBLIC_FIREBASE_*).";
 
 /**
- * ¿Hasta dónde llega este navegador? Se prueban DOS sitios y la diferencia
- * entre ellos es la que dice qué pasa:
+ * ¿PUEDE ESTE NAVEGADOR ENTRAR, SÍ O NO?
  *
- *   - la propia web responde, Google no  -> algo corta Google en concreto:
+ * Esto no espera a que falle un login para averiguarlo: se ejecuta al abrir la
+ * página. La idea es que quien abre /login vea escrito en pantalla por qué no
+ * puede entrar, sin escribir la contraseña, sin abrir la consola y sin tener
+ * que mandarle una captura a nadie.
+ *
+ * Se prueban DOS sitios y lo que dice la verdad es la DIFERENCIA entre ellos:
+ *
+ *   - la propia web responde y Google no -> algo corta Google en concreto:
  *     un bloqueador de contenido, una extensión, el DNS de la red o un firewall.
- *   - no responde ninguno                 -> no hay internet (o hay un portal
- *     de wifi de esos que piden aceptar).
- *   - responden los dos                   -> el corte no es de red, y entonces
- *     la culpa es nuestra y hay que mirar otra cosa.
+ *   - no responde ninguno                -> no hay internet (o hay un portal de
+ *     wifi de esos que piden aceptar antes de dejarte salir).
+ *   - responden los dos                  -> el corte no es de red; entonces la
+ *     culpa es de la aplicación y hay que mirar otra cosa.
  *
- * Se usa `no-cors` a propósito: no interesa LEER la respuesta, sólo saber si la
- * petición llega a salir. Con eso basta y no hace falta permiso de nadie.
+ * A Google se le pregunta por el MISMO sitio al que llama el SDK al iniciar
+ * sesión (identitytoolkit, con la misma clave), así que si esta comprobación
+ * pasa y el login falla, el problema ya no es "no llego a Google".
  */
+export interface EstadoAcceso {
+    ok: boolean;
+    /** Una línea para enseñar siempre, esté bien o mal. */
+    texto: string;
+    /** Qué hacer, cuando hay algo que hacer. */
+    detalle?: string;
+}
+
 async function alcanzaLaRed(url: string): Promise<boolean> {
     try {
+        // `no-cors` a propósito: no interesa LEER la respuesta, sólo saber si la
+        // petición llega a salir. Si algo la bloquea, fetch lanza.
         await fetch(url, { mode: "no-cors", cache: "no-store" });
         return true;
     } catch {
@@ -61,22 +78,110 @@ async function alcanzaLaRed(url: string): Promise<boolean> {
     }
 }
 
-export async function diagnosticoDeAcceso(): Promise<string> {
-    if (typeof window === "undefined") return "";
-    if (navigator.onLine === false) return "El navegador dice que estás sin conexión.";
+/**
+ * Llama al endpoint público de configuración de Firebase Auth: el mismo host y
+ * la misma clave que usa signInWithEmailAndPassword. Devuelve el código HTTP y
+ * el motivo que da Google, o código 0 si la petición ni siquiera llegó a salir
+ * (que es justo lo que hace un bloqueador).
+ */
+async function preguntaAFirebase(): Promise<{ codigo: number; motivo: string }> {
+    try {
+        const r = await fetch(
+            `https://identitytoolkit.googleapis.com/v1/projects?key=${encodeURIComponent(firebaseApiKey)}`,
+            { cache: "no-store" }
+        );
+        let motivo = "";
+        try {
+            const cuerpo = await r.json();
+            motivo = cuerpo?.error?.message || "";
+        } catch { /* sin cuerpo legible: nos quedamos con el código */ }
+        return { codigo: r.status, motivo };
+    } catch {
+        return { codigo: 0, motivo: "" };
+    }
+}
 
-    const [propia, google] = await Promise.all([
+export async function comprobarAcceso(): Promise<EstadoAcceso> {
+    if (typeof window === "undefined") return { ok: true, texto: "" };
+
+    if (!isFirebaseConfigured) {
+        return {
+            ok: false,
+            texto: "Esta copia de la web no tiene las claves de Firebase.",
+            detalle: "Faltan las variables NEXT_PUBLIC_FIREBASE_* en el despliegue. Sin ellas no hay login posible; hay que ponerlas en Vercel y volver a desplegar.",
+        };
+    }
+
+    if (navigator.onLine === false) {
+        return {
+            ok: false,
+            texto: "El navegador dice que estás sin conexión.",
+            detalle: "Conéctate a una red y recarga la página.",
+        };
+    }
+
+    const [propia, { codigo, motivo }] = await Promise.all([
         alcanzaLaRed(`${window.location.origin}/favicon.ico?d=${Date.now()}`),
-        alcanzaLaRed("https://identitytoolkit.googleapis.com/v1/projects"),
+        preguntaAFirebase(),
     ]);
 
-    if (propia && !google)
-        return "Diagnóstico: esta web sí responde, pero Google NO. Algo está cortando la conexión con Google en concreto: un bloqueador de contenido o de anuncios (Safari, AdBlock, Coupert…), una extensión del navegador, o el DNS de tu red. Desactívalo para scenemeapp.com, o prueba en una ventana privada o con los datos del móvil.";
-    if (!propia && !google)
-        return "Diagnóstico: no sale ninguna petición de este navegador. No hay internet, o estás en una wifi que pide aceptar unas condiciones antes de dejarte salir.";
-    if (propia && google)
-        return "Diagnóstico: la red llega bien a los dos sitios, así que esto NO es un bloqueador. El fallo es de la aplicación: pásame esta frase entera y lo miro.";
-    return "Diagnóstico: Google responde pero esta web no. Raro; pásame esta frase entera.";
+    // La petición no salió: alguien la está cortando.
+    if (codigo === 0) {
+        if (!propia)
+            return {
+                ok: false,
+                texto: "No sale ninguna petición de este navegador.",
+                detalle: "No hay internet, o estás en una wifi que pide aceptar unas condiciones antes de dejarte salir. Prueba con los datos del móvil.",
+            };
+        return {
+            ok: false,
+            texto: "Esta web sí responde, pero Google NO.",
+            detalle: "Algo corta la conexión con Google en concreto: un bloqueador de contenido o de anuncios (Safari, AdBlock, Coupert…), una extensión del navegador, un antivirus o el DNS de tu red. Desactívalo para scenemeapp.com y recarga, o prueba con los datos del móvil.",
+        };
+    }
+
+    if (codigo === 200) return { ok: true, texto: "Conexión con el servidor de acceso: correcta." };
+
+    // El proyecto existe y la clave viaja bien, pero Firebase Authentication no
+    // tiene configuración: no hay login posible para NADIE, no es cosa de este
+    // navegador ni de esta contraseña. Se dice con todas las letras porque el
+    // arreglo está en la consola de Firebase, no en el código.
+    if (motivo === "CONFIGURATION_NOT_FOUND") {
+        return {
+            ok: false,
+            texto: "Firebase Authentication no está activo en este proyecto.",
+            detalle: "Google contesta que el proyecto no tiene configuración de acceso (CONFIGURATION_NOT_FOUND). No falla tu contraseña ni tu red: no puede entrar nadie. Se arregla en la consola de Firebase → Authentication → Sign-in method, activando «Correo electrónico/contraseña» (y «Google» si se usa).",
+        };
+    }
+
+    if (motivo.includes("API_KEY") || motivo.includes("blocked") || motivo.includes("BLOCKED")) {
+        return {
+            ok: false,
+            texto: "Google rechaza la clave de esta web.",
+            detalle: `La clave de Firebase está restringida y no admite peticiones desde ${window.location.hostname}. Se cambia en Google Cloud → APIs y servicios → Credenciales. (${motivo})`,
+        };
+    }
+
+    if (codigo === 400 || codigo === 403) {
+        return {
+            ok: false,
+            texto: "Google responde, pero rechaza la petición de esta web.",
+            detalle: `Código ${codigo}${motivo ? ` (${motivo})` : ""}. Es configuración del proyecto de Firebase, no de tu navegador.`,
+        };
+    }
+
+    return {
+        ok: false,
+        texto: `El servidor de acceso responde con un error (${codigo}).`,
+        detalle: "No es cosa tuya ni de tu red: es Google o la configuración del proyecto. Vuelve a intentarlo en un rato.",
+    };
+}
+
+/** La misma comprobación, en una frase, para pegarla detrás de un error. */
+export async function diagnosticoDeAcceso(): Promise<string> {
+    const e = await comprobarAcceso();
+    if (!e.texto) return "";
+    return `Diagnóstico: ${e.texto}${e.detalle ? " " + e.detalle : ""}`;
 }
 
 // Errores de Firebase Auth en lenguaje humano (los códigos crudos en inglés
@@ -93,6 +198,10 @@ function humanAuthError(error: any, fallback: string): string {
     if (code.includes("weak-password")) return "La contraseña debe tener al menos 6 caracteres.";
     if (code.includes("network-request-failed"))
         return "No se pudo conectar con el servidor de acceso.";
+    if (code.includes("configuration-not-found"))
+        return "El proyecto de Firebase no tiene activado el acceso por email y contraseña. No es culpa tuya: no puede entrar nadie hasta que se active en la consola de Firebase (Authentication → Sign-in method).";
+    if (code.includes("operation-not-allowed"))
+        return "El acceso por email y contraseña está desactivado en Firebase. Hay que activarlo en Authentication → Sign-in method.";
     if (code.includes("user-disabled")) return "Esta cuenta está deshabilitada.";
     return error?.message || fallback;
 }

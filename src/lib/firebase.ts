@@ -21,6 +21,13 @@ export const isFirebaseConfigured = Boolean(
     firebaseConfig.apiKey && firebaseConfig.projectId
 );
 
+// La clave y el dominio se exponen para que el diagnóstico de acceso pueda
+// llamar al MISMO endpoint que usa el SDK. Son valores públicos por diseño:
+// viajan en cada petición del navegador; quien protege los datos son las reglas
+// de Firestore, no el secreto de esta clave.
+export const firebaseApiKey = firebaseConfig.apiKey ?? "";
+export const firebaseAuthDomain = firebaseConfig.authDomain ?? "";
+
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;

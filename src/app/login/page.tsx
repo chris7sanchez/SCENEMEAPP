@@ -4,6 +4,12 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Clapperboard, Eye, EyeOff, Lock } from 'lucide-react';
+import type { EstadoAcceso } from '@/lib/auth';
+
+// Qué versión se está ejecutando. Sin esto, un fallo ya arreglado y un navegador
+// con el JavaScript viejo en caché se ven EXACTAMENTE igual, y se pierde la
+// tarde discutiendo cuál de los dos es.
+const VERSION = (process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || 'local').slice(0, 7);
 
 export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -16,6 +22,10 @@ export default function LoginPage() {
     // Sesión ya guardada en este dispositivo: FRENAMOS aquí en vez de saltar
     // directos a la app. El usuario decide: continuar o cambiar de cuenta.
     const [knownUser, setKnownUser] = useState<string | null>(null);
+    // Estado de la conexión, comprobado AL ABRIR la página. Antes había que
+    // fallar un login para enterarse de por qué fallaba; ahora lo pone en
+    // pantalla sin escribir nada.
+    const [red, setRed] = useState<EstadoAcceso | null>(null);
     const router = useRouter();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -70,6 +80,16 @@ export default function LoginPage() {
             if (redirect.error) setError(redirect.error);
         });
     }, [router]);
+
+    // Comprobación de acceso nada más abrir, sin esperar a que nadie teclee.
+    React.useEffect(() => {
+        let vivo = true;
+        import('@/lib/auth').then(async ({ comprobarAcceso }) => {
+            const e = await comprobarAcceso();
+            if (vivo) setRed(e);
+        });
+        return () => { vivo = false; };
+    }, []);
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden flex flex-col items-center justify-center py-6"
@@ -229,13 +249,6 @@ export default function LoginPage() {
                             {error && (
                                 <div className="p-2 rounded-lg" style={{ background: 'hsla(0, 70%, 50%, 0.12)' }}>
                                     <p className="text-xs font-bold text-center" style={{ color: 'hsl(0, 90%, 72%)' }}>{error}</p>
-                                    {/* Qué versión se está ejecutando. Sin esto, un fallo que ya
-                                        está arreglado y un navegador con el JavaScript viejo en
-                                        caché se ven EXACTAMENTE igual, y se pierde la tarde
-                                        discutiendo cuál de los dos es. */}
-                                    <p className="mt-1.5 text-center text-[10px] font-mono" style={{ color: 'hsl(0, 30%, 60%)' }}>
-                                        versión {(process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || 'local').slice(0, 7)}
-                                    </p>
                                 </div>
                             )}
                             {info && <p className="text-xs font-bold text-center p-2 rounded-lg" style={{ color: 'hsl(150, 60%, 55%)', background: 'hsla(150, 60%, 40%, 0.12)' }}>{info}</p>}
@@ -319,6 +332,30 @@ export default function LoginPage() {
                             </button>
                         </div>
                         </>
+                        )}
+                    </div>
+                    {/* ESTADO DE LA CONEXIÓN, SIEMPRE VISIBLE.
+                        En verde no es decoración: dice que este navegador llega al
+                        servidor de acceso Y qué versión del código está corriendo,
+                        que son las dos preguntas que antes había que resolver a base
+                        de capturas de pantalla. */}
+                    <div className="mt-3 px-1 text-center">
+                        {red === null ? (
+                            <p className="text-[10px] font-mono" style={{ color: 'hsl(220, 12%, 45%)' }}>
+                                comprobando conexión…
+                            </p>
+                        ) : red.ok ? (
+                            <p className="text-[10px] font-mono" style={{ color: 'hsl(150, 35%, 50%)' }}>
+                                ✓ {red.texto} · versión {VERSION}
+                            </p>
+                        ) : (
+                            <div className="rounded-lg p-2.5 text-left" style={{ background: 'hsla(38, 90%, 50%, 0.12)', border: '1px solid hsla(38, 90%, 50%, 0.3)' }}>
+                                <p className="text-xs font-bold" style={{ color: 'hsl(38, 90%, 68%)' }}>⚠ {red.texto}</p>
+                                {red.detalle && (
+                                    <p className="mt-1 text-[11px] leading-snug" style={{ color: 'hsl(220, 15%, 72%)' }}>{red.detalle}</p>
+                                )}
+                                <p className="mt-1.5 text-[10px] font-mono" style={{ color: 'hsl(220, 12%, 50%)' }}>versión {VERSION}</p>
+                            </div>
                         )}
                     </div>
                 </div>
