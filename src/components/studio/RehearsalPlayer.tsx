@@ -898,6 +898,12 @@ function ActivePlayer(props: {
      *  perdías el sitio. Ahora pregunta antes. */
     const [confirmarReinicio, setConfirmarReinicio] = useState(false);
     const [micError, setMicError] = useState('');
+    /** El nombre del micrófono que ha cogido el navegador. */
+    const [micNombre, setMicNombre] = useState('');
+    /** Lleva demasiado "activando": algo se ha quedado colgado. */
+    const [micTarda, setMicTarda] = useState(false);
+    /** El volumen más alto oído en este turno: dice si te oye o no te oye. */
+    const [picoVu, setPicoVu] = useState(0);
     const [micAttempt, setMicAttempt] = useState(0);
     // El detector de voz SOLO puede armarse cuando el micro ya está abierto.
     // Tiene que ser estado (no ref): si fuera ref, el efecto del detector se
@@ -934,11 +940,20 @@ function ActivePlayer(props: {
             .then(s => {
                 if (cancelled) { s.getTracks().forEach(t => t.stop()); return; }
                 micStreamRef.current = s;
+                // Qué micrófono ha cogido Chrome. Es el dato que resuelve la
+                // mitad de los "no me oye": tenía elegidos los auriculares
+                // apagados, o la cámara, y no el micro de delante.
+                setMicNombre(s.getAudioTracks()[0]?.label || '');
                 try {
                     const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
                     // Preferimos el contexto creado DENTRO del gesto de EMPEZAR: iOS
                     // deja suspendido para siempre uno creado fuera de un gesto.
-                    const ctx: AudioContext = getSharedAudioContext() || new AC();
+                    // Pero uno CERRADO no vale: createMediaStreamSource lanza, y
+                    // antes ese fallo se lo tragaba un catch vacío -el micro se
+                    // encendía, la luz de Chrome se ponía roja y aquí no pasaba
+                    // nada, para siempre, sin un solo mensaje-.
+                    const compartido = getSharedAudioContext();
+                    const ctx: AudioContext = compartido && compartido.state !== 'closed' ? compartido : new AC();
                     ctx.resume?.().catch(() => {});
                     const src = ctx.createMediaStreamSource(s);
                     const analyser = ctx.createAnalyser();
@@ -950,7 +965,10 @@ function ActivePlayer(props: {
                     // Chrome suele dejar el AudioContext "suspended": reanúdalo al primer gesto.
                     window.addEventListener('pointerdown', resumeCtx);
                     window.addEventListener('keydown', resumeCtx);
-                } catch { /* */ }
+                } catch (e) {
+                    setMicDenied(true);
+                    setMicError(e instanceof Error ? `audio: ${e.name}` : 'audio');
+                }
             })
             .catch((err: unknown) => { setMicDenied(true); setMicError(err instanceof Error ? err.name : 'error'); });
         return () => {
@@ -964,6 +982,15 @@ function ActivePlayer(props: {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [micAttempt]);
+
+    // "Activando el micrófono…" no puede parpadear eternamente. Si a los 6
+    // segundos sigue sin haber micro, es que algo se quedó colgado y hay que
+    // decirlo, con la salida a mano al lado.
+    useEffect(() => {
+        if (advanceMode !== 'voice' || micReady || micDenied) return;
+        const t = setTimeout(() => setMicTarda(true), 6000);
+        return () => clearTimeout(t);
+    }, [advanceMode, micReady, micDenied, micAttempt]);
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -985,7 +1012,8 @@ function ActivePlayer(props: {
         try { audioCtxRef.current?.resume?.(); } catch { /* */ }
         const buf = new Uint8Array(analyser.fftSize);
         const trigger = new VoiceTrigger();
-        let raf = 0; let done = false; let frame = 0; let heardShown = false; let suspendedFrames = 0;
+        let done = false; let frame = 0; let heardShown = false; let suspendedFrames = 0;
+        let pico = 0;   // el volumen más alto visto en este turno
         const tick = () => {
             if (done) return;
             frame++;
@@ -1004,12 +1032,24 @@ function ActivePlayer(props: {
             const rms = Math.sqrt(sum / buf.length);
             // Medidor visible: el usuario VE que el micro le está oyendo.
             if (vuRef.current) vuRef.current.style.width = `${Math.min(100, Math.round(rms * 700))}%`;
+            if (rms > pico) { pico = rms; setPicoVu(rms); }
             if (!heardShown && trigger.heard) { heardShown = true; setHeard(true); }
             if (trigger.sample(rms, performance.now())) { done = true; r.advance(); return; }
-            raf = requestAnimationFrame(tick);
         };
-        raf = requestAnimationFrame(tick);
-        return () => { done = true; cancelAnimationFrame(raf); };
+        // ESTO IBA CON requestAnimationFrame Y ES EL FALLO DE CHROME.
+        //
+        // requestAnimationFrame sólo corre cuando el navegador está PINTANDO. Si
+        // la ventana se queda detrás de otra, minimizada, o en una pantalla que
+        // no se ve, Chrome deja de pintar y el detector se para en seco: el
+        // micrófono sigue encendido, la luz roja de la pestaña sigue ahí, y el
+        // ensayo no avanza por mucho que hables. Que es exactamente lo que pasa
+        // ensayando de pie, mirando el guion en papel o en otra ventana.
+        //
+        // Un temporizador no depende de que se pinte nada. 40 ms (25 medidas por
+        // segundo) sobra de largo para detectar habla y silencio, y gasta menos.
+        const reloj = setInterval(tick, 40);
+        tick();
+        return () => { done = true; clearInterval(reloj); };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [advanceMode, state.phase, state.index, micReady]);
 
@@ -1078,7 +1118,18 @@ function ActivePlayer(props: {
                                         <button onClick={() => setMicAttempt(n => n + 1)} className="font-bold text-amber-400 underline hover:text-amber-300">Reintentar</button>{' '}o pulsa SIGUIENTE.
                                     </p>
                                 ) : !micReady ? (
-                                    <p className="animate-pulse">🎙️ Activando el micrófono… (acepta el permiso si te lo pide)</p>
+                                    micTarda ? (
+                                        <p className="mx-auto max-w-md rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-amber-200">
+                                            El micrófono no acaba de abrirse. Mira el candado de la barra de direcciones
+                                            (Micrófono → Permitir) y, en Chrome, que el micro elegido en
+                                            <span className="font-mono"> chrome://settings/content/microphone </span>
+                                            sea el que usas.{' '}
+                                            <button onClick={() => { setMicTarda(false); setMicAttempt(n => n + 1); }} className="font-bold text-amber-300 underline hover:text-amber-200">Reintentar</button>
+                                            {' '}· o sigue con SIGUIENTE, que funciona igual.
+                                        </p>
+                                    ) : (
+                                        <p className="animate-pulse">🎙️ Activando el micrófono… (acepta el permiso si te lo pide)</p>
+                                    )
                                 ) : micSuspended ? (
                                     <p className="font-bold text-amber-300">👆 Toca la pantalla una vez para activar el micrófono.</p>
                                 ) : (
@@ -1089,6 +1140,18 @@ function ActivePlayer(props: {
                                         <div className="mx-auto mt-1.5 h-1.5 w-40 overflow-hidden rounded-full bg-zinc-800">
                                             <div ref={vuRef} className={`h-full rounded-full transition-[width] duration-75 ${heard ? 'bg-emerald-400' : 'bg-amber-400'}`} style={{ width: '0%' }} />
                                         </div>
+                                        {/* Cuando "no me oye", esto dice si el problema es que no
+                                            llega señal o que llega demasiado baja, y con qué
+                                            micrófono está escuchando. Sin esto sólo hay una barra
+                                            quieta y ninguna pista. */}
+                                        <p className="mt-1 text-[10px] text-zinc-600">
+                                            {picoVu < 0.005
+                                                ? 'no llega señal de este micrófono'
+                                                : picoVu < 0.03
+                                                    ? 'te oigo muy bajito: sube el volumen de entrada o acércate'
+                                                    : 'nivel correcto'}
+                                            {micNombre && <> · {micNombre}</>}
+                                        </p>
                                     </div>
                                 )}
                             </div>
