@@ -34,10 +34,12 @@ export interface AjustesEnsayo {
     distintos: string[];
 }
 
-export default function RehearsalPlayer({ script, guionId, ajustes, onGuardarAjustes, onClose }: {
+export default function RehearsalPlayer({ script, guionId, uid, ajustes, onGuardarAjustes, onClose }: {
     script: string;
     /** Identidad del guion: con ella se buscan sus voces grabadas. */
     guionId?: string;
+    /** Quién ensaya. Con sesión, las voces grabadas viven en su cuenta. */
+    uid?: string | null;
     /** Reparto y elecciones guardadas de este guion, si las hay. */
     ajustes?: Partial<AjustesEnsayo>;
     /** Se llama al pulsar EMPEZAR: así el reparto queda guardado en la cuenta. */
@@ -79,9 +81,9 @@ export default function RehearsalPlayer({ script, guionId, ajustes, onGuardarAju
 
     useEffect(() => {
         let vivo = true;
-        tomasDeGuion(idVoces).then(m => { if (vivo) setTomas(m); }).catch(() => { /* sin tomas */ });
+        tomasDeGuion(idVoces, uid).then(m => { if (vivo) setTomas(m); }).catch(() => { /* sin tomas */ });
         return () => { vivo = false; };
-    }, [idVoces, revisionTomas]);
+    }, [idVoces, uid, revisionTomas]);
     /** Si el guion no trae acción ni acotaciones, no se ofrece el narrador. */
     const hayNarracion = useMemo(() => hasNarration(conDialogo), [conDialogo]);
 
@@ -232,6 +234,7 @@ export default function RehearsalPlayer({ script, guionId, ajustes, onGuardarAju
                 ) : grabandoA ? (
                     <GrabadorDeVoces
                         guionId={idVoces}
+                        uid={uid ?? null}
                         personaje={grabandoA}
                         lineas={lineasDe(grabandoA)}
                         tomas={tomas}

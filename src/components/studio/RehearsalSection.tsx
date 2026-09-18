@@ -255,6 +255,7 @@ export default function RehearsalSection({ dateKey }: { dateKey: string }) {
                 <RehearsalPlayer
                     script={enEnsayo.texto}
                     guionId={enEnsayo.id}
+                    uid={uid}
                     ajustes={{
                         reparto: enEnsayo.reparto, miPersonaje: enEnsayo.miPersonaje,
                         motor: enEnsayo.motor, narrador: enEnsayo.narrador,

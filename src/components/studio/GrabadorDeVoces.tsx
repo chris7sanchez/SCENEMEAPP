@@ -10,7 +10,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     guardarToma, borrarToma, borrarPersonaje, formatoDeGrabacion,
-    comoPeso, pesoDeTomas, type TomaVoz,
+    comoPeso, pesoDeTomas, BITS_POR_SEGUNDO, type TomaVoz,
 } from '@/lib/voces-grabadas';
 
 export interface LineaGrabable {
@@ -20,8 +20,10 @@ export interface LineaGrabable {
     escena: string;
 }
 
-export default function GrabadorDeVoces({ guionId, personaje, lineas, tomas, onCambio, onClose }: {
+export default function GrabadorDeVoces({ guionId, uid, personaje, lineas, tomas, onCambio, onClose }: {
     guionId: string;
+    /** Con sesión, las tomas van a la cuenta y sobreviven a este navegador. */
+    uid: string | null;
     personaje: string;
     lineas: LineaGrabable[];
     tomas: Map<string, TomaVoz>;
@@ -39,7 +41,8 @@ export default function GrabadorDeVoces({ guionId, personaje, lineas, tomas, onC
     const [segundos, setSegundos] = useState(0);
     const [permiso, setPermiso] = useState<'pidiendo' | 'ok' | 'denegado'>('pidiendo');
     const [reproduciendo, setReproduciendo] = useState(false);
-    const [falloAlGuardar, setFalloAlGuardar] = useState(false);
+    /** Qué ha pasado con la última toma: '' si fue bien a la cuenta. */
+    const [avisoGuardado, setAvisoGuardado] = useState('');
 
     const streamRef = useRef<MediaStream | null>(null);
     const ctxRef = useRef<AudioContext | null>(null);
@@ -124,7 +127,7 @@ export default function GrabadorDeVoces({ guionId, personaje, lineas, tomas, onC
         if (!s || !linea || grabando) return;
         try { ctxRef.current?.resume?.(); } catch { /* */ }
         trozosRef.current = [];
-        const g = new MediaRecorder(s, { mimeType: formato });
+        const g = new MediaRecorder(s, { mimeType: formato, audioBitsPerSecond: BITS_POR_SEGUNDO });
         g.ondataavailable = e => { if (e.data.size) trozosRef.current.push(e.data); };
         g.onstop = async () => {
             const audio = new Blob(trozosRef.current, { type: formato });
@@ -132,17 +135,21 @@ export default function GrabadorDeVoces({ guionId, personaje, lineas, tomas, onC
             // Un chasquido de medio segundo no es una toma: casi siempre es un
             // doble clic. Se descarta antes de machacar la que hubiera.
             if (audio.size > 1200 && duracionMs > 400) {
-                try {
-                    await guardarToma({
-                        guionId, personaje, texto: linea.texto, clave: linea.clave,
-                        audio, duracionMs,
-                    });
-                    onCambio();
-                } catch {
-                    // Navegación privada, disco lleno, permiso de almacenamiento
-                    // denegado: no se guarda, pero no se pierde el ensayo.
-                    setFalloAlGuardar(true);
-                }
+                const r = await guardarToma(
+                    { guionId, personaje, texto: linea.texto, clave: linea.clave, audio, duracionMs },
+                    uid,
+                );
+                // Si la toma NO ha llegado a la cuenta hay que decirlo AHORA, no
+                // cuando se haya grabado media escena y se pierda al cerrar.
+                setAvisoGuardado(
+                    r.enLaCuenta ? ''
+                        : r.motivo === 'sin-sesion'
+                            ? 'Esta toma se ha guardado sólo en este navegador. Inicia sesión para que quede en tu cuenta y no se pierda.'
+                            : r.motivo === 'demasiado-larga'
+                                ? 'La toma es demasiado larga para subirla a tu cuenta; se queda sólo en este navegador. Prueba a partir la frase.'
+                                : 'No se ha podido subir a tu cuenta (¿sin conexión?). Se ha guardado en este navegador; se subirá si vuelves a grabarla con red.',
+                );
+                onCambio();
             }
         };
         desdeRef.current = Date.now();
@@ -176,13 +183,13 @@ export default function GrabadorDeVoces({ guionId, personaje, lineas, tomas, onC
 
     const rehacer = async () => {
         if (!linea) return;
-        await borrarToma(guionId, linea.clave);
+        await borrarToma(guionId, linea.clave, uid);
         onCambio();
     };
 
     const borrarTodo = async () => {
         if (!confirm(`¿Borrar TODAS las tomas de ${personaje}? No se puede deshacer.`)) return;
-        await borrarPersonaje(guionId, personaje);
+        await borrarPersonaje(guionId, personaje, uid);
         onCambio();
     };
 
@@ -294,18 +301,24 @@ export default function GrabadorDeVoces({ guionId, personaje, lineas, tomas, onC
                 </>
             )}
 
-            {falloAlGuardar && (
+            {avisoGuardado && (
                 <p className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200">
-                    No se ha podido guardar la toma. Suele pasar en ventanas de incógnito o si el
-                    navegador tiene bloqueado el almacenamiento de este sitio.
+                    ⚠️ {avisoGuardado}
                 </p>
             )}
 
-            <p className="mt-6 rounded-xl border border-zinc-800 bg-black/30 p-3 text-[11px] leading-relaxed text-zinc-500">
-                Las tomas se guardan <strong className="text-zinc-400">en este navegador</strong>, no en tu
-                cuenta: son ficheros de audio y ocupan demasiado para viajar solos. Si vacías los datos del
-                navegador o ensayas desde otro aparato, habrá que volver a grabarlas.
-            </p>
+            {uid ? (
+                <p className="mt-6 rounded-xl border border-emerald-600/30 bg-emerald-500/5 p-3 text-[11px] leading-relaxed text-emerald-300/80">
+                    ✓ Las tomas se guardan <strong>en tu cuenta</strong>. Las tendrás en cualquier
+                    ordenador y no se pierden aunque vacíes el navegador.
+                </p>
+            ) : (
+                <p className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-[11px] leading-relaxed text-amber-200">
+                    ⚠️ <strong>Sin sesión iniciada</strong>, las tomas se guardan sólo en este navegador y se
+                    pierden al vaciarlo (y en una ventana privada, al cerrarla). Inicia sesión antes de
+                    ponerte a grabar: es un minuto ahora frente a repetirlo todo después.
+                </p>
+            )}
         </div>
     );
 }

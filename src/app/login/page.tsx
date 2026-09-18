@@ -226,7 +226,18 @@ export default function LoginPage() {
                                 </button>
                             </div>
 
-                            {error && <p className="text-xs font-bold text-center p-2 rounded-lg" style={{ color: 'hsl(0, 90%, 72%)', background: 'hsla(0, 70%, 50%, 0.12)' }}>{error}</p>}
+                            {error && (
+                                <div className="p-2 rounded-lg" style={{ background: 'hsla(0, 70%, 50%, 0.12)' }}>
+                                    <p className="text-xs font-bold text-center" style={{ color: 'hsl(0, 90%, 72%)' }}>{error}</p>
+                                    {/* Qué versión se está ejecutando. Sin esto, un fallo que ya
+                                        está arreglado y un navegador con el JavaScript viejo en
+                                        caché se ven EXACTAMENTE igual, y se pierde la tarde
+                                        discutiendo cuál de los dos es. */}
+                                    <p className="mt-1.5 text-center text-[10px] font-mono" style={{ color: 'hsl(0, 30%, 60%)' }}>
+                                        versión {(process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || 'local').slice(0, 7)}
+                                    </p>
+                                </div>
+                            )}
                             {info && <p className="text-xs font-bold text-center p-2 rounded-lg" style={{ color: 'hsl(150, 60%, 55%)', background: 'hsla(150, 60%, 40%, 0.12)' }}>{info}</p>}
 
                             <Button
