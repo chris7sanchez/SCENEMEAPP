@@ -17,3 +17,32 @@ src/data/exquisit/guides/
 *.mov
 src/app/tools/video/
 
+
+# ------------------------------------------------------------------
+# PESO DEL DESPLIEGUE
+#
+# Cada despliegue guarda una copia entera de lo que se sube, y esas copias se
+# acumulan: por eso Vercel acabo diciendo "deployment storage limit exceeded" y
+# dejo de construir. public/ pesaba 605 MB, asi que cada build de mas costaba
+# 605 MB de almacenamiento aunque no hubiera cambiado ni un fichero.
+#
+# Lo de aqui abajo NO lo pide nadie desde el navegador. Sale del despliegue,
+# no del repositorio: los ficheros siguen en git y en local.
+
+# 315 MB. Solo lo lee src/ai/batch-assimilate.ts, que es un script de ingesta
+# que se lanza a mano; no lo importa nadie y no entra en el build.
+public/content/
+
+# 24 MB. Los master de los videos de la portada. Desde que la portada usa los
+# cortes de 16 segundos (*-loop.mp4) no los pide nadie. Se van POR SU NOMBRE,
+# que es lo unico que no se olvida en silencio.
+public/videos/ACTING RODRIGUES SHOGUN2-web.mp4
+public/videos/AMANDA_OK_22_01-web.mp4
+public/videos/Acting1 OLIVER-web.mp4
+public/videos/MIX-cine-web.mp4
+public/videos/MUDANZA-cut-web.mp4
+public/videos/Mel_cuban-web.mp4
+public/videos/SONIA_DORADO_DW2-web.mp4
+
+# 8 MB de skills de diseño. Las lee el agente, no el navegador.
+.claude/
