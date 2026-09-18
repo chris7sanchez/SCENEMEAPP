@@ -15,7 +15,16 @@ src/app/tools/video/
 
 # Los videos de la landing de la raiz. La carpeta public/videos/ ya NO se excluye
 # entera, porque una carpeta excluida no admite reincluir su contenido con '!';
-# se dejan pasar uno a uno los que la pagina usa (el resto lo tapa *.mp4).
+# se dejan pasar los que la pagina usa (el resto lo tapa *.mp4).
+#
+# CUIDADO CON ESTE FICHERO. Un clip que falte aqui esta en git, pasa las
+# pruebas, se ve en local... y en produccion da 404, asi que la portada se queda
+# con los fotogramas quietos y parece una galeria de fotos. Ya paso con los
+# cortes cortos: estaban subidos y Vercel no los desplegaba.
+# Por eso los de la portada van por PATRON y no uno a uno, y hay una prueba
+# (assets-desplegados.test.ts) que comprueba que todo lo que el codigo pide
+# llega de verdad al despliegue.
+!public/videos/*-loop.mp4
 !public/videos/MIX-cine-web.mp4
 !public/videos/MUDANZA-cut-web.mp4
 !public/videos/Mel_cuban-web.mp4
