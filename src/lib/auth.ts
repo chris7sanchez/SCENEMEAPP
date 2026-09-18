@@ -15,6 +15,8 @@ import {
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { auth as firebaseAuth, db, firebaseApiKey, firebaseProjectId, isFirebaseConfigured } from "./firebase";
 import { UserProfile } from "./types";
+import { esperarSesion, type Sesion } from "./sesion";
+import { explicarFalloDeAcceso, PUERTA_DEL_LOGIN } from "./diagnostico-acceso";
 
 // Crea el documento del usuario en Firestore si aún no existe (primer login social).
 async function ensureUserDoc(uid: string, email: string, provider: string): Promise<void> {
@@ -112,13 +114,19 @@ async function preguntaAFirebase(): Promise<{ codigo: number; motivo: string }> 
  * JSON al mismo servidor- y hay bloqueadores, extensiones y antivirus que dejan
  * pasar lo primero y cortan lo segundo.
  *
- * Así que se repite la petición EXACTA que hace el SDK, en su forma inofensiva:
- * `accounts:createAuthUri` es el mismo host, la misma clave, el mismo método y
- * la misma cabecera, pero sólo pregunta "¿existe este email y con qué ha
- * entrado?". No inicia sesión, no crea nada y no necesita la contraseña.
+ * Así que se llama a `accounts:signInWithPassword`, LA MISMA puerta del login,
+ * con un email inventado. Si contesta -aunque sea para rechazar las
+ * credenciales- la puerta está abierta y el fallo es de otra cosa; si la
+ * petición no llega a salir, ahí está el bloqueador.
  *
- * Con eso, cuando el login falle se sabe de qué lado está el fallo sin tener que
- * pedirle a nadie que abra la consola del navegador.
+ * Durante un tiempo esto probó `createAuthUri`, que es OTRA puerta: daba 200 tan
+ * contenta mientras la del login estaba cortada. Y al quitar Google los campos
+ * `registered` y `allProviders` de esa respuesta -hoy devuelve `{kind,
+ * sessionId}` y nada más-, el diagnóstico se quedó sin datos y acababa siempre
+ * en la misma frase de "no es un bloqueador", que además era mentira.
+ *
+ * Con esto, cuando el login falle se sabe de qué lado está el fallo sin tener
+ * que pedirle a nadie que abra la consola del navegador.
  */
 export interface PruebaDePost {
     salio: boolean;        // ¿llegó a salir la petición?
@@ -128,19 +136,28 @@ export interface PruebaDePost {
     registrado: boolean | null;
 }
 
-export async function probarPeticionDeAcceso(email: string): Promise<PruebaDePost> {
+export async function probarPeticionDeAcceso(_email?: string): Promise<PruebaDePost> {
     const vacio: PruebaDePost = { salio: false, codigo: 0, motivo: "", proveedores: [], registrado: null };
     if (!firebaseApiKey) return vacio;
     try {
+        // Se llama a LA MISMA puerta que usa el login. Antes se probaba
+        // createAuthUri, que es otra: contestaba 200 tan contenta mientras
+        // signInWithPassword estaba cortada, y el diagnóstico juraba que no
+        // había bloqueador.
+        //
+        // Y se prueba con un email INVENTADO, nunca con el de quien está
+        // intentando entrar: cada intento fallido cuenta contra la cuenta real y
+        // acabaríamos bloqueándosela nosotros por diagnosticar.
         const r = await fetch(
-            `https://identitytoolkit.googleapis.com/v1/accounts:createAuthUri?key=${encodeURIComponent(firebaseApiKey)}`,
+            `https://identitytoolkit.googleapis.com/v1/accounts:${PUERTA_DEL_LOGIN}?key=${encodeURIComponent(firebaseApiKey)}`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 cache: "no-store",
                 body: JSON.stringify({
-                    identifier: email || "prueba@scenemeapp.com",
-                    continueUri: `${window.location.origin}/login`,
+                    email: `comprobacion-${Date.now()}@scenemeapp.invalid`,
+                    password: "comprobacion-de-que-la-puerta-abre",
+                    returnSecureToken: true,
                 }),
             },
         );
@@ -151,8 +168,8 @@ export async function probarPeticionDeAcceso(email: string): Promise<PruebaDePos
             salio: true,
             codigo: r.status,
             motivo: error?.message || "",
-            proveedores: (cuerpo.allProviders as string[] | undefined) || (cuerpo.signinMethods as string[] | undefined) || [],
-            registrado: typeof cuerpo.registered === "boolean" ? cuerpo.registered : null,
+            proveedores: [],
+            registrado: null,
         };
     } catch {
         return vacio;
@@ -164,26 +181,12 @@ export async function probarPeticionDeAcceso(email: string): Promise<PruebaDePos
  * qué lado está el problema, escrita a partir de lo que respondió el servidor y
  * no de lo que parecía más probable.
  */
-export async function porQueNoEntra(email: string, codigoFirebase: string): Promise<string> {
-    const prueba = await probarPeticionDeAcceso(email);
-
-    if (!prueba.salio) {
-        return "La página sí habla con Google, pero la petición de ENTRAR no llega a salir. Eso es un bloqueador de contenido, una extensión del navegador o un antivirus que corta justo esa llamada: dejan pasar lo demás y bloquean el acceso. Desactívalo para scenemeapp.com, o prueba con los datos del móvil o en otro navegador.";
-    }
-
-    if (prueba.registrado === false) {
-        return `Ese email no tiene cuenta en este proyecto. Regístrate con «¿No tienes cuenta?», o comprueba si te registraste con otra dirección. (respuesta del servidor: ${prueba.codigo})`;
-    }
-
-    if (prueba.proveedores.length && !prueba.proveedores.includes("password")) {
-        return `Esa cuenta existe, pero entró con ${prueba.proveedores.join(" y ")}, no con contraseña. Usa «Continuar con Google».`;
-    }
-
-    if (prueba.motivo) {
-        return `El servidor contesta «${prueba.motivo}» (código ${prueba.codigo}). Es configuración del proyecto de Firebase, no de tu navegador.`;
-    }
-
-    return `La red llega bien y la petición de acceso sale y vuelve (código ${prueba.codigo}), así que no es tu conexión ni un bloqueador. El fallo lo da Firebase como «${codigoFirebase || "sin código"}». Pásame esta frase entera.`;
+export async function porQueNoEntra(_email: string, codigoFirebase: string): Promise<string> {
+    const prueba = await probarPeticionDeAcceso();
+    return explicarFalloDeAcceso(
+        { salio: prueba.salio, codigo: prueba.codigo, motivo: prueba.motivo },
+        codigoFirebase,
+    ).texto;
 }
 
 export async function comprobarAcceso(): Promise<EstadoAcceso> {
@@ -236,18 +239,17 @@ export async function comprobarAcceso(): Promise<EstadoAcceso> {
 
     if (codigo === 200) {
         // Aquí está el caso que se escapaba: lo normal pasa, lo del acceso no.
-        // Un POST con JSON obliga al navegador a pedir permiso antes (la
-        // "preflight"), y hay bloqueadores, extensiones y antivirus que tumban
-        // eso mientras dejan pasar todo lo demás.
-        if (!post.salio) {
-            return {
-                ok: false,
-                proyecto,
-                texto: "Google responde, pero la petición de ENTRAR no llega a salir.",
-                detalle: "Algo de este navegador corta justo esa llamada: un bloqueador de contenido o de anuncios, una extensión, o un antivirus con «protección web». Desactívalo para scenemeapp.com y recarga, o entra desde otro navegador o con los datos del móvil. Mientras tanto puedes usar «Entrar sin cuenta», que no necesita esto.",
-            };
+        // `post` va contra la puerta del login, no contra otra: decir "correcta"
+        // mirando un endpoint distinto es lo que hacía que el diagnóstico diera
+        // el visto bueno mientras no entraba nadie.
+        const veredicto = explicarFalloDeAcceso(
+            { salio: post.salio, codigo: post.codigo, motivo: post.motivo },
+            "",
+        );
+        if (veredicto.culpa === 'credenciales') {
+            return { ok: true, proyecto, texto: "Conexión con el servidor de acceso: correcta." };
         }
-        return { ok: true, proyecto, texto: "Conexión con el servidor de acceso: correcta." };
+        return { ok: false, proyecto, texto: veredicto.texto };
     }
 
     // El proyecto existe y la clave viaja bien, pero Firebase Authentication no
@@ -438,6 +440,25 @@ export const auth = {
             localStorage.removeItem("auth_redirect_pending");
             console.error("completeRedirectLogin error:", e);
             return { ok: false, error: e?.message };
+        }
+    },
+
+    // Quién eres, sin el perfil. Para pintar una pantalla basta con esto, y
+    // ahorra el viaje a Firestore que hace getCurrentUser. Ver sesion.ts.
+    getSesion: (): Promise<Sesion | null> => {
+        const instancia = firebaseAuth;
+        return esperarSesion(instancia ? (avisar) => onAuthStateChanged(instancia, avisar) : null);
+    },
+
+    // El perfil, cuando ya no bloquea a nadie.
+    getPerfil: async (uid: string): Promise<UserProfile | undefined> => {
+        if (!db) return undefined;
+        try {
+            const docSnap = await getDoc(doc(db, "users", uid));
+            return docSnap.exists() ? (docSnap.data().profile as UserProfile | undefined) : undefined;
+        } catch (e) {
+            console.error("getPerfil error:", e);
+            return undefined;
         }
     },
 
