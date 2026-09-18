@@ -10,6 +10,7 @@ import { dudasDeReparto, claveDuda, type DudaReparto } from '@/lib/personajes';
 import { repartirVoces, generoDeNombre } from '@/lib/genero';
 import { claveDeLinea, idDeGuion, tomasDeGuion, type TomaVoz } from '@/lib/voces-grabadas';
 import GrabadorDeVoces, { type LineaGrabable } from '@/components/studio/GrabadorDeVoces';
+import { SelectorDeVoz } from '@/components/studio/SelectorDeVoz';
 import {
     getSpeechProvider, applyManner, MANNER_PRESETS, DEFAULT_PROFILE, OPENAI_TTS_VOICES, ELEVENLABS_VOICES, unlockAudio, getSharedAudioContext,
     type VoiceProfile, type SpeechVoice,
@@ -542,8 +543,28 @@ function VoiceEditor(props: { speaker: string; isMine: boolean; esNarrador?: boo
     const muestra = esNarrador ? 'Ana friega. Entra Luis, mojado.' : `Hola, soy ${speaker}.`;
     const test = () => getSpeechProvider(engine).speak(muestra, { voiceId: profile.voiceId, rate: profile.rate, pitch: profile.pitch, instructions: profile.instructions });
 
+    // TU PERSONAJE NO SE LEE EN VOZ ALTA, así que no lleva controles.
+    //
+    // Antes llevaba la tarjeta entera -selector de voz, tono, velocidad, pausa-
+    // atenuada con opacity-70, como diciendo "esto está aquí pero no sirve".
+    // Dos problemas. Uno de fondo: un control que no hace nada no se apaga, se
+    // quita; atenuarlo sólo consigue que alguien lo toque y no entienda por qué
+    // no pasa nada. Y otro técnico, que es el que lo destapó: la opacidad se
+    // HEREDA y además crea contexto de apilamiento, así que el desplegable de
+    // voces que se abre dentro salía translúcido y por debajo de la tarjeta de
+    // al lado. Una fila honrada de una línea arregla las dos cosas.
+    if (isMine) {
+        return (
+            <div className="flex items-center gap-2 rounded-xl border border-dashed border-zinc-800 px-3 py-2.5">
+                <span className="text-sm font-bold uppercase text-zinc-400">{speaker}</span>
+                {genero && <span className="text-[11px] text-zinc-600">{genero === 'f' ? '♀' : '♂'}</span>}
+                <span className="text-xs text-zinc-600">— tu papel, lo dices tú</span>
+            </div>
+        );
+    }
+
     return (
-        <div className={`rounded-xl border p-3 ${isMine ? 'border-zinc-800 bg-zinc-900/30 opacity-70' : esNarrador ? 'border-zinc-600 bg-zinc-800/40' : 'border-zinc-700 bg-zinc-900/60'}`}>
+        <div className={`rounded-xl border p-3 ${esNarrador ? 'border-zinc-600 bg-zinc-800/40' : 'border-zinc-700 bg-zinc-900/60'}`}>
             <div className="flex items-center justify-between gap-2">
                 <span className={`text-sm font-bold uppercase ${esNarrador ? 'text-zinc-300' : 'text-amber-300'}`}>
                     {esNarrador ? 'Narrador' : speaker}
@@ -560,11 +581,9 @@ function VoiceEditor(props: { speaker: string; isMine: boolean; esNarrador?: boo
                             🎙 {grabadas.hechas}/{grabadas.total} con voz real
                         </span>
                     )}
-                    {isMine && <span className="ml-2 text-[10px] font-normal text-zinc-500">(tú — sin voz)</span>}
                 </span>
                 <div className="flex shrink-0 gap-1.5">
-                    {/* Tu personaje no lo lee nadie, así que tampoco hay nada que grabarle. */}
-                    {onGrabar && !isMine && (
+                    {onGrabar && (
                         <button
                             onClick={onGrabar}
                             title={`Grabar las líneas de ${speaker} con un micrófono`}
@@ -578,14 +597,13 @@ function VoiceEditor(props: { speaker: string; isMine: boolean; esNarrador?: boo
             </div>
 
             <div className="mt-2">
-                <select
-                    value={profile.voiceId ?? ''}
-                    onChange={e => onChange({ ...profile, voiceId: e.target.value || undefined })}
-                    className="w-full rounded-lg border border-zinc-700 bg-black/40 p-2 text-sm text-zinc-200"
-                >
-                    {voices.length === 0 && <option value="">(voz por defecto)</option>}
-                    {voices.map(v => <option key={v.id} value={v.id}>{v.label}{v.lang !== 'multi' ? ` (${v.lang})` : ''}</option>)}
-                </select>
+                <SelectorDeVoz
+                    voices={voices}
+                    valor={profile.voiceId}
+                    personaje={esNarrador ? 'el narrador' : speaker}
+                    onChange={voiceId => onChange({ ...profile, voiceId })}
+                    onProbar={voiceId => getSpeechProvider(engine).speak(muestra, { voiceId, rate: profile.rate, pitch: profile.pitch, instructions: profile.instructions })}
+                />
             </div>
 
             {engine !== 'browser' ? (
