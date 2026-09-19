@@ -25,31 +25,34 @@ export interface Submission {
  * generación por día para toda la app); si no, la genera con IA y la cachea.
  */
 export async function getOrCreateDailyScene(dateKey: string): Promise<DailyScene> {
-    const sceneRef = doc(db, 'dailyScenes', dateKey);
-    try {
-        const snap = await getDoc(sceneRef);
-        if (snap.exists()) {
-            const data: any = snap.data();
-            if (isValidScene(data?.scene)) return data.scene as DailyScene;
+    if (db) {
+        try {
+            const snap = await getDoc(doc(db, 'dailyScenes', dateKey));
+            if (snap.exists()) {
+                const data: any = snap.data();
+                if (isValidScene(data?.scene)) return data.scene as DailyScene;
+            }
+        } catch (e) {
+            console.warn('[studio] lectura de escena del día falló, se genera local:', e);
         }
-    } catch (e) {
-        console.warn('[studio] lectura de escena del día falló, se genera local:', e);
     }
 
     const scene = await generateDailyScene(dateKey);
     // Cachear para que sea LA MISMA para todos ese día. Firestore rechaza valores
     // undefined, así que saneamos la escena antes de guardarla (esto era lo que
     // hacía que el guardado fallara y se regenerara una escena distinta cada vez).
-    try {
-        const clean = {
-            title: scene.title || '',
-            synopsis: scene.synopsis || '',
-            characters: Array.isArray(scene.characters) ? scene.characters : [],
-            lines: (scene.lines || []).map(l => ({ character: l.character || '', text: l.text || '' })),
-        };
-        await setDoc(sceneRef, { scene: clean, createdAt: Date.now() });
-    } catch (e) {
-        console.warn('[studio] no se pudo cachear la escena del día:', e);
+    if (db) {
+        try {
+            const clean = {
+                title: scene.title || '',
+                synopsis: scene.synopsis || '',
+                characters: Array.isArray(scene.characters) ? scene.characters : [],
+                lines: (scene.lines || []).map(l => ({ character: l.character || '', text: l.text || '' })),
+            };
+            await setDoc(doc(db, 'dailyScenes', dateKey), { scene: clean, createdAt: Date.now() });
+        } catch (e) {
+            console.warn('[studio] no se pudo cachear la escena del día:', e);
+        }
     }
     return scene;
 }
@@ -61,6 +64,8 @@ export async function uploadSubmission(
     file: File,
     title: string,
 ): Promise<Submission> {
+    if (!db || !storage) throw new Error('Firebase no está configurado');
+
     const storagePath = buildSubmissionPath(uid, dateKey, file.name);
     const fileRef = ref(storage, storagePath);
     await uploadBytes(fileRef, file);
@@ -81,6 +86,7 @@ export async function uploadSubmission(
 
 /** Lista las tareas del propio usuario, de la más reciente a la más antigua. */
 export async function listMySubmissions(uid: string): Promise<Submission[]> {
+    if (!db) return [];
     try {
         const col = collection(db, 'users', uid, 'submissions');
         const snap = await getDocs(query(col, orderBy('createdAt', 'desc')));

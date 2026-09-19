@@ -1,6 +1,6 @@
 'use client';
 
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, type Firestore } from 'firebase/firestore';
 import { db, auth as firebaseAuth } from './firebase';
 
 export interface AntigravityState {
@@ -18,8 +18,8 @@ const DOC_ID = 'state';
 
 // Returns the Firestore ref for the current user's Antigravity state.
 // Path: users/{uid}/antigravity/state
-function getRef(uid: string) {
-    return doc(db, COLLECTION, uid, SUBCOLLECTION, DOC_ID);
+function getRef(firestore: Firestore, uid: string) {
+    return doc(firestore, COLLECTION, uid, SUBCOLLECTION, DOC_ID);
 }
 
 export async function loadAntigravityState(): Promise<AntigravityState | null> {
@@ -28,7 +28,7 @@ export async function loadAntigravityState(): Promise<AntigravityState | null> {
     if (!user) return null;
 
     try {
-        const snap = await getDoc(getRef(user.uid));
+        const snap = await getDoc(getRef(db, user.uid));
         return snap.exists() ? (snap.data() as AntigravityState) : null;
     } catch (e) {
         console.error('[Antigravity DB] Error loading state:', e);
@@ -43,7 +43,7 @@ export async function saveAntigravityState(state: Partial<AntigravityState>): Pr
 
     try {
         // merge: true ensures partial saves don't wipe other fields
-        await setDoc(getRef(user.uid), {
+        await setDoc(getRef(db, user.uid), {
             ...state,
             updatedAt: new Date().toISOString()
         }, { merge: true });

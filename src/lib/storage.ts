@@ -3,6 +3,7 @@ import { storage } from "./firebase";
 
 export async function uploadFile(file: File, path: string): Promise<string> {
     if (!file) return "";
+    if (!storage) throw new Error("Firebase no está configurado");
 
     try {
         // Create a reference to the file location

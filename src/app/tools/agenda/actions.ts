@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 
 export async function getAgenda() {
   try {
+    if (!db) return { participants: {} };
     const docRef = doc(db, 'agenda', 'main');
     const snapshot = await getDoc(docRef);
     if (!snapshot.exists()) return { participants: {} };
@@ -32,6 +33,7 @@ export async function saveAvailability(name: string, slots: string[]) {
   };
 
   try {
+    if (!db) throw new Error("Firebase no está configurado");
     const docRef = doc(db, 'agenda', 'main');
     await setDoc(docRef, data);
     revalidatePath('/tools/agenda');
