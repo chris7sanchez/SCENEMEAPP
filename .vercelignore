@@ -51,3 +51,7 @@ public/videos/SONIA_DORADO_DW2-web.mp4
 # y dentro hay .mp4 de 255 MB, o sea que rompia el despliegue con "File size
 # limit exceeded (100 MB)". El `*.mov` de arriba solo cubria la mitad.
 video_originals_backup/
+
+# El maestro del icono (brand/) se queda en el repositorio pero no se despliega:
+# de él salen los PNG de public/ con scripts/iconos.mjs, y la web nunca lo pide.
+brand/

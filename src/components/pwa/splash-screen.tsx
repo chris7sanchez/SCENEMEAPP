@@ -46,10 +46,11 @@ export function SplashScreen() {
                     /logo-animation.gif: ninguno de los dos archivos existe, asi
                     que la cortinilla salia en negro y cada carga de pagina
                     disparaba dos 404. */}
-                {/* Copia ligera del icono SOLO para la cortinilla: el PNG de
-                    512 pesa 279 KB y es lo primero que se descarga en cada
-                    página; en WebP son 23 KB y se ve igual. El PNG original se
-                    queda donde estaba, que es el icono de la aplicación. */}
+                {/* Copia ligera del icono SOLO para la cortinilla: el PNG
+                    de 512 pesa 458 KB y es lo primero que se descarga en cada
+                    página; en WebP son 37 KB y se ve igual. El PNG original se
+                    queda donde estaba, que es el icono de la aplicación.
+                    Los dos salen del mismo maestro: scripts/iconos.mjs. */}
                 <img
                     src="/splash-logo.webp"
                     alt="Scene Me"
