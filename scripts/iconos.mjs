@@ -91,14 +91,29 @@ async function marcoDorado() {
 /**
  * El icono recortado al marco, a la resolución que se pida.
  *
- * Por debajo de 48 px el dibujo tiene más detalle del que caben píxeles y al
- * reducir se apelmaza en una mancha parda. Un poco de color y de realce no lo
- * arregla -eso pide otro dibujo, más simple-, pero rescata el contorno del
- * marco, que es lo único que se llega a reconocer en una pestaña.
+ * POR QUÉ LOS PEQUEÑOS SE REDUCEN DE OTRA MANERA
+ *
+ * Reducir es hacer la media de los píxeles que se juntan. Y la media hecha
+ * sobre los valores tal cual vienen del fichero está mal: esos valores no son
+ * cantidades de luz, son luz ya codificada para la pantalla (gamma). Al
+ * promediarlos, un trazo dorado brillante sobre negro -que es todo este icono-
+ * sale mucho más apagado de lo que debería. De ahí la mancha parda.
+ *
+ * `gamma(2.2)` deshace esa codificación antes de encoger y la vuelve a poner
+ * después, así que la media se hace sobre luz de verdad. El marco sigue siendo
+ * dorado a 32 píxeles en vez de marrón sucio. Es la misma cuenta que hace
+ * cualquier motor de render; aquí sólo hay que pedirla.
+ *
+ * A 16 píxeles, además, la imagen se aclara tanto al promediar que el negro
+ * deja de ser negro y el icono pierde su silueta. Un empujón de contraste lo
+ * devuelve: el fondo vuelve a ser oscuro y el marco recorta contra él.
  */
 const recorte = (caja, tam) => {
-    const img = sharp(MAESTRO).extract(caja).resize(tam, tam, { fit: 'cover', kernel: 'lanczos3' });
-    return tam < 48 ? img.modulate({ saturation: 1.25 }).sharpen({ sigma: 0.6 }) : img;
+    const img = sharp(MAESTRO).extract(caja);
+    if (tam >= 48) return img.resize(tam, tam, { fit: 'cover', kernel: 'lanczos3' });
+
+    const pequeno = img.gamma(2.2).resize(tam, tam, { fit: 'cover', kernel: 'lanczos3' });
+    return (tam <= 16 ? pequeno.linear(1.35, -40) : pequeno).sharpen({ sigma: 0.5 });
 };
 
 /** El icono dentro de un lienzo negro más grande: deja margen para las máscaras. */
@@ -110,78 +125,22 @@ async function conMargen(caja, tam, proporcionDelDibujo) {
     }).composite([{ input: await recorte(caja, dentro).png().toBuffer(), top: hueco, left: hueco }]);
 }
 
-/**
- * LA MARCA A TAMAÑO DE PESTAÑA.
- *
- * El icono bueno no sirve aquí. A 32 píxeles tiene un objetivo, una claqueta,
- * una tira de película y dos líneas de texto: más cosas que píxeles, y todas
- * juntas dan una mancha parda que no se reconoce. Se probó recortando el
- * objetivo del propio maestro, pero la claqueta lo cruza y el rótulo entra por
- * abajo: no hay reencuadre que lo salve.
- *
- * Así que la pestaña lleva su propio dibujo: el diafragma de la cámara, que es
- * la pieza que ya manda en el icono grande, hecho con cuatro formas y el mismo
- * oro. Se dibuja en vector y no se recorta de una foto porque a este tamaño
- * cada píxel se decide a mano o se pierde.
- *
- * A 16 píxeles ni siquiera cabe el marco: el trazo dorado y el hueco negro de
- * dentro se comen tres de los dieciséis píxeles de ancho y el diafragma se
- * queda en nada. A ese tamaño el diafragma va a sangre. Es lo que hace todo el
- * mundo, y por esto.
- */
-function marcaSimple(conMarco) {
-    const oro = `<linearGradient id="oro" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#FFF0BE"/><stop offset="38%" stop-color="#F0C34A"/>
-        <stop offset="70%" stop-color="#C9922A"/><stop offset="100%" stop-color="#8A5E12"/>
-    </linearGradient>`;
-
-    // Seis palas, como un diafragma de verdad: cada una va del borde al centro
-    // y deja a la siguiente el sitio justo para que quede la estrella del medio.
-    const diafragma = (cx, cy, fuera, dentro) => {
-        let d = '';
-        for (let k = 0; k < 6; k++) {
-            const a0 = (k * 60 - 90) * Math.PI / 180;
-            const a1 = ((k + 1) * 60 - 90) * Math.PI / 180;
-            const p = (ang, r) => `${(cx + r * Math.cos(ang)).toFixed(1)} ${(cy + r * Math.sin(ang)).toFixed(1)}`;
-            d += `<path d="M${p(a0, fuera)} L${p(a1, fuera)} L${p(a1, dentro)} Z"`
-               + ` fill="url(#oro)" stroke="#1a1100" stroke-width="6" stroke-linejoin="round"/>`;
-        }
-        return d;
-    };
-
-    const cuerpo = conMarco
-        ? `<rect x="14" y="14" width="484" height="484" rx="108" fill="#000"/>
-           <rect x="14" y="14" width="484" height="484" rx="108" fill="none" stroke="url(#oro)" stroke-width="26"/>
-           ${diafragma(256, 256, 168, 46)}`
-        : `<rect width="512" height="512" rx="112" fill="#000"/>${diafragma(256, 256, 214, 58)}`;
-
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">`
-         + `<defs>${oro}</defs>${cuerpo}</svg>`;
-}
-
 const caja = await marcoDorado();
 console.log(`Marco encontrado: ${caja.width}×${caja.height} en (${caja.left}, ${caja.top})`);
 
 const hechos = [];
 const anota = (f, info) => hechos.push(`  ${f.padEnd(36)} ${info}`);
 
-// Android: el icono entero, de borde a borde.
+// Pestaña del navegador y Android: el icono entero, de borde a borde.
 for (const [fichero, tam] of [
+    ['favicon-16x16.png', 16],
+    ['favicon-32x32.png', 32],
     ['android-chrome-192x192.png', 192],
     ['android-chrome-512x512.png', 512],
 ]) {
     await recorte(caja, tam).png({ compressionLevel: 9 }).toFile(join(PUBLIC, fichero));
     anota(fichero, `${tam}×${tam}, marco al borde`);
 }
-
-// La pestaña no: ahí va el dibujo simple.
-await sharp(Buffer.from(marcaSimple(true)))
-    .resize(32, 32).png({ compressionLevel: 9 }).toFile(join(PUBLIC, 'favicon-32x32.png'));
-anota('favicon-32x32.png', '32×32, marca simple con marco');
-
-await sharp(Buffer.from(marcaSimple(false)))
-    .resize(16, 16).png({ compressionLevel: 9 }).toFile(join(PUBLIC, 'favicon-16x16.png'));
-anota('favicon-16x16.png', '16×16, marca simple sin marco (no cabe)');
 
 // iOS redondea las esquinas por su cuenta: hay que dejarle sitio.
 await (await conMargen(caja, 180, 0.9)).png({ compressionLevel: 9 }).toFile(join(PUBLIC, 'apple-touch-icon.png'));
