@@ -44,27 +44,48 @@ const PUBLIC = join(RAIZ, 'public');
 const esOro = (r, g, b) => r > 120 && g > 80 && b < g && r - b > 45;
 
 /**
- * El cuadrado que ocupa el marco dorado. Se cuenta cuántos píxeles dorados hay
- * en cada fila y en cada columna: los lados del marco son rectas largas, así
- * que destacan sobre los destellos y el reflejo del objetivo. Se toma la
- * primera y la última que superan el umbral.
+ * Margen transparente que se le pone al maestro antes de recortar. El cuadrado
+ * del icono se centra en el marco, y si el marco no es cuadrado ese cuadrado
+ * puede salirse de la imagen por un lado. Con este colchón, lo que se sale es
+ * transparente en vez de un error.
  */
-async function marcoDorado() {
-    const { data, info } = await sharp(MAESTRO).raw().toBuffer({ resolveWithObject: true });
-    const { width: W, height: H, channels: C } = info;
+const COLCHON = 0.1;
+
+/**
+ * Dónde está el marco, en uno de los dos maestros que existen.
+ *
+ *   - Con las esquinas TRANSPARENTES (el maestro ya viene recortado a la
+ *     forma del icono): el marco es exactamente donde empieza lo opaco. No hay
+ *     nada que adivinar.
+ *   - Con fondo NEGRO alrededor: se cuentan los píxeles dorados por filas y
+ *     columnas. Los lados del marco son rectas largas y destacan sobre los
+ *     destellos; se toman la primera y la última que superan el 10%.
+ */
+function bordes(data, W, H) {
+    const alfa = (x, y) => data[(y * W + x) * 4 + 3];
+    const esquinasTransparentes = [alfa(0, 0), alfa(W - 1, 0), alfa(0, H - 1), alfa(W - 1, H - 1)]
+        .every(a => a < 20);
+
+    if (esquinasTransparentes) {
+        let izq = W, der = 0, arriba = H, abajo = 0;
+        for (let y = 0; y < H; y++) {
+            for (let x = 0; x < W; x++) {
+                if (alfa(x, y) <= 20) continue;
+                if (x < izq) izq = x; if (x > der) der = x;
+                if (y < arriba) arriba = y; if (y > abajo) abajo = y;
+            }
+        }
+        return { izq, der, arriba, abajo, como: 'por la transparencia' };
+    }
+
     const filas = new Array(H).fill(0);
     const columnas = new Array(W).fill(0);
-
     for (let y = 0; y < H; y++) {
         for (let x = 0; x < W; x++) {
-            const i = (y * W + x) * C;
+            const i = (y * W + x) * 4;
             if (esOro(data[i], data[i + 1], data[i + 2])) { filas[y]++; columnas[x]++; }
         }
     }
-
-    // Un 10% de la anchura basta para distinguir un lado del marco de un
-    // destello suelto, y no tanto como para perderse la parte donde el trazo
-    // se difumina.
     const extremos = (perfil, umbral) => {
         let a = 0, z = perfil.length - 1;
         while (a < perfil.length && perfil[a] < umbral) a++;
@@ -73,18 +94,38 @@ async function marcoDorado() {
     };
     const [arriba, abajo] = extremos(filas, H * 0.1);
     const [izq, der] = extremos(columnas, W * 0.1);
+    return { izq, der, arriba, abajo, como: 'por el oro del marco' };
+}
 
-    // El marco no tiene por qué salir perfectamente cuadrado del generador de
-    // imágenes; se toma el lado mayor y se centra, que es lo que el ojo espera.
+/**
+ * El maestro con su colchón, y el cuadrado del icono dentro de él.
+ *
+ * El marco no tiene por qué salir perfectamente cuadrado del generador de
+ * imágenes; se toma el lado mayor y se centra, que es lo que el ojo espera.
+ * Nunca se estira: un icono deformado se nota más que uno con un filo vacío.
+ */
+async function marcoDorado() {
+    const { data, info } = await sharp(MAESTRO).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const { width: W, height: H } = info;
+    const { izq, der, arriba, abajo, como } = bordes(data, W, H);
+
     const cx = (izq + der) / 2, cy = (arriba + abajo) / 2;
-    const lado = Math.max(der - izq, abajo - arriba) * 1.02; // 1% de aire: que el trazo no se corte al redondear
-    const mitad = lado / 2;
+    const lado = Math.max(der - izq + 1, abajo - arriba + 1) * 1.02; // 1% de aire: que el trazo no se corte al redondear
+    const P = Math.round(Math.max(W, H) * COLCHON);
+
+    const lienzo = await sharp(MAESTRO).ensureAlpha()
+        .extend({ top: P, bottom: P, left: P, right: P, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .png().toBuffer();
 
     return {
-        left: Math.max(0, Math.round(cx - mitad)),
-        top: Math.max(0, Math.round(cy - mitad)),
-        width: Math.min(Math.round(lado), W, H),
-        height: Math.min(Math.round(lado), W, H),
+        lienzo,
+        como,
+        caja: {
+            left: Math.round(P + cx - lado / 2),
+            top: Math.round(P + cy - lado / 2),
+            width: Math.round(lado),
+            height: Math.round(lado),
+        },
     };
 }
 
@@ -108,12 +149,15 @@ async function marcoDorado() {
  * deja de ser negro y el icono pierde su silueta. Un empujón de contraste lo
  * devuelve: el fondo vuelve a ser oscuro y el marco recorta contra él.
  */
-const recorte = (caja, tam) => {
-    const img = sharp(MAESTRO).extract(caja);
+const recorte = ({ lienzo, caja }, tam) => {
+    const img = sharp(lienzo).extract(caja);
     if (tam >= 48) return img.resize(tam, tam, { fit: 'cover', kernel: 'lanczos3' });
 
     const pequeno = img.gamma(2.2).resize(tam, tam, { fit: 'cover', kernel: 'lanczos3' });
-    return (tam <= 16 ? pequeno.linear(1.35, -40) : pequeno).sharpen({ sigma: 0.5 });
+    // El contraste, sólo al color. Aplicado también a la transparencia, se
+    // comería el borde suavizado de las esquinas redondeadas.
+    return (tam <= 16 ? pequeno.linear([1.35, 1.35, 1.35, 1], [-40, -40, -40, 0]) : pequeno)
+        .sharpen({ sigma: 0.5 });
 };
 
 /** El icono dentro de un lienzo negro más grande: deja margen para las máscaras. */
@@ -126,7 +170,7 @@ async function conMargen(caja, tam, proporcionDelDibujo) {
 }
 
 const caja = await marcoDorado();
-console.log(`Marco encontrado: ${caja.width}×${caja.height} en (${caja.left}, ${caja.top})`);
+console.log(`Marco encontrado ${caja.como}: ${caja.caja.width}×${caja.caja.height}`);
 
 const hechos = [];
 const anota = (f, info) => hechos.push(`  ${f.padEnd(36)} ${info}`);
