@@ -15,7 +15,7 @@ const PORTFOLIO_ITEMS = [
 
 export function PortfolioGallery() {
   return (
-    <section className="py-12 px-4 bg-[hsl(222,36%,5%)]">
+    <section id="trabajos" className="scroll-mt-4 py-12 px-4 bg-[hsl(222,36%,5%)]">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row items-end justify-between mb-8 gap-6">
           <div>

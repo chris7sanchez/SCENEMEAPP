@@ -263,3 +263,15 @@
     color: hsl(45, 93%, 62%);
   }
 }
+
+/* Portada: si el JS tarda, el contenido aparece igual.
+   Todo empieza a opacidad 0 para que la entradilla del logo pueda colocarlo
+   (landing/hero-section.tsx). Si a los 2,4 s React aún no ha marcado la
+   sección como hidratada, esto lo saca sin él: nunca una portada en negro. */
+@keyframes portada-aparece {
+    to { opacity: 1; transform: none; }
+}
+.portada:not([data-hidratada]) [data-entra],
+.portada:not([data-hidratada]) [data-logo] {
+    animation: portada-aparece 0.6s ease 2.4s forwards;
+}

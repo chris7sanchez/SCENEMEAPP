@@ -1,140 +1,232 @@
 'use client';
 
-import { useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { useAnimate } from 'framer-motion';
 import { LazyVideo } from '@/components/landing/lazy-video';
 
+/**
+ * LA PRIMERA PANTALLA.
+ *
+ * Antes era un vídeo oscuro visto a través de las letras "SCENE ME", y tres
+ * pantallas de scroll que sólo servían para hacer zoom sobre esas letras. Quien
+ * llegaba no sabía qué era esto ni para qué bajar: el scroll no enseñaba nada
+ * nuevo durante el primer tramo, así que parecía que la página no respondía.
+ *
+ * Ahora la primera pantalla contesta tres preguntas antes de pedir nada:
+ * quiénes sois (el logo), qué hacéis (el titular), y qué hago yo ahora (dos
+ * botones). El vídeo se queda, pero de fondo: es ambiente, no el mensaje.
+ *
+ * LA ENTRADILLA
+ *
+ * La primera vez en la sesión, el logo aparece grande en el centro y luego
+ * sube a su sitio mientras entra el resto. Es la misma cortinilla de marca que
+ * hay en las demás páginas, pero aquí no tapa la portada: se convierte en ella.
+ * Por eso en "/" la cortinilla general no sale (ver splash-screen.tsx), y las
+ * dos comparten la misma marca de sesión: el logo se presenta una vez, entres
+ * por donde entres.
+ *
+ * SI EL JS TARDA
+ *
+ * Todo empieza invisible para que la entradilla pueda colocarlo. Eso tiene un
+ * riesgo: en un móvil lento, hasta que llega el JS la portada es una pantalla
+ * oscura sin nada. Así que hay una red en CSS (.portada, en globals.css): si a
+ * los 2,4 s React todavía no ha tomado el control, el contenido aparece solo.
+ * Y si React llega después de eso, no repite la entradilla encima.
+ *
+ * INVITAR A BAJAR
+ *
+ * Una flecha que bota no convence a nadie. Lo que hace bajar es ver que abajo
+ * hay algo: por eso en el borde inferior asoman trabajos reales, cortados por
+ * el final de la pantalla.
+ */
+
+const SESION = 'sceneme_splash_shown';
+
+const ASOMAN = [
+    { poster: '/videos/AMANDA-loop-poster.jpg', alt: 'Escena de AMANDA' },
+    { poster: '/videos/OLIVER-loop-poster.jpg', alt: 'Escena de OLIVER' },
+    { poster: '/videos/SHOGUN-loop-poster.jpg', alt: 'Escena de SHOGUN' },
+    { poster: '/videos/SONIA_DORADO-loop-poster.jpg', alt: 'Escena de SONIA DORADO' },
+    { poster: '/videos/MUDANZA-loop-poster.jpg', alt: 'Escena de MUDANZA' },
+];
+
 export function HeroSection() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  // We make the container very tall (300vh) to have enough scroll space for the animations
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
+    const [ambito, animar] = useAnimate();
+    const logo = useRef<HTMLDivElement>(null);
 
-  // 1. Text Mask Zoom (0 to 0.4)
-  // The text starts at normal size (scale 1) and zooms in massively (scale 100) until the 'C' or 'O' floods the screen
-  const maskSize = useTransform(scrollYProgress, [0, 0.4], ["100%", "10000%"]);
-  const textOpacity = useTransform(scrollYProgress, [0.3, 0.4], [1, 0]);
+    // Layout y no effect normal: hay que colocar el logo en el centro ANTES de
+    // que el navegador pinte, o se vería un fotograma en su sitio final y
+    // luego un salto al centro.
+    // ¿Toca entradilla? Se decide UNA vez por montaje y se guarda aquí, no se
+    // vuelve a leer de la sesión. React, en desarrollo, ejecuta cada efecto dos
+    // veces seguidas para destapar fallos; la segunda lectura encontraba la
+    // marca que acababa de poner la primera, creía que la entradilla ya se
+    // había visto y la cortaba a medias. Un ref sobrevive a esa doble pasada;
+    // una visita nueva a la portada es otro montaje y vuelve a preguntar.
+    const primeraVez = useRef<boolean | null>(null);
 
-  // 2. Main Video Parallax & Fade (0.4 to 0.6)
-  // After the mask floods the screen, the main video stays for a bit then fades out/moves up
-  const mainVideoY = useTransform(scrollYProgress, [0.4, 0.6], ["0%", "-50%"]);
-  const mainVideoOpacity = useTransform(scrollYProgress, [0.5, 0.6], [1, 0]);
+    // Layout y no effect normal: hay que colocar el logo en el centro ANTES de
+    // que el navegador pinte, o se vería un fotograma en su sitio final y
+    // luego un salto al centro.
+    useLayoutEffect(() => {
+        const el = logo.current;
+        if (!el) return;
 
-  // 3. Grid Parallax (0.5 to 1.0)
-  const gridY1 = useTransform(scrollYProgress, [0.5, 1], ["50%", "-10%"]);
-  const gridY2 = useTransform(scrollYProgress, [0.5, 1], ["100%", "-40%"]);
-  const gridY3 = useTransform(scrollYProgress, [0.5, 1], ["80%", "-20%"]);
-  const gridOpacity = useTransform(scrollYProgress, [0.5, 0.6], [0, 1]);
+        if (primeraVez.current === null) {
+            try {
+                primeraVez.current = sessionStorage.getItem(SESION) !== 'true';
+                sessionStorage.setItem(SESION, 'true');
+            } catch {
+                // Navegación privada estricta: sin memoria, se trata como ya
+                // visto para no repetir la entradilla en cada recarga.
+                primeraVez.current = false;
+            }
+        }
 
-  return (
-    <section ref={containerRef} className="relative h-[300vh] bg-[#0B0F18]">
-      {/* Sticky Container holds the actual visual experience */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#0B0F18] flex items-center justify-center">
-        
-        {/* The Text Mask Video layer */}
-        <motion.div 
-          className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
-          style={{ opacity: textOpacity }}
+        // Si el JS ha tardado tanto que el CSS ya ha sacado el contenido por su
+        // cuenta (ver .portada en globals.css), no se le da la vuelta para
+        // hacer la entradilla: se queda como está, sin parpadeo.
+        const tarde = performance.now() > 2300;
+        ambito.current?.setAttribute('data-hidratada', '');
+
+        const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const resto = '[data-entra]';
+
+        if (!primeraVez.current || quieto || tarde) {
+            const inmediato = quieto || tarde;
+            animar(el, { opacity: 1 }, { duration: inmediato ? 0 : 0.4 });
+            animar(resto, { opacity: 1, y: 0 }, { duration: inmediato ? 0 : 0.5, delay: inmediato ? 0 : 0.05 });
+            return;
+        }
+
+        // Cuánto hay que mover el logo para que quede en el centro exacto de
+        // la pantalla, y cuánto agrandarlo para que llene sin salirse. Se mide
+        // sin transformación: si esta es la segunda pasada, el logo ya viene
+        // movido de la primera y la medida saldría torcida.
+        el.style.transform = 'none';
+        const r = el.getBoundingClientRect();
+        const dy = window.innerHeight / 2 - (r.top + r.height / 2);
+        const escala = Math.min(window.innerWidth * 0.62, window.innerHeight * 0.5) / r.width;
+
+        let vivo = true;
+        (async () => {
+            await animar(el, { y: dy, scale: escala * 0.86, opacity: 0 }, { duration: 0 });
+            if (!vivo) return;
+            await animar(el, { scale: escala, opacity: 1 }, { duration: 0.7, ease: [0.16, 1, 0.3, 1] });
+            if (!vivo) return;
+            await animar(el, { y: 0, scale: 1 }, { duration: 0.85, delay: 0.45, ease: [0.65, 0, 0.35, 1] });
+        })();
+        const entrada = animar(resto, { opacity: 1, y: 0 }, { duration: 0.6, delay: 1.55 });
+
+        return () => {
+            vivo = false;
+            entrada.stop();
+        };
+    }, [animar, ambito]);
+
+    return (
+        <section
+            ref={ambito}
+            className="portada relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-[#07080c]"
         >
-          {/* We use a div with text that masks the video behind it. 
-              Using mix-blend-mode or WebkitBackgroundClip */}
-          <motion.div 
-            className="w-full h-full flex items-center justify-center bg-[#0B0F18]"
-            style={{ 
-              backgroundSize: maskSize,
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-              WebkitMaskImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1000 300"><text x="50%" y="50%" font-family="Cinzel" font-size="180" font-weight="900" text-anchor="middle" dominant-baseline="middle">SCENE ME</text></svg>')`,
-              WebkitMaskSize: maskSize,
-              WebkitMaskPosition: "center",
-              WebkitMaskRepeat: "no-repeat",
-            }}
-          >
-            <LazyVideo
-              src="/videos/MIX-cine-loop.mp4"
-              poster="/videos/MIX-cine-loop-poster.jpg"
-              className="w-full h-full object-cover"
-            />
-          </motion.div>
-        </motion.div>
-
-        {/* The Unmasked Main Video (revealed after mask floods the screen) */}
-        <motion.div 
-          className="absolute inset-0 z-10"
-          style={{ y: mainVideoY, opacity: mainVideoOpacity }}
-        >
-          <LazyVideo
-            src="/videos/MIX-cine-loop.mp4"
-            poster="/videos/MIX-cine-loop-poster.jpg"
-            className="w-full h-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-50" />
-        </motion.div>
-
-        {/* Grid Parallax Section */}
-        <motion.div 
-          className="absolute inset-0 z-30 flex gap-4 p-4 md:p-10"
-          style={{ opacity: gridOpacity }}
-        >
-          {/* Column 1 */}
-          <motion.div className="flex-1 flex flex-col gap-4" style={{ y: gridY1 }}>
-            <div className="h-[40vh] rounded-2xl overflow-hidden relative">
-              <LazyVideo src="/videos/MUDANZA-loop.mp4" poster="/videos/MUDANZA-loop-poster.jpg" className="w-full h-full object-cover" />
+            {/* Fondo: el reel, oscurecido. Da ambiente de rodaje sin competir con el texto. */}
+            <div className="absolute inset-0 -z-10" aria-hidden="true">
+                <LazyVideo
+                    src="/videos/MIX-cine-loop.mp4"
+                    poster="/videos/MIX-cine-loop-poster.jpg"
+                    className="h-full w-full object-cover opacity-35"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#07080c]/70 via-[#07080c]/55 to-[#07080c]" />
+                {/* El mismo oro del logo, detrás del logo: le da de dónde salir. */}
+                <div className="absolute left-1/2 top-[38%] h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(232,176,64,0.22)_0%,rgba(232,176,64,0.06)_45%,transparent_70%)]" />
             </div>
-            <div className="h-[60vh] rounded-2xl overflow-hidden relative">
-              <LazyVideo src="/videos/Mel_cuban-loop.mp4" poster="/videos/Mel_cuban-loop-poster.jpg" className="w-full h-full object-cover" />
-            </div>
-          </motion.div>
 
-          {/* Column 2 */}
-          <motion.div className="flex-1 flex flex-col gap-4 mt-20" style={{ y: gridY2 }}>
-            <div className="h-[50vh] rounded-2xl overflow-hidden relative">
-              <LazyVideo src="/videos/AMANDA-loop.mp4" poster="/videos/AMANDA-loop-poster.jpg" className="w-full h-full object-cover" />
-            </div>
-            <div className="h-[40vh] rounded-2xl overflow-hidden relative bg-zinc-900 flex flex-col items-center justify-center p-8 text-center border border-white/5">
-               <h2 className="text-3xl font-display mb-4 leading-tight" style={{ fontFamily: "'Cinzel', serif" }}>
-                  TUS MEJORES TOMAS
-               </h2>
-               <p className="text-white/50 tracking-widest uppercase text-xs md:text-sm">El Actor's Store Definitivo</p>
-            </div>
-          </motion.div>
+            <div className="flex flex-1 flex-col items-center justify-center px-5 pb-40 pt-16 text-center sm:pb-48">
+                <div
+                    ref={logo}
+                    data-logo
+                    className="mb-7 w-[clamp(132px,20vmin,200px)] opacity-0 will-change-transform"
+                >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src="/splash-logo.webp"
+                        alt="Scene Me Studios"
+                        width={512}
+                        height={512}
+                        fetchPriority="high"
+                        className="h-auto w-full drop-shadow-[0_12px_40px_rgba(232,176,64,0.28)]"
+                    />
+                </div>
 
-          {/* Column 3 (Hidden on mobile) */}
-          <motion.div className="hidden md:flex flex-1 flex-col gap-4" style={{ y: gridY3 }}>
-            <div className="h-[45vh] rounded-2xl overflow-hidden relative">
-              <LazyVideo src="/videos/SONIA_DORADO-loop.mp4" poster="/videos/SONIA_DORADO-loop-poster.jpg" className="w-full h-full object-cover" />
-            </div>
-            <div className="h-[55vh] rounded-2xl overflow-hidden relative">
-              <LazyVideo src="/videos/OLIVER-loop.mp4" poster="/videos/OLIVER-loop-poster.jpg" className="w-full h-full object-cover" />
-            </div>
-          </motion.div>
+                <p
+                    data-entra
+                    className="mb-4 translate-y-3 text-[11px] font-semibold uppercase tracking-[0.35em] text-[hsl(42,90%,60%)] opacity-0 sm:text-xs"
+                >
+                    Estudio para actores · Madrid
+                </p>
 
-        </motion.div>
-        
-        {/* CTA & Scroll Indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-6">
-           {/* CTA Button */}
-           <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 1 }}
-           >
-             <Link href="/login" className="group relative inline-flex items-center justify-center px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-sm hover:bg-zinc-200 transition-colors rounded-full overflow-hidden">
-               <span className="relative z-10">MEJORA TU MATERIAL</span>
-               
-             </Link>
-           </motion.div>
+                <h1
+                    data-entra
+                    className="max-w-[18ch] translate-y-3 text-balance text-[clamp(2rem,6vw,4.25rem)] font-bold leading-[1.05] text-white opacity-0"
+                    style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                    Graba el material que te abre puertas
+                </h1>
 
-           {/* Scroll Indicator */}
-           <div className="animate-bounce">
-             <span className="text-[10px] tracking-[0.3em] uppercase text-white/50">Scroll</span>
-           </div>
-        </div>
-      </div>
-    </section>
-  );
+                <p
+                    data-entra
+                    className="mt-5 max-w-[46ch] translate-y-3 text-base leading-relaxed text-white/70 opacity-0 sm:text-lg"
+                >
+                    Videobooks, escenas de cine y self-tapes con dirección, en nuestro estudio.
+                    Y un ensayador con IA para preparar tus textos cuando quieras.
+                </p>
+
+                <div
+                    data-entra
+                    className="mt-9 flex w-full max-w-md translate-y-3 flex-col gap-3 opacity-0 sm:w-auto sm:max-w-none sm:flex-row"
+                >
+                    <Link
+                        href="/booking"
+                        className="inline-flex items-center justify-center rounded-full bg-[hsl(42,90%,55%)] px-8 py-4 text-sm font-bold uppercase tracking-widest text-black transition hover:bg-[hsl(42,95%,62%)]"
+                    >
+                        Reserva tu grabación
+                    </Link>
+                    <Link
+                        href="/studio"
+                        className="inline-flex items-center justify-center rounded-full border border-white/25 px-8 py-4 text-sm font-bold uppercase tracking-widest text-white transition hover:border-white/50 hover:bg-white/5"
+                    >
+                        Ensaya gratis con IA
+                    </Link>
+                </div>
+            </div>
+
+            {/* Lo que asoma: trabajos reales cortados por el borde de la pantalla. */}
+            <a
+                href="#trabajos"
+                data-entra
+                className="group absolute inset-x-0 bottom-0 translate-y-3 opacity-0"
+                aria-label="Ver trabajos recientes"
+            >
+                <p className="mb-3 flex items-center justify-center gap-2 text-[11px] uppercase tracking-[0.3em] text-white/55 transition group-hover:text-white/80">
+                    Trabajos recientes
+                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 animate-bounce" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 9l6 6 6-6" />
+                    </svg>
+                </p>
+                <div className="flex translate-y-[45%] justify-center gap-3 px-3 transition-transform duration-500 group-hover:translate-y-[30%] sm:gap-4">
+                    {ASOMAN.map((t, i) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                            key={t.poster}
+                            src={t.poster}
+                            alt={t.alt}
+                            loading="lazy"
+                            className={`aspect-video w-[42vw] max-w-[260px] rounded-xl object-cover ring-1 ring-white/10 sm:w-[20vw] ${i === 2 ? 'hidden sm:block' : ''} ${i > 2 ? 'hidden md:block' : ''}`}
+                        />
+                    ))}
+                </div>
+            </a>
+        </section>
+    );
 }

@@ -1,13 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 export function SplashScreen() {
     const [isVisible, setIsVisible] = useState(true);
     const [isFading, setIsFading] = useState(false);
 
+    // En la portada no hay cortinilla: allí el logo hace su propia entrada y
+    // se queda como parte de la primera pantalla (landing/hero-section.tsx).
+    // Una cortinilla negra encima taparía justo esa entrada. Se decide con la
+    // ruta y no en un efecto para que ni siquiera llegue en el HTML del
+    // servidor: si no, se vería un fogonazo negro hasta que cargara el JS.
+    const enPortada = usePathname() === '/';
+
 
     useEffect(() => {
+        // En la portada la marca de sesión la pone la propia portada.
+        if (enPortada) return;
         // Solo una vez por sesión.
         const hasShownSplash = sessionStorage.getItem('sceneme_splash_shown');
         if (hasShownSplash) {
@@ -32,9 +42,9 @@ export function SplashScreen() {
             clearTimeout(fadeTimer);
             clearTimeout(hideTimer);
         };
-    }, []);
+    }, [enPortada]);
 
-    if (!isVisible) return null;
+    if (enPortada || !isVisible) return null;
 
     return (
         <div
