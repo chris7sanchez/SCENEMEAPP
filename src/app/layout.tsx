@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { icono } from '@/lib/iconos-version';
 
 export const viewport: Viewport = {
     themeColor: '#000000',
@@ -19,19 +20,21 @@ export const metadata: Metadata = {
     formatDetection: {
         telephone: false,
     },
+    // Con versión (?v=): si no, Safari se queda con el icono viejo en la
+    // pestaña aunque el fichero haya cambiado. Ver el final de scripts/iconos.mjs.
     icons: {
         icon: [
-            { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-            { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-            { url: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
-            { url: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
+            { url: icono('/favicon-16x16.png'), sizes: '16x16', type: 'image/png' },
+            { url: icono('/favicon-32x32.png'), sizes: '32x32', type: 'image/png' },
+            { url: icono('/android-chrome-192x192.png'), sizes: '192x192', type: 'image/png' },
+            { url: icono('/android-chrome-512x512.png'), sizes: '512x512', type: 'image/png' },
         ],
-        shortcut: '/android-chrome-192x192.png',
-        apple: '/apple-touch-icon.png',
+        shortcut: icono('/android-chrome-192x192.png'),
+        apple: icono('/apple-touch-icon.png'),
         other: [
             {
                 rel: 'apple-touch-icon-precomposed',
-                url: '/apple-touch-icon.png',
+                url: icono('/apple-touch-icon.png'),
             },
         ],
     },
