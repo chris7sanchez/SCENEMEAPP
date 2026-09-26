@@ -16,9 +16,10 @@ fi
 
 cd "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/../..}"
 
-# Playwright está en devDependencies para las comprobaciones con navegador,
-# pero el contenedor ya trae Chromium. Sin esto, npm se bajaría otro de
-# cientos de MB en cada arranque.
+# Por si algún día entra Playwright en las dependencias (ahora no está: las
+# comprobaciones con navegador lo instalan aparte, sin guardarlo). El
+# contenedor ya trae Chromium, y sin esto npm se bajaría otro de cientos de MB
+# en cada arranque.
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 # `npm install` y no `npm ci`: el contenedor se guarda en caché al terminar este
