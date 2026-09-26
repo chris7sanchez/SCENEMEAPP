@@ -54,7 +54,7 @@ function cederTurno() {
 }
 
 /** Conexiones que no aguantan vídeo decorativo (y que además suelen pagarlo). */
-function conexionPobre(): boolean {
+export function conexionPobre(): boolean {
     const c = (navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
     if (!c) return false;
     if (c.saveData) return true;
