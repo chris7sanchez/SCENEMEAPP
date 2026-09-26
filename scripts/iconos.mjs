@@ -33,6 +33,8 @@
  */
 
 import sharp from 'sharp';
+import { createHash } from 'node:crypto';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -198,6 +200,41 @@ anota('android-chrome-maskable-512x512.png', '512×512, dibujo al 68% (cabe en e
 // descarga en cada página y en PNG pesaba diez veces más.
 await recorte(caja, 512).webp({ quality: 80 }).toFile(join(PUBLIC, 'splash-logo.webp'));
 anota('splash-logo.webp', `512×512, WebP para la cortinilla`);
+
+// --- La versión, para que ningún navegador se quede con el icono viejo -------
+//
+// Safari (y no sólo Safari) guarda los iconos en una caché APARTE de la de las
+// páginas, indexada por la dirección del icono. Si el fichero cambia pero la
+// dirección no, sigue enseñando el viejo aunque se recargue con ⌘⇧R: pasó con
+// este mismo cambio de logo, que en producción ya estaba y en la pestaña no.
+//
+// Así que la dirección cambia cuando cambia el dibujo: `?v=` y una huella de
+// los ficheros. Si se regenera sin cambios, la huella es la misma y nadie tiene
+// que volver a descargar nada; si el icono es otro, la dirección también.
+const GENERADOS = [
+    'favicon-16x16.png', 'favicon-32x32.png', 'android-chrome-192x192.png',
+    'android-chrome-512x512.png', 'android-chrome-maskable-512x512.png', 'apple-touch-icon.png',
+];
+const huella = createHash('sha1');
+for (const f of GENERADOS) huella.update(readFileSync(join(PUBLIC, f)));
+const V = huella.digest('hex').slice(0, 8);
+
+writeFileSync(join(RAIZ, 'src', 'lib', 'iconos-version.ts'), `// Lo escribe scripts/iconos.mjs: no se toca a mano.
+// Huella de los iconos. Va detrás de cada dirección (?v=) para que el navegador
+// pida el icono nuevo cuando cambia el dibujo. Ver el final de iconos.mjs.
+export const ICONOS_V = '${V}';
+
+/** La dirección de un icono con su versión: icono('/favicon-32x32.png'). */
+export const icono = (ruta: string) => \`\${ruta}?v=\${ICONOS_V}\`;
+`);
+
+for (const m of ['manifest.json', 'manifest-admin.json']) {
+    const ruta = join(PUBLIC, m);
+    const datos = JSON.parse(readFileSync(ruta, 'utf8'));
+    datos.icons = datos.icons.map(i => ({ ...i, src: `${i.src.split('?')[0]}?v=${V}` }));
+    writeFileSync(ruta, JSON.stringify(datos, null, 4) + '\n');
+}
+anota('versión de los iconos', `?v=${V} (src/lib/iconos-version.ts y los dos manifest)`);
 
 console.log('\nGenerados:');
 console.log(hechos.join('\n'));
