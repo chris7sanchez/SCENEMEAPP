@@ -25,7 +25,6 @@
                                 del icono maestro (brand/icono-maestro.webp), no
                                 inventado. Sólo marca lo activo: lo que está
                                 ahora en la ventanilla. No es un color de relleno. */
-    --pel-oro-hondo: #C49444; /* 7,0:1 — el mismo oro en su parte honda */
     --pel-fuga: var(--pel-oro);   /* la fuga de luz se tiñe del oro de la marca */
     --pel-sepia: #C8B089;    /* 9,1:1 — lo escrito a mano */
 
@@ -275,7 +274,7 @@
 }
 
 /* Emulsión sobre el cuerpo del botón. Va en una capa aparte y a 0,08 para no
-   tocar el color calculado del rótulo, que está en 8,8:1. */
+   tocar el color calculado del rótulo, que está en 11,6:1 sobre el oro. */
 .pel-boton { position: relative; }
 
 .pel-boton::after {

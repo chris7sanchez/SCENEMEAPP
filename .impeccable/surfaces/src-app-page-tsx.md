@@ -5,6 +5,13 @@ primary_target: "src/app/page.tsx"
 related_targets: ["src/components/landing"]
 ---
 
+---
+version: 1
+slug: "src-app-page-tsx"
+primary_target: "src/app/page.tsx"
+related_targets: ["src/components/landing"]
+---
+
 Superficie: la landing pública (`src/app/page.tsx` y `src/components/landing/`). Modo: Persuade.
 
 Público: dos por igual, el actor sin material y el profesional cuyo material ha
@@ -25,33 +32,48 @@ jamás sobre la imagen que hay que vender. Rechaza el arreglo por defecto de la
 categoría: vídeo a pantalla completa con titular centrado y tres tarjetas de
 servicio iguales.
 
-OWN-WORLD: Negro de leader `#0E0F10`. Texto en gris de emulsión `#A6ABB0`; el
-gris base `#6E7377` sólo a 24px o más y en cromo, porque a 4,0:1 no llega.
-Naranja de fuga `#FF8A33` sólo para lo activo. Sepia `#C8B089` para lo escrito a
-mano. Archivo variable estrechado (wdth 70, wght 800) en versales para titulares;
-Instrument Serif cursiva traducida a la voz del lápiz de grasa, que es la
-anotación al margen. Todo contenedor es un trozo de película: perforaciones a los
-extremos, código de borde vertical, esquina de 6px.
+OWN-WORLD: El suelo es el cielo de emulsión `/texturas/cielo-estrellas.webp`,
+fijo, bajo un velo de leader al 0,62 sobre `#0E0F10`; el 0,62 está buscado con
+`scripts/contraste-sobre-fondo.mjs`, no elegido. Texto en gris de emulsión
+`#A6ABB0`; margen `#8F969B` para lo impreso a 11px; base `#6E7377` sólo a 24px o
+más y en cromo. Oro del logo `#E4C46C`, muestreado del marco del icono maestro,
+sólo para lo activo. Sepia `#C8B089` para lo escrito a mano. Archivo variable
+estrechado (wdth 62 display, wdth 65 secciones, wght 800) en versales para
+rotular; Instrument Serif cursiva como lápiz de grasa. Todo contenedor es un
+trozo de película: perforaciones a los extremos, código de borde vertical,
+esquina de 6px. Las barras de claqueta del logo aparecen exactamente dos veces.
 
 STORY: Entiende que hay dos mitades, la productora que rueda su material y los
 Estudios donde se entrena a diario. Cree que su trabajo saldrá con la calidad que
 ve corriendo por la tira. Entra gratis, o pide la escena.
 
-FIRST VIEWPORT: Negro. Izquierda, sin antetítulo: DE ACTOR / A ESTRELLA en
-versales estrechadas a tres líneas, dos líneas de texto debajo y el botón
-primario con forma de fotograma perforado en naranja con rótulo casi negro.
+FIRST VIEWPORT: Cabecera con la claqueta del logo pegada a la izquierda, casi
+tan alta como la banda, y SCENE ME centrado respecto a la página. Debajo, las
+barras de claqueta. Izquierda, sin antetítulo y como PRIMERA LECTURA de la
+página, la definición en dos frases: la del actor en tono apagado y la de la
+estrella en tono pleno, y ese salto de tono es la transformación. Debajo, la
+línea que identifica ("Un studio para el actor, en Madrid"), la llamada
+"Empieza a creer en ti, accede a Scene Me" en gris pleno —nunca en oro— y el
+botón primario con forma de fotograma perforado, en oro y con rótulo casi
+negro.
 Derecha, el 45% del ancho: la tira vertical sangrando arriba y abajo, tres
 fotogramas con los vídeos reales dentro, perforaciones a ambos lados, códigos de
 borde en vertical. Pegado al borde, el raíl con los datos del fotograma que está
 en la ventanilla. Abajo, sobre filete, los dos caminos como dos entradas de
 reparto.
 
+CAMBIOS POSTERIORES DEL USUARIO (mandan sobre lo de arriba si algo se
+contradice): el naranja se sustituyó por el oro del logo; el eslogan "De actor
+a estrella" se mudó al título del Método, que dice "De actor a estrella en 3
+pasos"; la definición pasó a ser lo primero de la página; se añadió el cielo de
+fondo; y el logo se implementó como imagen real en cabecera y pie.
+
 FORM: 16 mm revelado a mano (`cinema-cinematography-editing-hand-processed-film-bloom`),
 retador elegido por el usuario frente a la asignación 6 de 7, el bloque de
 créditos. Clave de semilla `31ab9f01`. Interacción característica: **el avance de
 fotograma** — al bajar, la tira avanza encajando fotograma a fotograma como una
 ventanilla de proyector, y el raíl de datos cambia al que entra; sólo ese lleva
-la fuga naranja. Gramática de movimiento: mecánica y escalonada, nunca elástica,
+la fuga de oro. Gramática de movimiento: mecánica y escalonada, nunca elástica,
 con salida exponencial, un solo momento de autor en toda la página.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
