@@ -1,0 +1,4 @@
+{
+  "prompt": "Hollin y desgaste del borde de leader. Producido localmente con ffmpeg, sin modelo de imagen. Comando: -f lavfi -i nullsrc=s=48x48,geq=random(1)*255:128:128,format=gray,scale=256:256,boxblur=6:2. Mancha de baja frecuencia para comerse el margen de las perforaciones.",
+  "createdAt": "2026-09-26T13:52:43.883Z"
+}

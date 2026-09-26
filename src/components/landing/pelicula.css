@@ -1,0 +1,507 @@
+/*
+ * EL MUNDO: una tira de 16 mm revelada a mano.
+ *
+ * La regla que ordena todo: la emulsión vive en el SOPORTE —el negro de
+ * leader, el margen de las perforaciones, el cromo de los controles— y nunca
+ * encima de la imagen. El grano, la raya y la fuga de luz son del material
+ * fotográfico; lo que hay dentro del fotograma es el trabajo del actor y sale
+ * limpio. Si alguna vez se ve grano sobre una cara, está mal.
+ *
+ * El naranja de fuga marca UNA sola cosa: lo que está activo, lo que está
+ * ahora en la ventanilla. No es un color de marca que se reparte.
+ */
+
+.pel {
+    /* Paleta del tablero del mundo, con el contraste ya medido sobre el leader. */
+    --pel-leader: #0E0F10;   /* suelo */
+    --pel-sombra: #2A2E31;   /* cromo, márgenes, filetes */
+    --pel-base: #6E7377;     /* 4,0:1 — SÓLO cromo y filetes. NUNCA texto */
+    --pel-margen: #8F969B;   /* Lo impreso en el margen, que es texto de 11px.
+                                Se aclaró desde #838A8F al meter el cielo detrás:
+                                sobre la textura caía a 4,44:1 y el mínimo es 4,5.
+                                Medido sobre la página compuesta, no calculado. */
+    --pel-emulsion: #A6ABB0; /* 8,3:1 — el texto normal */
+    --pel-oro: #E4C46C;      /* 11,3:1 — EL DORADO DEL LOGO. Muestreado del marco
+                                del icono maestro (brand/icono-maestro.webp), no
+                                inventado. Sólo marca lo activo: lo que está
+                                ahora en la ventanilla. No es un color de relleno. */
+    --pel-oro-hondo: #C49444; /* 7,0:1 — el mismo oro en su parte honda */
+    --pel-fuga: var(--pel-oro);   /* la fuga de luz se tiñe del oro de la marca */
+    --pel-sepia: #C8B089;    /* 9,1:1 — lo escrito a mano */
+
+    /* La perforación, dibujada como geometría y repetida por el margen. */
+    --pel-perforacion: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='30'%3E%3Crect x='7' y='8' width='20' height='14' rx='3' fill='%230E0F10'/%3E%3C/svg%3E");
+
+    --pel-salida: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /*
+     * EL CIELO. Textura de emulsión de película que lee como cielo estrellado
+     * (Texturelabs, serie Film; origen en el sidecar del fichero). Va fija, así
+     * que la página se desplaza por delante de ella como una tira por delante
+     * de una mesa de luz.
+     *
+     * Encima lleva un velo de negro de leader al 0,62. Ese velo NO es
+     * decorativo: sin él, el gris de margen a 11px cae a 2,1:1 sobre las zonas
+     * claras del cielo. El 0,62 está BUSCADO, no elegido: bajando de 0,30 a
+     * 0,66 con scripts/contraste-sobre-fondo.mjs, que mide el píxel real que
+     * hay detrás de cada letra, el primer valor que no rompe ningún texto es
+     * 0,60. Se deja en 0,62 de margen. Si se sube la luz de la textura, hay que
+     * volver a buscarlo: no se toca a ojo.
+     */
+    background-color: var(--pel-leader);
+    background-image:
+        linear-gradient(rgba(14, 15, 16, 0.62), rgba(14, 15, 16, 0.62)),
+        url('/texturas/cielo-estrellas.webp');
+    background-size: auto, cover;
+    background-position: center, center;
+    background-attachment: scroll, fixed;
+    background-repeat: no-repeat, no-repeat;
+
+    color: var(--pel-emulsion);
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-variation-settings: 'wdth' 100, 'wght' 400;
+    font-feature-settings: 'tnum' 1;
+}
+
+/*
+ * La emulsión del soporte: raya, mancha de química y grano, en ese orden de
+ * lejanía. Va por DEBAJO de todo el contenido (z-index 0), así que nunca cae
+ * sobre un fotograma ni sobre una cara. Las tres baldosas están producidas con
+ * ffmpeg y llevan su procedencia en public/texturas/*.json.
+ *
+ * El 0,09 está medido, no elegido a ojo: sube el negro de #0E0F10 a un
+ * equivalente de #181818, y con eso el gris de margen sigue en 5,0:1.
+ */
+.pel-grano {
+    position: absolute;
+    inset: 0;
+    background-image:
+        url('/texturas/raya-16mm.webp'),
+        url('/texturas/mancha-quimica.webp'),
+        url('/texturas/grano-16mm.webp');
+    background-size: 1024px 1024px, 820px 820px, 256px 256px;
+    background-repeat: repeat, repeat, repeat;
+    background-blend-mode: screen, soft-light, normal;
+    opacity: 0.09;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ---------- Voz tipográfica ---------- */
+
+/* Versales estrechadas: el rótulo de la lata, no un titular de web. */
+.pel-display {
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-variation-settings: 'wdth' 62, 'wght' 800;
+    text-transform: uppercase;
+    line-height: 0.86;
+    letter-spacing: 0.004em;
+    color: var(--pel-emulsion);
+    margin: 0;
+}
+
+.pel-titulo-seccion {
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-variation-settings: 'wdth' 65, 'wght' 800;
+    text-transform: uppercase;
+    line-height: 0.92;
+    letter-spacing: 0.004em;
+    color: var(--pel-emulsion);
+    margin: 0;
+}
+
+/* El código de borde: lo que va impreso en el margen de la película. */
+.pel-codigo {
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-variation-settings: 'wdth' 100, 'wght' 600;
+    font-size: 0.6875rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--pel-margen);
+    font-feature-settings: 'tnum' 1;
+}
+
+.pel-codigo--activo { color: var(--pel-fuga); }
+
+/* El código corre en vertical por el margen, como en la película de verdad. */
+.pel-codigo--vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+}
+
+.pel-cuerpo {
+    font-size: 1.0625rem;
+    line-height: 1.62;
+    color: var(--pel-emulsion);
+    /* 54ch, no 68: el "0" de Archivo es más ancho que la letra media, así que
+       68ch daban 85 caracteres reales por línea y el suelo topa en 65-75.
+       Medido con Range en scripts/inspeccion-landing.mjs: máximo 73 en 1440. */
+    max-width: 54ch;
+    margin: 0;
+}
+
+/*
+ * La cursiva de Instrument Serif, traducida a este mundo: aquí no es una voz
+ * editorial, es el LÁPIZ DE GRASA. Lo que alguien escribió a mano al margen de
+ * la tira. Por eso va en sepia y sólo aparece anotando algo concreto.
+ */
+.pel-nota {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 1.125rem;
+    line-height: 1.45;
+    color: var(--pel-sepia);
+    margin: 0;
+}
+
+/* ---------- La tira ---------- */
+
+.pel-perf {
+    background-color: var(--pel-sombra);
+    /* El agujero va primero y limpio; el hollín se queda detrás, comiéndose el
+       margen sin tocar la perforación. */
+    background-image: var(--pel-perforacion), url('/texturas/hollin-leader.webp');
+    background-repeat: repeat-y, repeat;
+    background-position: center top, center top;
+    background-size: auto, 256px 256px;
+    background-blend-mode: normal, overlay;
+    width: 34px;
+    flex-shrink: 0;
+}
+
+.pel-perf--horizontal {
+    background-repeat: repeat-x;
+    background-position: left center;
+    width: auto;
+    height: 34px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='34'%3E%3Crect x='8' y='7' width='14' height='20' rx='3' fill='%230E0F10'/%3E%3C/svg%3E"), url('/texturas/hollin-leader.webp');
+    background-size: auto, 256px 256px;
+    background-blend-mode: normal, overlay;
+}
+
+/* El fotograma. Esquina de 6px: la de la ventanilla, no la de una tarjeta. */
+.pel-fotograma {
+    position: relative;
+    overflow: hidden;
+    border-radius: 6px;
+    background-color: #000;
+}
+
+.pel-fotograma > img,
+.pel-fotograma > video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/*
+ * La fuga de luz. Entra por el borde de la tira, como en el revelado a mano, y
+ * SÓLO en el fotograma que está en la ventanilla. Se queda en el borde: no
+ * cruza por encima de la cara de nadie.
+ */
+.pel-fuga-borde {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 22%;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(270deg, rgba(228, 196, 108, 0.88) 0%, rgba(228, 196, 108, 0.32) 42%, rgba(228, 196, 108, 0) 100%);
+    mix-blend-mode: screen;
+    transition: opacity 420ms var(--pel-salida);
+}
+
+.pel-fotograma[data-activo='si'] .pel-fuga-borde { opacity: 1; }
+
+/* ---------- Controles ---------- */
+
+/*
+ * Todo botón es un trozo de película: perforado a los dos extremos. Es el
+ * mismo cuerpo para el primario y el secundario; cambia el relleno.
+ */
+.pel-boton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    min-height: 56px;
+    border: 0;
+    padding: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    background: transparent;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+    transition: transform 420ms var(--pel-salida), filter 420ms var(--pel-salida);
+}
+
+.pel-boton__perf {
+    align-self: stretch;
+    width: 22px;
+    flex-shrink: 0;
+    background-repeat: repeat-y;
+    background-position: center top;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='26'%3E%3Crect x='5' y='8' width='12' height='10' rx='2' fill='%230E0F10'/%3E%3C/svg%3E");
+}
+
+.pel-boton__texto {
+    align-self: stretch;   /* sin esto la barra de color no llega al alto del
+                              botón y las perforaciones asoman por arriba y por
+                              abajo: cuatro bloques sueltos en vez de película */
+    flex-grow: 1;
+    padding: 0 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-variation-settings: 'wdth' 100, 'wght' 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.pel-boton--primario .pel-boton__perf { background-color: var(--pel-fuga); }
+.pel-boton--primario .pel-boton__texto {
+    background-color: var(--pel-oro);
+    color: #140A02;           /* 11,6:1 sobre el oro */
+}
+
+.pel-boton--secundario .pel-boton__perf { background-color: var(--pel-sombra); }
+.pel-boton--secundario .pel-boton__texto {
+    background-color: var(--pel-sombra);
+    color: var(--pel-emulsion);
+}
+
+/* Emulsión sobre el cuerpo del botón. Va en una capa aparte y a 0,08 para no
+   tocar el color calculado del rótulo, que está en 8,8:1. */
+.pel-boton { position: relative; }
+
+.pel-boton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('/texturas/grano-16mm.webp'), url('/texturas/raya-16mm.webp');
+    background-size: 256px 256px, 1024px 1024px;
+    background-repeat: repeat, repeat;
+    background-blend-mode: normal, screen;
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+}
+
+.pel-boton:hover { filter: brightness(1.12); }
+.pel-boton:active { transform: translateY(1px); }
+
+/* El enlace de texto: subrayado a distancia, y el naranja sólo al tocarlo. */
+.pel-enlace {
+    color: var(--pel-emulsion);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 5px;
+    text-decoration-color: var(--pel-base);
+    transition: color 420ms var(--pel-salida), text-decoration-color 420ms var(--pel-salida);
+}
+
+.pel-enlace:hover {
+    color: var(--pel-fuga);
+    text-decoration-color: var(--pel-fuga);
+}
+
+/* ---------- El raíl de datos, pegado al borde de la tira ---------- */
+
+.pel-dato {
+    border: 1px solid var(--pel-sombra);
+    border-radius: 4px;
+    padding: 12px 14px;
+    background-color: rgba(14, 15, 16, 0.82);
+}
+
+.pel-dato__clave {
+    display: block;
+    font-size: 0.625rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--pel-margen);
+    font-variation-settings: 'wdth' 100, 'wght' 600;
+    margin-bottom: 4px;
+}
+
+.pel-dato__valor {
+    display: block;
+    font-size: 0.9375rem;
+    color: var(--pel-emulsion);
+    font-variation-settings: 'wdth' 100, 'wght' 500;
+    font-feature-settings: 'tnum' 1;
+}
+
+/* ---------- Las superficies que pinta el navegador ---------- */
+
+.pel ::selection {
+    background-color: var(--pel-oro);
+    color: #140A02;
+}
+
+.pel input,
+.pel textarea { caret-color: var(--pel-fuga); }
+
+.pel :focus-visible {
+    outline: 2px solid var(--pel-fuga);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+.pel { scrollbar-color: var(--pel-sombra) var(--pel-leader); scrollbar-width: thin; }
+
+.pel ::-webkit-scrollbar { width: 11px; height: 11px; }
+.pel ::-webkit-scrollbar-track { background: var(--pel-leader); }
+.pel ::-webkit-scrollbar-thumb {
+    background: var(--pel-sombra);
+    border: 3px solid var(--pel-leader);
+    border-radius: 6px;
+}
+.pel ::-webkit-scrollbar-thumb:hover { background: var(--pel-base); }
+
+/* ---------- Movimiento ---------- */
+
+/*
+ * UN solo momento de autor en toda la página: el avance de fotograma. La tira
+ * encaja de uno en uno, como una ventanilla de proyector, y el raíl cambia al
+ * que entra. Mecánico y escalonado, nunca elástico.
+ */
+.pel-ventanilla {
+    scroll-snap-type: y proximity;
+}
+
+.pel-ventanilla > * { scroll-snap-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+    .pel *,
+    .pel *::before,
+    .pel *::after {
+        transition-duration: 1ms !important;
+        animation-duration: 1ms !important;
+    }
+    .pel-ventanilla { scroll-snap-type: none; }
+}
+
+/* ---------- Preguntas: apertura nativa, con su estado dicho ---------- */
+
+.pel-pregunta {
+    border-bottom: 1px solid var(--pel-sombra);
+}
+
+.pel-pregunta > summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px 0;
+    min-height: 44px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 1.125rem;
+    color: var(--pel-emulsion);
+    font-variation-settings: 'wdth' 100, 'wght' 500;
+    transition: color 420ms var(--pel-salida);
+}
+
+.pel-pregunta > summary::-webkit-details-marker { display: none; }
+.pel-pregunta > summary:hover { color: var(--pel-fuga); }
+
+/* La marca de estado: cerrada dice ABRIR, abierta se pone en naranja. */
+.pel-pregunta > summary::after {
+    content: 'Abrir';
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--pel-margen);
+    font-variation-settings: 'wdth' 100, 'wght' 600;
+}
+
+.pel-pregunta[open] > summary { color: var(--pel-fuga); }
+.pel-pregunta[open] > summary::after {
+    content: 'Cerrar';
+    color: var(--pel-fuga);
+}
+
+.pel-pregunta__respuesta {
+    padding: 0 0 26px;
+    max-width: 54ch;   /* la misma medida que el cuerpo, por la misma razón */
+    color: var(--pel-emulsion);
+    font-size: 1.0625rem;
+    line-height: 1.62;
+}
+
+/* ---------- Móvil estrecho ---------- */
+
+/*
+ * Los rótulos largos ("Necesito una antes de tiempo") sacaban el botón 29px
+ * fuera de la pantalla en 390 de ancho y aparecía barra horizontal. Se
+ * aprieta el interlineado de letra y el relleno, y el cuerpo nunca pasa del
+ * ancho disponible. El alto mínimo de 56px se mantiene: el objetivo táctil no
+ * se toca.
+ */
+.pel-boton { max-width: 100%; }
+
+@media (max-width: 480px) {
+    .pel-boton__texto {
+        padding: 0 16px;
+        font-size: 0.8125rem;
+        letter-spacing: 0.1em;
+    }
+    .pel-boton__perf { width: 18px; }
+}
+
+/* ---------- El leader: la frase que define la promesa ---------- */
+
+/*
+ * Esto NO va en versales. Las versales estrechadas son para rotular una lata,
+ * y esto son dos frases seguidas que hay que leer. Va en caja normal, con
+ * tamaño de titular y medida de lectura.
+ *
+ * La diferencia entre las dos frases la lleva el TONO, no el color ni el
+ * cuerpo: la del actor apagada, la de la estrella plena. Ese salto es la
+ * transformación, dicho con la paleta. A 32px o más el mínimo es 3:1, y el
+ * gris base da 4,0:1.
+ */
+.pel-definicion {
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-variation-settings: 'wdth' 92, 'wght' 500;
+    font-size: clamp(1.5rem, 2.7vw, 2.25rem);
+    line-height: 1.26;
+    letter-spacing: -0.015em;
+    max-width: 34ch;
+    margin: 0;
+    text-wrap: balance;
+}
+
+.pel-definicion--apagada { color: var(--pel-base); }
+.pel-definicion--plena { color: var(--pel-emulsion); }
+
+
+/* ---------- La banda de claqueta ---------- */
+
+/*
+ * Las barras diagonales del brazo de la claqueta del logo, en oro y negro de
+ * leader. Es el otro objeto que la marca ya tiene y es primo hermano de la
+ * perforación, así que las dos conviven sin pelearse.
+ *
+ * Se usa DOS VECES en toda la página, no como relleno: abre la portada bajo la
+ * cabecera y anuncia el cierre. Una raya repetida deja de significar algo en
+ * cuanto aparece por tercera vez.
+ */
+.pel-claqueta {
+    /* Barras BLANCAS Y NEGRAS, que es como es el brazo de la claqueta del
+       logo. En oro y negro leía como cinta de obra, que es exactamente lo que
+       una marca de cine no quiere decir. El oro entra debajo, de filete. */
+    height: 26px;
+    background-image: repeating-linear-gradient(
+        104deg,
+        var(--pel-emulsion) 0 42px,
+        var(--pel-leader) 42px 84px
+    );
+    border-bottom: 2px solid var(--pel-oro);
+}

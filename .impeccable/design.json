@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-26T00:00:00.000Z",
+  "title": "Design System: SCENE ME",
+  "extensions": {
+    "colorMeta": {
+      "leader": {
+        "role": "neutral",
+        "displayName": "Negro de leader",
+        "canonical": "#0E0F10",
+        "note": "El suelo de toda la pagina. Unico fondo del mundo; ni blanco ni crema en ninguna superficie.",
+        "tonalRamp": ["#08090A", "#0E0F10", "#181A1C", "#24272A", "#3A3E42", "#5C6165", "#8B9095", "#C3C7CA"]
+      },
+      "sombra": {
+        "role": "neutral",
+        "displayName": "Gris de sombra (cromo)",
+        "canonical": "#2A2E31",
+        "note": "Perforaciones, filetes de 1px, cuerpo del boton secundario, pulgar de la barra de desplazamiento.",
+        "tonalRamp": ["#111315", "#1B1E20", "#2A2E31", "#3C4145", "#565C61", "#787F84", "#A3A9AD", "#D2D6D8"]
+      },
+      "base": {
+        "role": "neutral",
+        "displayName": "Gris base",
+        "canonical": "#6E7377",
+        "contrastOnLeader": "4.0:1",
+        "note": "SOLO cromo y filetes: subrayado en reposo y pulgar de barra en hover. NUNCA texto, a ningun tamano.",
+        "tonalRamp": ["#1B1D1E", "#2C2F31", "#414547", "#575C5F", "#6E7377", "#949A9E", "#BBC0C3", "#E1E4E6"]
+      },
+      "margen": {
+        "role": "neutral",
+        "displayName": "Gris de margen",
+        "canonical": "#838A8F",
+        "contrastOnLeader": "5.4:1",
+        "note": "Lo impreso en el margen de la pelicula: codigos de borde, claves del rail, marca de estado. Siempre a 11px o menos.",
+        "tonalRamp": ["#1F2224", "#313538", "#464B4F", "#5D6367", "#757C80", "#838A8F", "#AFB5B8", "#DBDEE0"]
+      },
+      "emulsion": {
+        "role": "neutral",
+        "displayName": "Gris de emulsion",
+        "canonical": "#A6ABB0",
+        "contrastOnLeader": "8.3:1",
+        "note": "El texto normal: cuerpo, titulares, rotulos del boton secundario, respuestas.",
+        "tonalRamp": ["#242729", "#383C3F", "#4D5255", "#64696D", "#7C8286", "#959B9F", "#A6ABB0", "#D9DCDE"]
+      },
+      "fuga": {
+        "role": "primary",
+        "displayName": "Naranja de fuga",
+        "canonical": "#FF8A33",
+        "contrastOnLeader": "8.1:1",
+        "note": "La luz que se cuela por el borde de la tira. Marca UNA sola cosa: lo que esta activo ahora.",
+        "tonalRamp": ["#3D1B00", "#5E2C03", "#833F06", "#A9530A", "#CE6A16", "#EA7C22", "#FF8A33", "#FFC79A"]
+      },
+      "sepia": {
+        "role": "secondary",
+        "displayName": "Sepia de lapiz de grasa",
+        "canonical": "#C8B089",
+        "contrastOnLeader": "9.1:1",
+        "note": "Lo escrito a mano al margen. Solo con Instrument Serif cursiva y solo para anotar lo que falta.",
+        "tonalRamp": ["#2E2517", "#463823", "#5F4D31", "#7A6541", "#977F53", "#B49B6E", "#C8B089", "#E6DAC4"]
+      },
+      "tinta-rotulo": {
+        "role": "neutral",
+        "displayName": "Tinta de rotulo",
+        "canonical": "#140A02",
+        "contrastOnFuga": "8.8:1",
+        "note": "El casi negro del texto dentro del boton primario y de la seleccion. No aparece en ningun otro sitio.",
+        "tonalRamp": ["#0A0501", "#140A02", "#241305", "#371E09", "#4E2C0F", "#6B3F18", "#8E5726", "#BE8340"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "El rotulo de la lata. Solo el h1 de la portada y el titular del cierre, en versales estrechadas a wdth 62."
+      },
+      "headline": {
+        "displayName": "Titulo de seccion",
+        "purpose": "Titulares de seccion y de toma, mas el nombre de la marca en cabecera y pie. wdth 65."
+      },
+      "body": {
+        "displayName": "Cuerpo",
+        "purpose": "Texto corrido, topado en 54ch con cifras tabulares siempre activas."
+      },
+      "nota": {
+        "displayName": "Nota a lapiz de grasa",
+        "purpose": "Instrument Serif cursiva en sepia, solo para anotar al margen lo que falta o no esta cerrado."
+      },
+      "label": {
+        "displayName": "Codigo de margen",
+        "purpose": "Lo impreso en el margen de la pelicula. Versales de 11px a 0,24em, en vertical cuando corre por el canto."
+      }
+    },
+    "typeAxisEvidence": {
+      "family": "Archivo variable, eje wdth 62..125 y wght 400..900",
+      "measured": "A 100px, la palabra ESTRELLA mide 364px con wdth 62, 551px con wdth 100 y 681px con wdth 125.",
+      "measureCap": "El cuerpo topa en 54ch, no en 68: el glifo 0 de Archivo es mas ancho que la letra media y 68ch daban 85 caracteres reales. Maximo medido en el artefacto: 73 caracteres a 1440."
+    },
+    "shadows": [],
+    "textures": [
+      { "name": "grano-16mm", "file": "/texturas/grano-16mm.webp", "tile": "256x256", "blend": "normal", "purpose": "Grano de emulsion del soporte. Producido con ffmpeg; procedencia en public/texturas/grano-16mm.webp.json." },
+      { "name": "raya-16mm", "file": "/texturas/raya-16mm.webp", "tile": "1024x1024", "blend": "screen", "purpose": "Rayas verticales del paso por el proyector." },
+      { "name": "mancha-quimica", "file": "/texturas/mancha-quimica.webp", "tile": "820x820", "blend": "soft-light", "purpose": "Mancha del revelado a mano." },
+      { "name": "hollin-leader", "file": "/texturas/hollin-leader.webp", "tile": "256x256", "blend": "overlay", "purpose": "Suciedad del margen perforado. Va detras del agujero, nunca encima." }
+    ],
+    "motion": [
+      { "name": "salida", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Salida exponencial. Unica curva del mundo: mecanica y escalonada, nunca elastica." },
+      { "name": "duracion-estado", "value": "420ms", "purpose": "Toda transicion de estado: color, opacidad, filter, transform." },
+      { "name": "avance-de-fotograma", "value": "scroll-snap-type: y proximity + IntersectionObserver [0, .2, .4, .6, .8, 1]", "purpose": "El unico momento de autor de la pagina. La tira encaja fotograma a fotograma y solo el que esta en la ventanilla lleva la fuga." },
+      { "name": "reduced-motion", "value": "prefers-reduced-motion: reduce -> transiciones y animaciones a 1ms, scroll-snap-type: none", "purpose": "El encaje se desactiva por completo." }
+    ],
+    "breakpoints": [
+      { "name": "movil-estrecho", "value": "480px", "note": "Por debajo, el boton aprieta relleno (16px), cuerpo (13px) y espaciado (0,1em); los 56px de alto no se tocan." },
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px", "note": "Aqui aparecen la columna de 184px del rail de datos y la alternancia de lado en el Metodo." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Boton primario",
+      "kind": "button",
+      "refersTo": "boton-primario",
+      "description": "Un trozo de pelicula perforado a los dos extremos, en naranja de fuga. La accion principal de cada seccion.",
+      "html": "<a class=\"ds-boton ds-boton--primario\" href=\"#\"><span class=\"ds-boton__perf\" aria-hidden=\"true\"></span><span class=\"ds-boton__texto\">Reservar sesion</span><span class=\"ds-boton__perf\" aria-hidden=\"true\"></span></a>",
+      "css": ".ds-boton { position: relative; display: inline-flex; align-items: center; min-height: 56px; max-width: 100%; border: 0; padding: 0; border-radius: 4px; overflow: hidden; background: transparent; cursor: pointer; text-decoration: none; font-family: 'Archivo', system-ui, sans-serif; transition: transform 420ms cubic-bezier(0.16,1,0.3,1), filter 420ms cubic-bezier(0.16,1,0.3,1); } .ds-boton__perf { align-self: stretch; width: 22px; flex-shrink: 0; background-repeat: repeat-y; background-position: center top; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='26'%3E%3Crect x='5' y='8' width='12' height='10' rx='2' fill='%230E0F10'/%3E%3C/svg%3E\"); } .ds-boton__texto { align-self: stretch; flex-grow: 1; padding: 0 26px; display: flex; align-items: center; justify-content: center; font-variation-settings: 'wdth' 100, 'wght' 700; font-size: 0.875rem; letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; } .ds-boton--primario .ds-boton__perf { background-color: #FF8A33; } .ds-boton--primario .ds-boton__texto { background-color: #FF8A33; color: #140A02; } .ds-boton:hover { filter: brightness(1.12); } .ds-boton:active { transform: translateY(1px); } .ds-boton:focus-visible { outline: 2px solid #FF8A33; outline-offset: 3px; border-radius: 2px; }"
+    },
+    {
+      "name": "Boton secundario",
+      "kind": "button",
+      "refersTo": "boton-secundario",
+      "description": "El mismo cuerpo de pelicula en cromo. Para la accion que acompana, nunca para la principal.",
+      "html": "<a class=\"ds-boton2\" href=\"#\"><span class=\"ds-boton2__perf\" aria-hidden=\"true\"></span><span class=\"ds-boton2__texto\">Entrar a los Estudios</span><span class=\"ds-boton2__perf\" aria-hidden=\"true\"></span></a>",
+      "css": ".ds-boton2 { position: relative; display: inline-flex; align-items: center; min-height: 56px; max-width: 100%; border: 0; padding: 0; border-radius: 4px; overflow: hidden; background: transparent; cursor: pointer; text-decoration: none; font-family: 'Archivo', system-ui, sans-serif; transition: transform 420ms cubic-bezier(0.16,1,0.3,1), filter 420ms cubic-bezier(0.16,1,0.3,1); } .ds-boton2__perf { align-self: stretch; width: 22px; flex-shrink: 0; background-color: #2A2E31; background-repeat: repeat-y; background-position: center top; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='26'%3E%3Crect x='5' y='8' width='12' height='10' rx='2' fill='%230E0F10'/%3E%3C/svg%3E\"); } .ds-boton2__texto { align-self: stretch; flex-grow: 1; padding: 0 26px; display: flex; align-items: center; justify-content: center; background-color: #2A2E31; color: #A6ABB0; font-variation-settings: 'wdth' 100, 'wght' 700; font-size: 0.875rem; letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; } .ds-boton2:hover { filter: brightness(1.12); } .ds-boton2:active { transform: translateY(1px); } .ds-boton2:focus-visible { outline: 2px solid #FF8A33; outline-offset: 3px; border-radius: 2px; }"
+    },
+    {
+      "name": "Fotograma en ventanilla",
+      "kind": "custom",
+      "refersTo": "fotograma",
+      "description": "La ventanilla donde va el trabajo del actor, y sale limpio. Cuando esta activo, la fuga de luz entra por el borde derecho y se queda ahi: no cruza por encima de ninguna cara.",
+      "html": "<div class=\"ds-fotograma\" data-activo=\"si\"><img src=\"/trabajos/web/1.webp\" alt=\"Retrato de book actoral\" /><span class=\"ds-fuga-borde\" aria-hidden=\"true\"></span></div>",
+      "css": ".ds-fotograma { position: relative; overflow: hidden; border-radius: 6px; background-color: #000; aspect-ratio: 4 / 5; width: 240px; } .ds-fotograma > img { display: block; width: 100%; height: 100%; object-fit: cover; } .ds-fuga-borde { position: absolute; top: 0; bottom: 0; right: 0; width: 22%; pointer-events: none; opacity: 0; background: linear-gradient(270deg, rgba(255,138,51,0.92) 0%, rgba(255,138,51,0.34) 42%, rgba(255,138,51,0) 100%); mix-blend-mode: screen; transition: opacity 420ms cubic-bezier(0.16,1,0.3,1); } .ds-fotograma[data-activo='si'] .ds-fuga-borde { opacity: 1; }"
+    },
+    {
+      "name": "Perforado",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "La columna de perforaciones. Es cromo puro: no lleva texto ni significado, y es lo que convierte cualquier contenedor en un trozo de pelicula.",
+      "html": "<div class=\"ds-perf\" aria-hidden=\"true\"></div>",
+      "css": ".ds-perf { background-color: #2A2E31; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='30'%3E%3Crect x='7' y='8' width='20' height='14' rx='3' fill='%230E0F10'/%3E%3C/svg%3E\"), url('/texturas/hollin-leader.webp'); background-repeat: repeat-y, repeat; background-position: center top, center top; background-size: auto, 256px 256px; background-blend-mode: normal, overlay; width: 34px; height: 220px; flex-shrink: 0; }"
+    },
+    {
+      "name": "Casilla del rail de datos",
+      "kind": "card",
+      "refersTo": "dato",
+      "description": "Lo que de verdad se sabe del fotograma que esta en la ventanilla. Vive en su propia columna, nunca encima de la imagen.",
+      "html": "<div class=\"ds-dato\"><span class=\"ds-dato__clave\">En la ventanilla</span><span class=\"ds-dato__valor\">Amanda</span></div>",
+      "css": ".ds-dato { border: 1px solid #2A2E31; border-radius: 4px; padding: 12px 14px; background-color: rgba(14,15,16,0.82); font-family: 'Archivo', system-ui, sans-serif; width: 184px; } .ds-dato__clave { display: block; font-size: 0.625rem; letter-spacing: 0.24em; text-transform: uppercase; color: #838A8F; font-variation-settings: 'wdth' 100, 'wght' 600; margin-bottom: 4px; } .ds-dato__valor { display: block; font-size: 0.9375rem; color: #A6ABB0; font-variation-settings: 'wdth' 100, 'wght' 500; font-feature-settings: 'tnum' 1; }"
+    },
+    {
+      "name": "Codigo de margen",
+      "kind": "chip",
+      "refersTo": "codigo-margen",
+      "description": "Lo que va impreso en el margen de la pelicula. Identifica la pieza sin ser nunca un antetitulo: su sitio es el canto, no encima del rotulo.",
+      "html": "<span class=\"ds-codigo\">Toma 01</span> <span class=\"ds-codigo ds-codigo--activo\">En marcha</span>",
+      "css": ".ds-codigo { font-family: 'Archivo', system-ui, sans-serif; font-variation-settings: 'wdth' 100, 'wght' 600; font-size: 0.6875rem; letter-spacing: 0.24em; text-transform: uppercase; color: #838A8F; font-feature-settings: 'tnum' 1; } .ds-codigo--activo { color: #FF8A33; } .ds-codigo--vertical { writing-mode: vertical-rl; text-orientation: mixed; }"
+    },
+    {
+      "name": "Enlace de texto",
+      "kind": "nav",
+      "refersTo": "enlace",
+      "description": "Subrayado a distancia en cromo; el naranja solo aparece al tocarlo.",
+      "html": "<a class=\"ds-enlace\" href=\"#\">Empieza por el book</a>",
+      "css": ".ds-enlace { font-family: 'Archivo', system-ui, sans-serif; font-size: 1.0625rem; color: #A6ABB0; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; text-decoration-color: #6E7377; transition: color 420ms cubic-bezier(0.16,1,0.3,1), text-decoration-color 420ms cubic-bezier(0.16,1,0.3,1); } .ds-enlace:hover { color: #FF8A33; text-decoration-color: #FF8A33; } .ds-enlace:focus-visible { outline: 2px solid #FF8A33; outline-offset: 3px; border-radius: 2px; }"
+    },
+    {
+      "name": "Pregunta desplegable",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "details nativo: se abre con teclado sin una linea de JavaScript y dice su estado con palabras, no con una flecha que gira.",
+      "html": "<details class=\"ds-pregunta\"><summary>¿Puedo probar antes de pagar?</summary><p class=\"ds-pregunta__respuesta\">Si. Entrar a los Estudios y usar el ensayo es gratis. Lo que se paga es el rodaje.</p></details>",
+      "css": ".ds-pregunta { border-bottom: 1px solid #2A2E31; font-family: 'Archivo', system-ui, sans-serif; } .ds-pregunta > summary { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding: 22px 0; min-height: 44px; cursor: pointer; list-style: none; font-size: 1.125rem; color: #A6ABB0; font-variation-settings: 'wdth' 100, 'wght' 500; transition: color 420ms cubic-bezier(0.16,1,0.3,1); } .ds-pregunta > summary::-webkit-details-marker { display: none; } .ds-pregunta > summary:hover { color: #FF8A33; } .ds-pregunta > summary::after { content: 'Abrir'; flex-shrink: 0; font-size: 0.6875rem; letter-spacing: 0.24em; text-transform: uppercase; color: #838A8F; font-variation-settings: 'wdth' 100, 'wght' 600; } .ds-pregunta[open] > summary { color: #FF8A33; } .ds-pregunta[open] > summary::after { content: 'Cerrar'; color: #FF8A33; } .ds-pregunta__respuesta { padding: 0 0 26px; max-width: 68ch; color: #A6ABB0; font-size: 1.0625rem; line-height: 1.62; }"
+    },
+    {
+      "name": "Nota a lapiz de grasa",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "La anotacion escrita a mano al margen de la tira. Solo dice lo que falta o lo que aun no esta cerrado.",
+      "html": "<p class=\"ds-nota\">Los packs de 5 y de 10 aun no tienen precio cerrado. Se hacen hablando.</p>",
+      "css": ".ds-nota { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 1.125rem; line-height: 1.45; color: #C8B089; margin: 0; max-width: 44ch; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La tira de 16 mm revelada a mano",
+    "overview": "La portada no es una pagina con fotos dentro: es un trozo de pelicula. El suelo es negro de leader, los contenedores llevan perforaciones a los extremos, los rotulos van impresos en vertical por el margen y la imagen aparece dentro de una ventanilla de proyector. El material fotografico se nota —grano, raya, hollin, mancha de quimica, fuga de luz naranja— pero se nota donde tiene que notarse: en el soporte.\n\nDe ahi sale la unica ley que ordena el resto. La emulsion vive en el soporte y jamas sobre la imagen del actor, porque esa imagen es el producto que se vende. El grano va en una capa a opacity 0,09 por debajo de todo el contenido; la fuga de luz entra por el 22% derecho del fotograma y se queda en el borde; el rail de datos se saco a su propia columna precisamente porque flotando encima tapaba la cara de la actriz. Si alguna vez se ve grano sobre una cara, esta mal.\n\nEl mundo es oscuro, denso y mecanico, sin nada blando: cero sombras, cero degradados decorativos, cero tarjetas. Rechaza explicitamente el arreglo por defecto de la categoria —video a pantalla completa con titular centrado y tres tarjetas de servicio iguales— y lo sustituye por composicion asimetrica, listados con filete y fotogramas de proporcion distinta segun lo que ensenan.",
+    "keyCharacteristics": [
+      "Negro de leader como suelo unico; ni blanco ni crema en ninguna superficie.",
+      "Emulsion texturada solo en el soporte, nunca sobre la imagen.",
+      "Versales estrechadas de Archivo variable (wdth 62-65, wght 800) como voz de rotulo de lata.",
+      "Naranja de fuga reservado a una sola cosa: lo que esta activo.",
+      "Todo contenedor es un trozo de pelicula: perforado, con codigo en el margen y esquina de 6px.",
+      "Un solo momento de autor en toda la pagina: el avance de fotograma.",
+      "Plano absoluto: ni una sombra en todo el mundo."
+    ],
+    "rules": [
+      { "name": "La Regla de la Emulsion en el Soporte", "body": "El grano, la raya, el hollin, la mancha de quimica y la fuga de luz viven en el soporte —el negro de leader, el margen perforado, el cromo de los controles— y nunca encima de la imagen. Prueba: si una cara lleva grano o naranja por encima, esta mal.", "section": "colors" },
+      { "name": "La Regla de la Fuga Unica", "body": "El naranja marca lo que esta activo en este momento y nada mas. Si dos cosas de la misma pantalla estan en naranja sin estar las dos activas, sobra una.", "section": "colors" },
+      { "name": "La Regla del Gris que no Habla", "body": "El gris base (#6E7377) no lleva texto nunca, a ningun tamano. Es cromo: filetes, subrayados y barras. Para texto pequeno se sube al gris de margen; para texto normal, al de emulsion.", "section": "colors" },
+      { "name": "La Regla de los 54 Caracteres", "body": "El cuerpo topa en 54ch, no en 68. El glifo 0 de Archivo es mas ancho que su letra media, asi que 68ch daban 85 caracteres reales por linea. Medido en el artefacto: maximo 73 caracteres a 1440. Si se cambia de tipografia, se vuelve a medir; el numero que manda es el de caracteres reales, no el ch.", "section": "typography" },
+      { "name": "La Regla del Margen", "body": "Lo que identifica una pieza —Toma 01, 16 mm, Sin revelar, Scene Me— va impreso en el margen, normalmente en vertical, junto a la perforacion. Nunca encima del titular. Un rotulo pequeno sobre un titular es un antetitulo, y aqui los antetitulos estan prohibidos.", "section": "typography" },
+      { "name": "La Regla del Lapiz de Grasa", "body": "Instrument Serif cursiva aparece unicamente en sepia y unicamente anotando algo concreto: lo que falta, lo que aun no tiene precio, lo que esta en el laboratorio. No se usa para citas, ni para subtitulos, ni para dar aire.", "section": "typography" },
+      { "name": "La Regla de la Columna Propia", "body": "Los datos, los codigos y los rotulos tienen su propia columna o su propio margen. Nada informativo se superpone a un fotograma. Cuando no cabe al lado, baja debajo.", "section": "layout" },
+      { "name": "La Regla sin Sombra", "body": "Aqui no hay sombras de ningun tipo. Si algo necesita destacar, se ilumina con la fuga o se separa con un filete de cromo; nunca se levanta.", "section": "elevation" },
+      { "name": "La Regla del 0,09", "body": "La opacidad de la emulsion es un valor medido contra el contraste, no un gusto. Si se sube la textura, se vuelven a medir todos los grises sobre el fondo resultante antes de darla por buena.", "section": "elevation" },
+      { "name": "La Regla del Trozo de Pelicula", "body": "Todo contenedor de esta portada es un trozo de pelicula: perforado en los extremos, con su codigo impreso en el margen. Si un bloque parece una tarjeta —caja con fondo, radio grande y relleno uniforme— esta mal.", "section": "shapes" },
+      { "name": "La Regla del Unico Momento de Autor", "body": "Solo el avance de fotograma tiene derecho a llamar la atencion. Cualquier otra animacion tiene que ser respuesta a un estado (hover, foco, abierto, activo) y durar 420ms con la salida exponencial. Nada se mueve por moverse.", "section": "components" }
+    ],
+    "dos": [
+      "Do mantener la emulsion en el soporte: capa .pel-grano a opacity 0,09, por debajo del contenido, nunca dentro de un fotograma.",
+      "Do dar a todo contenedor cuerpo de pelicula: perforacion en los extremos y su codigo impreso en el margen.",
+      "Do reservar el naranja de fuga (#FF8A33) a lo que esta activo ahora mismo, y solo a una cosa por pantalla.",
+      "Do escribir los codigos de margen en versales de 11px con 0,24em, en gris de margen, y en vertical cuando corran por el canto.",
+      "Do topar el texto corrido en 54ch y volver a medir caracteres reales si cambia la tipografia.",
+      "Do variar la proporcion de cada fotograma segun lo que ensena (4/5, 16/9, 3/4) en lugar de repetir el mismo formato.",
+      "Do decir los estados con palabras (Abrir / Cerrar, En marcha, Sin revelar) en vez de con iconos o flechas.",
+      "Do poner un scrim opaco (leader al 86%) detras de cualquier texto que caiga sobre video o foto.",
+      "Do mantener los 56px de alto del boton y los 44px de la fila de pregunta tambien en movil, apretando relleno y espaciado antes que el objetivo tactil."
+    ],
+    "donts": [
+      "Don't poner grano, raya, fuga, texto ni dato encima de la imagen del actor. Esa imagen es el producto.",
+      "Don't usar el gris base (#6E7377) para texto a ningun tamano: a 4,0:1 no llega.",
+      "Don't repartir el naranja como color de marca.",
+      "Don't poner un antetitulo: ningun rotulo pequeno va encima de un titular. Su sitio es el margen.",
+      "Don't resolver una seccion con tarjetas iguales. Listados con filete, tiras y fotogramas de proporcion propia.",
+      "Don't numerar una seccion si el numero no lleva informacion. Toma 01 identifica una toma real; los cuatro del laboratorio no llevan numero porque no tienen orden.",
+      "Don't anadir sombras: este mundo es plano y se ilumina, no se levanta.",
+      "Don't usar fondo blanco ni crema en ninguna superficie.",
+      "Don't meter una segunda animacion de autor: el avance de fotograma es el unico.",
+      "Don't inventar una cifra, un testimonio, un precio o un boton que no lleve a ningun sitio. Lo que no existe se dice a lapiz de grasa."
+    ]
+  }
+}

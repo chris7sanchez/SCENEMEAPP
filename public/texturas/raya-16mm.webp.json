@@ -1,0 +1,4 @@
+{
+  "prompt": "Aranazos de pelicula revelada a mano, irregulares en los dos ejes. Producido localmente con ffmpeg, sin modelo de imagen. Comando: -f lavfi -i nullsrc=s=1024x1024,geq=lum=if(gt(random(1),0.9993),255,0),format=gray,avgblur=sizeX=1:sizeY=40,eq=contrast=7. Puntos sueltos estirados en vertical: rayas de largo y posicion desiguales que repiten en los dos ejes, no filetes equidistantes.",
+  "createdAt": "2026-09-26T14:06:39.050Z"
+}

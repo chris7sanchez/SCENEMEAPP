@@ -1,0 +1,4 @@
+{
+  "prompt": "Grano de emulsion de 16 mm. Producido localmente con ffmpeg, sin modelo de imagen. Comando: -f lavfi -i nullsrc=s=256x256,geq=random(1)*255:128:128,format=gray. Baldosa de ruido que se repite como grano del soporte, nunca sobre la imagen del actor.",
+  "createdAt": "2026-09-26T13:52:43.848Z"
+}

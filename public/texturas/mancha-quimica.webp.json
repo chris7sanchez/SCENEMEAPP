@@ -1,0 +1,4 @@
+{
+  "prompt": "Mancha de quimica con floracion y goteo. Producido localmente con ffmpeg, sin modelo de imagen. Comando: -f lavfi -i nullsrc=s=14x14,geq=random(1)*255:128:128,format=gray,scale=512:512,boxblur=14:3,eq=contrast=2.4. Manchones grandes para el soporte, jamas dentro del fotograma.",
+  "createdAt": "2026-09-26T13:52:43.900Z"
+}

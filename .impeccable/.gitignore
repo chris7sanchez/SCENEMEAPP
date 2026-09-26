@@ -1,0 +1,6 @@
+# Capturas de revisión y tableros de referencia: 21 MB de PNG que se
+# regeneran con `node scripts/inspeccion-landing.mjs`. No van al repositorio.
+review/
+worlds/
+mocks/
+questions/
