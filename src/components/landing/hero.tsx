@@ -63,10 +63,10 @@ const VENTANILLA = [
         alt: 'Fotograma de la escena de Sonia Dorado rodada en SCENE ME',
     },
     {
-        nombre: 'Mudanza',
-        video: '/videos/MUDANZA-loop.mp4',
-        poster: '/videos/MUDANZA-loop-poster.jpg',
-        alt: 'Fotograma de una escena a medida rodada en SCENE ME',
+        nombre: 'Silvia',
+        video: '/videos/SILVIA-loop.mp4',
+        poster: '/videos/SILVIA-loop-poster.jpg',
+        alt: 'Fotograma de la escena de Silvia rodada en SCENE ME',
     },
     {
         nombre: 'Oliver',
