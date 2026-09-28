@@ -16,6 +16,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import Image from "next/image";
 import { type FormData } from "@/lib/types";
+import { LetrasSceneMe } from '@/components/marca/letras-scene-me';
 
 interface Step0IntroProps {
     setStep: (step: number) => void;
@@ -163,7 +164,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                             />
                             <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 translate-x-[-100%] animate-[shimmer_1.5s_infinite]" />
                         </div>
-                        <h1 className="text-white font-black text-2xl tracking-[0.2em] animate-pulse">SCENE ME</h1>
+                        <h1 className="animate-pulse"><LetrasSceneMe className="h-7 w-auto" /></h1>
                     </div>
                 </div>
             )}
@@ -283,7 +284,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-4xl font-display font-black text-primary uppercase tracking-[0.05em] mb-0.5 drop-shadow-[0_0_25px_rgba(251,191,36,0.3)]">SCENE ME</h3>
+                                <h3 className="mb-1"><LetrasSceneMe className="h-9 w-auto" /></h3>
                                 <span className="text-[10px] font-black text-[hsl(var(--sm-text-primary)/0.5)] tracking-[0.4em] uppercase">THE ACTOR'S STORE CONCEPT</span>
                             </div>
                             <Button
@@ -467,7 +468,7 @@ export default function Step0Intro({ setStep, setFlowType, updateForm }: Step0In
                             <div className="flex-1 flex items-center justify-center p-8 pb-56 w-full h-full relative">
                                 <Image key={`${selectedIndex}-${selectedVariant}`} src={getImagePath(selectedIndex || 1, selectedVariant)} alt="Vista" fill className="object-contain" sizes="100vw" priority />
                                 <div className="absolute bottom-64 left-1/2 -translate-x-1/2 text-center">
-                                    <h4 className="text-primary font-display font-black text-5xl uppercase tracking-[0.2em] drop-shadow-[0_0_30px_rgba(251,191,36,0.5)]">SCENE ME</h4>
+                                    <h4 className="flex justify-center"><LetrasSceneMe className="h-12 w-auto md:h-14" /></h4>
                                     <p className="text-white/40 text-xs font-black tracking-[0.5em] uppercase mt-2">Professional Work Portfolio</p>
                                 </div>
                             </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Instagram, Twitter, Mail, MapPin } from "lucide-react";
+import { LetrasSceneMe } from '@/components/marca/letras-scene-me';
 
 export function LandingFooter() {
   const currentYear = new Date().getFullYear();
@@ -13,7 +14,7 @@ export function LandingFooter() {
           
           <div className="lg:col-span-1">
             <Link href="/" className="inline-block mb-6">
-              <span className="text-3xl font-display tracking-widest text-white">SCENE ME</span>
+              <LetrasSceneMe className="h-7 w-auto" />
             </Link>
             <p className="text-[hsl(220,15%,60%)] text-sm mb-6 max-w-xs">
               La plataforma definitiva para actores profesionales. Creada por y para la industria audiovisual.

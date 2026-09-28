@@ -27,6 +27,7 @@ import ProfileForm from "@/components/profile-form"; // Import directly for simp
 
 import { AnimatePresence, motion } from "framer-motion";
 import StudioInvite from "@/components/studio/StudioInvite";
+import { LetrasSceneMe } from '@/components/marca/letras-scene-me';
 
 function CreatorContent() {
     const { toast } = useToast();
@@ -174,7 +175,7 @@ function CreatorContent() {
             <header className="border-b border-white/10 bg-[hsl(var(--sm-bg-surface)/0.8)] backdrop-blur-md sticky top-0 z-[110] transition-all duration-200 h-16 md:h-20 flex items-center shadow-lg">
                 <div className="max-w-7xl mx-auto w-full px-6 flex items-center justify-between">
                     <div className="cursor-pointer flex flex-col items-center flex-1 group" onClick={() => router.push('/')}>
-                        <h1 className="font-display text-3xl md:text-4xl tracking-[0.1em] leading-none text-primary uppercase group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_15px_hsla(42,90%,55%,0.3)]">SCENE ME</h1>
+                        <h1 className="transition-transform duration-300 group-hover:scale-105"><LetrasSceneMe className="h-7 w-auto md:h-9" /></h1>
                         <p className="text-[8px] md:text-[10px] text-[hsl(var(--sm-text-primary)/0.6)] tracking-[0.4em] font-headline uppercase mt-1">the ACTOR'S STORE concept</p>
                     </div>
                     {/* Entrada al backlot: es un HTML estatico fuera del router de

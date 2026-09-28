@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { LetrasSceneMe } from '@/components/marca/letras-scene-me';
 
 export function SplashScreen() {
     const [isVisible, setIsVisible] = useState(true);
@@ -57,7 +58,7 @@ export function SplashScreen() {
                     className="w-full h-full object-contain"
                 />
             </div>
-            <h1 className="text-white font-black text-3xl tracking-[0.3em] animate-pulse mt-4">SCENE ME</h1>
+            <h1 className="mt-4 animate-pulse"><LetrasSceneMe className="h-8 w-auto md:h-10" /></h1>
         </div>
     );
 }

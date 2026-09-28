@@ -39,6 +39,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signInWithCustomToken } from 'firebase/auth';
 import { auth as firebaseAuth } from "@/lib/firebase";
 import { auth } from "@/lib/auth";
+import { LetrasSceneMe } from '@/components/marca/letras-scene-me';
 
 export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -544,7 +545,7 @@ export default function AdminPage() {
             <div className="max-w-7xl mx-auto space-y-8">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="font-display text-4xl tracking-wider text-primary">SCENE ME ADMIN</h1>
+                        <h1 className="flex items-end gap-3"><LetrasSceneMe className="h-9 w-auto" /><span className="font-display text-2xl tracking-wider text-primary">ADMIN</span></h1>
                         <p className="text-zinc-400 font-mono text-sm">Panel de Control & Generador IA</p>
                     </div>
                     <Button variant="outline" onClick={handleLogout} className="border-red-900/50 text-red-500 hover:bg-red-950 hover:text-red-400">

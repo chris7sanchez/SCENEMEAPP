@@ -54,4 +54,4 @@ video_originals_backup/
 
 # El maestro del icono (brand/) se queda en el repositorio pero no se despliega:
 # de él salen los PNG de public/ con scripts/iconos.mjs, y la web nunca lo pide.
-brand/
+/brand/
