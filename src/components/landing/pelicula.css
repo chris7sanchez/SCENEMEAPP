@@ -504,3 +504,20 @@
     );
     border-bottom: 2px solid var(--pel-oro);
 }
+
+/* La presentación de la cabecera en pantalla ancha: el fotograma entero,
+   centrado, con los cuatro bordes fundidos con el cielo. Dos degradados
+   cruzados (horizontal y vertical) que se multiplican: sólo queda opaco el
+   centro, y el fondo del vídeo -casi negro- se pierde en el cielo sin línea. */
+@media (min-width: 640px) {
+    .pel-presentacion {
+        -webkit-mask-image:
+            linear-gradient(to right, transparent 0%, #000 16%, #000 84%, transparent 100%),
+            linear-gradient(to bottom, transparent 0%, #000 12%, #000 78%, transparent 100%);
+        -webkit-mask-composite: source-in;
+        mask-image:
+            linear-gradient(to right, transparent 0%, #000 16%, #000 84%, transparent 100%),
+            linear-gradient(to bottom, transparent 0%, #000 12%, #000 78%, transparent 100%);
+        mask-composite: intersect;
+    }
+}

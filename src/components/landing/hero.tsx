@@ -1,6 +1,8 @@
 'use client';
 
 import { BotonPelicula, Codigo, Dato, Fotograma, Perforado, useVentanilla } from '@/components/landing/tira';
+import Link from 'next/link';
+import { icono } from '@/lib/iconos-version';
 
 /*
  * El primer pantallazo: negro de leader a la izquierda con el rótulo, y la
@@ -15,9 +17,9 @@ import { BotonPelicula, Codigo, Dato, Fotograma, Perforado, useVentanilla } from
  * la definición abre el Método, que es justo lo que ella anuncia: el paso de
  * actor a estrella. El texto de la definición no se ha tocado.
  *
- * En el móvil, además, la primera pantalla era sólo texto: la tira quedaba
- * debajo de todo. Ahora, justo después del titular, entra un fotograma: lo
- * primero que se ve es trabajo rodado aquí.
+ * En el móvil, además, la primera pantalla era sólo texto. Ahora lo primero
+ * es la cabecera con el vídeo del nombre (presentacion.tsx), que se mueve y
+ * es la marca; y el logo baja aquí, junto a la llamada, como puerta de entrada.
  *
  * Los datos del raíl están MEDIDOS de los ficheros de vídeo, no inventados:
  * duración real y 24 cuadros por segundo, que es a lo que está rodado.
@@ -71,16 +73,6 @@ export function Hero() {
                         Tu book, tu escena y tu self‑tape
                     </h1>
 
-                    {/* En el móvil la tira queda muy abajo: un fotograma aquí para
-                        que la primera pantalla no sea sólo texto. En escritorio no
-                        hace falta, la tira ya está al lado. */}
-                    <Fotograma
-                        video={VENTANILLA[0].video}
-                        poster={VENTANILLA[0].poster}
-                        alt={VENTANILLA[0].alt}
-                        activo
-                        className="aspect-video w-full lg:hidden"
-                    />
 
                     <p className="pel-cuerpo max-w-[40ch] text-[1.0625rem]">
                         Un studio para el actor, en Madrid. Aquí se rueda el material con
@@ -88,16 +80,41 @@ export function Hero() {
                     </p>
 
                     {/*
-                        La llamada, en primera plana y con todas las letras. Va
-                        en la voz de rótulo y en gris pleno, no en oro: el oro
-                        está reservado para lo que está ocurriendo ahora, y aquí
-                        quien lleva la acción es el botón que hay justo debajo.
+                        La llamada, con el logo al lado como PUERTA: pincharlo lleva
+                        a entrar (/login). Lo pidió Christian el 28/09/2026 en el
+                        hueco que quedaba a la derecha de la llamada; el logo salió
+                        de la cabecera cuando entró allí el vídeo del nombre.
+                        Al lado en todas las anchuras: la llamada son dos líneas
+                        cortas y el logo es cuadrado, caben juntos hasta en 390 px.
                     */}
-                    <p className="pel-titulo-seccion max-w-[32ch] text-[clamp(1.5rem,2.6vw,2.125rem)] leading-[1.02]">
-                        Empieza a creer en ti,
-                        <br />
-                        accede a Scene Me
-                    </p>
+                    <div className="grid grid-cols-[minmax(0,1fr)_clamp(72px,12vw,176px)] items-center gap-6 lg:gap-10">
+                        {/*
+                            La llamada, en primera plana y con todas las letras. Va
+                            en la voz de rótulo y en gris pleno, no en oro: el oro
+                            está reservado para lo que está ocurriendo ahora, y aquí
+                            quien lleva la acción es el botón que hay justo debajo.
+                        */}
+                        <p className="pel-titulo-seccion max-w-[32ch] text-[clamp(1.5rem,2.6vw,2.125rem)] leading-[1.02]">
+                            Empieza a creer en ti,
+                            <br />
+                            accede a Scene Me
+                        </p>
+
+                        <Link
+                            href="/login"
+                            aria-label="Entrar en SCENE ME"
+                            className="block rounded-[21%] transition-transform duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--pel-oro)]"
+                        >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={icono('/android-chrome-512x512.png')}
+                                alt=""
+                                width={176}
+                                height={176}
+                                className="h-auto w-full rounded-[21%]"
+                            />
+                        </Link>
+                    </div>
 
                     <div className="flex flex-wrap items-center gap-3">
                         <BotonPelicula href="/booking">Reservar sesión</BotonPelicula>

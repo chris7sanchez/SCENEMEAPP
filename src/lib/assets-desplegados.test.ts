@@ -27,7 +27,7 @@ function rutasQuePideElCodigo(): { ruta: string; donde: string }[] {
     // Con la comilla delante a propósito: así una ruta citada dentro de un
     // comentario ("antes esto apuntaba a /videos/logo-animation.mp4") no cuenta
     // como una petición de verdad.
-    const patron = /["'`](\/(?:videos|trabajos|backlot)\/[^"'`]+\.(?:mp4|webm|jpg|jpeg|png|webp|avif))["'`]/g;
+    const patron = /["'`](\/(?:videos|trabajos|backlot|marca)\/[^"'`]+\.(?:mp4|webm|jpg|jpeg|png|webp|avif))["'`]/g;
 
     const recorrer = (dir: string) => {
         for (const entrada of readdirSync(dir)) {

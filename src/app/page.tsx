@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { icono } from '@/lib/iconos-version';
-import { LetrasSceneMe } from '@/components/marca/letras-scene-me';
 
 import '@/components/landing/pelicula.css';
 import { Hero } from '@/components/landing/hero';
+import { Presentacion } from '@/components/landing/presentacion';
 import { Metodo } from '@/components/landing/metodo';
 import { Estudios } from '@/components/landing/estudios';
 import { Laboratorio } from '@/components/landing/laboratorio';
@@ -58,50 +57,27 @@ export default function Portada() {
             />
 
             {/*
-                La cabecera: la claqueta pegada a la izquierda, casi tan alta
-                como la propia banda, y el nombre centrado de verdad. El logo va
-                en posición absoluta a propósito: así el nombre queda centrado
-                respecto a la PÁGINA y no respecto al hueco que deja el logo.
-
-                En pantalla estrecha no cabe al lado, así que vuelve a ponerse
-                arriba y centrado. No se encoge hasta lo ilegible.
+                La cabecera: el nombre se rueda delante de ti (vídeo de
+                presentación, components/landing/presentacion.tsx) y debajo la
+                fila de navegación. El icono ya no va aquí: el vídeo es el
+                nombre, y el icono bajó a la portada como puerta a /login.
             */}
-            <header className="relative z-30 border-b border-[var(--pel-sombra)] px-6 py-8 sm:px-10 lg:px-14">
-                <div className="relative flex flex-col items-center justify-center gap-5 sm:min-h-[8.5rem] lg:min-h-[10.5rem]">
+            <header className="relative z-30 border-b border-[var(--pel-sombra)]">
+                <Presentacion />
 
+                <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 px-6 py-5 sm:px-10 lg:px-14">
+                    <a href="#metodo" className="pel-codigo">El Método</a>
+                    <a href="#estudios" className="pel-codigo">Estudios</a>
+                    <a href="#laboratorio" className="pel-codigo">Laboratorio</a>
+                    <a href="#preguntas" className="pel-codigo">Preguntas</a>
                     <Link
-                        href="/"
-                        aria-label="SCENE ME Studios — ir al inicio"
-                        className="sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2"
+                        href="/login"
+                        className="pel-codigo pel-codigo--activo"
+                        style={{ textDecoration: 'underline', textUnderlineOffset: '5px' }}
                     >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                            src={icono('/android-chrome-512x512.png')}
-                            alt=""
-                            width={168}
-                            height={168}
-                            className="h-20 w-20 rounded-[18px] sm:h-[8.5rem] sm:w-[8.5rem] sm:rounded-[30px] lg:h-[10.5rem] lg:w-[10.5rem] lg:rounded-[36px]"
-                        />
+                        Entrar
                     </Link>
-
-                    {/* El nombre, con su letra cromada: esa tipografía no existe
-                        como fuente, sólo como imagen (components/marca). */}
-                    <LetrasSceneMe prioridad className="h-[clamp(2rem,5.4vw,3.5rem)] w-auto" />
-
-                    <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-                        <a href="#metodo" className="pel-codigo">El Método</a>
-                        <a href="#estudios" className="pel-codigo">Estudios</a>
-                        <a href="#laboratorio" className="pel-codigo">Laboratorio</a>
-                        <a href="#preguntas" className="pel-codigo">Preguntas</a>
-                        <Link
-                            href="/login"
-                            className="pel-codigo pel-codigo--activo"
-                            style={{ textDecoration: 'underline', textUnderlineOffset: '5px' }}
-                        >
-                            Entrar
-                        </Link>
-                    </nav>
-                </div>
+                </nav>
             </header>
 
             {/* Las barras del brazo de la claqueta del logo abren la página. */}

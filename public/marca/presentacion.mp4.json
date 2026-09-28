@@ -1,0 +1,9 @@
+{
+  "fichero": "presentacion.mp4",
+  "procedencia": "Vídeo de presentación generado con Grok y aportado por Christian el 28/09/2026 (grok-video-f06335d8-cb55-4221-ad6d-62afe4e4b5a5-3.mp4, la segunda versión, que prefirió a la primera). Un rollo de película dorado se desenrolla, en él se forma el nombre SCENE ME, pasa de oro a cromo con un destello y se escribe 'Studios'.",
+  "procesado": "ffmpeg: H.264 High, CRF 26, preset slow, yuv420p, faststart; audio AAC 96 kb/s. Se quita la carátula JPEG incrustada. 1280x720, 24 fps, 10,04 s, 1.16 MB.",
+  "fotogramas": {
+    "presentacion-inicio.jpg": "t = 0 s, el rollo aún sin nombre. Póster mientras arranca.",
+    "presentacion-poster.jpg": "t = 9,5 s, el nombre ya formado. Lo que se ve sin vídeo (reducir movimiento, conexión pobre o autoplay bloqueado)."
+  }
+}

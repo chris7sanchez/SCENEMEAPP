@@ -153,7 +153,7 @@ fotogramas de proporción distinta según lo que enseñan.
 - El oro del logo reservado a una sola cosa: lo que está activo.
 - Todo contenedor es un trozo de película: perforado, con código en el margen y esquina de 6px.
 - Las dos apariciones de la banda de claqueta, y ni una más.
-- Un solo momento de autor en toda la página: el avance de fotograma.
+- Dos momentos de autor en toda la página: la presentación del nombre y el avance de fotograma.
 - Plano absoluto: ni una sombra en todo el mundo.
 
 ## Colors
@@ -206,7 +206,7 @@ es un efecto, es lo que permite que dos o tres líneas de versales llenen la
 columna izquierda sin partirse.
 
 ### Hierarchy
-- **Display** (`{typography.display}`): el rótulo de la lata. Un solo sitio: el titular del cierre (a `clamp(2.75rem, 8vw, 6rem)`). El nombre de la cabecera ya no va en Archivo: va con las letras cromadas de la marca (ver **Marca**).
+- **Display** (`{typography.display}`): el rótulo de la lata. Un solo sitio: el titular del cierre (a `clamp(2.75rem, 8vw, 6rem)`). El nombre de la cabecera ya no va en Archivo: lo forma el vídeo de presentación (ver **Marca** y **Movimiento**).
 - **Titular de portada** (el `h1`, visible desde el 28/09/2026): «Tu book, tu escena y tu self‑tape», en la voz de headline a `clamp(2.25rem, 4.6vw, 4rem)`, dos líneas. Es lo primero que se lee: dice qué es esto con todas las letras. «self‑tape» lleva guion que no parte (U+2011), porque con el normal el navegador partía «SELF-» / «TAPE» entre líneas.
 - **Headline** (`{typography.headline}`): titulares de sección y de toma, la llamada de primera plana y el nombre de la marca en el pie. Mismo carácter, un punto menos estrecho (`wdth 65`) e interlineado 0,92. Su rampa baja por secciones: `clamp(2.75rem, 6vw, 5rem)` en el Método, `clamp(2.25rem, 4.6vw, 4rem)` en Estudios y Laboratorio, `clamp(2rem, 4vw, 3rem)` en Preguntas, `clamp(1.5rem, 2.6vw, 2rem)` en los títulos de fila y `1.375rem` en los fotogramas sin revelar.
 - **Definición** (`{typography.definicion}`): la voz de la promesa, y **lo que abre el Método**, justo antes de «De actor a estrella en 3 pasos», que es lo que ella anuncia. Hasta el 28/09/2026 abría la portada; Christian la movió porque quien llegaba leía una frase preciosa sin saber todavía qué se le ofrecía. El texto no se ha tocado. No va en versales: son dos frases seguidas que hay que leer, así que van en caja normal con anchura 92, peso 500, medida de 34ch y `text-wrap: balance`. La diferencia entre las dos frases la lleva el tono —apagada la del actor, plena la de la estrella—, no el color ni el cuerpo. Ese salto es la transformación dicha con la paleta.
@@ -364,11 +364,16 @@ cabecera, `/android-chrome-192x192.png` en el pie), servida por el helper
 `icono()` con su huella de versión. No se redibuja, no se recolorea y no se
 sustituye por texto: el oro de todo el sistema sale de él.
 
+Desde el 28/09/2026 (decisión de Christian) la **cabecera** es el vídeo de
+presentación, que forma el nombre; y el **icono** ya no va arriba: está en la
+portada, al lado de la llamada «Empieza a creer en ti, accede a Scene Me», como
+puerta que lleva a `/login` (a 176px como mucho, esquinas al 21%).
+
 El **nombre** «SCENE ME» tiene su propia letra: versales cromadas plateadas que
 no existen como fuente, sólo como imagen (`/sceneme-letras.webp`, maestro en
-`brand/sceneme-letras-maestro.webp`). Allí donde el nombre sale como marca -la
-cabecera, el pie- va con `LetrasSceneMe` (`components/marca`), nunca escrito en
-Archivo. Decisión de Christian del 28/09/2026. El cromo es plata, no oro: no
+`brand/sceneme-letras-maestro.webp`). Donde sale como marca fuera de la
+cabecera -el pie, la cortinilla, /creator- va con `LetrasSceneMe`
+(`components/marca`), nunca escrito en Archivo. El cromo es plata, no oro: no
 compite con la Regla del Oro Único.
 
 ### Preguntas
@@ -386,7 +391,18 @@ en cromo sobre leader (11px, pulgar con 3px de borde de leader y radio de 6px,
 gris base al pasar por encima).
 
 ### Movimiento
-**Un solo momento de autor en toda la página: el avance de fotograma.** La tira
+**Dos momentos de autor, no más.** El segundo entró el 28/09/2026 porque Christian
+veía la portada quieta y pobre: **la presentación**, el vídeo en el que un rollo
+de película se desenrolla y sobre él se forma el nombre (`components/landing/presentacion.tsx`,
+`public/marca/presentacion.mp4`). Vive en la cabecera, donde antes estaban el
+icono y las letras: el vídeo ES el nombre. En el móvil va el fotograma entero
+(16:9); en pantalla ancha, una franja encuadrada a la altura del nombre
+(`object-position: 50% 60%`). Arranca al cargar, suena sólo si se pide («Ver con
+sonido») y se queda en el último fotograma con el nombre formado; nunca en
+bucle. Con «reducir movimiento», conexión pobre o reproducción automática
+bloqueada, sólo ese último fotograma.
+
+El otro momento, el de siempre: **el avance de fotograma.** La tira
 encaja de uno en uno (`scroll-snap-type: y proximity`, hijos a
 `scroll-snap-align: center`) y un `IntersectionObserver` con umbrales
 `[0, 0.2, 0.4, 0.6, 0.8, 1]` decide cuál es el que más superficie enseña: sólo
@@ -398,7 +414,7 @@ Mecánico y escalonado, nunca elástico. Con `prefers-reduced-motion: reduce`, t
 transición y animación baja a 1ms y el encaje se desactiva.
 
 ### Named Rules
-**La Regla del Único Momento de Autor.** Sólo el avance de fotograma tiene derecho a llamar la atención. Cualquier otra animación tiene que ser respuesta a un estado (hover, foco, abierto, activo) y durar 420ms con la salida exponencial. Nada se mueve por moverse.
+**La Regla de los Dos Momentos de Autor.** Sólo el avance de fotograma y la presentación tienen derecho a llamar la atención. Cualquier otra animación tiene que ser respuesta a un estado (hover, foco, abierto, activo) y durar 420ms con la salida exponencial. Nada se mueve por moverse.
 
 ## Do's and Don'ts
 
@@ -428,5 +444,5 @@ transición y animación baja a 1ms y el encaje se desactiva.
 - **Don't** numerar una sección si el número no lleva información. «Toma 01» identifica una toma real; los cuatro del laboratorio no llevan número porque no tienen orden.
 - **Don't** añadir sombras: este mundo es plano y se ilumina, no se levanta.
 - **Don't** usar fondo blanco ni crema en ninguna superficie.
-- **Don't** meter una segunda animación de autor: el avance de fotograma es el único.
+- **Don't** meter una tercera animación de autor: el avance de fotograma y la presentación son los dos únicos.
 - **Don't** inventar una cifra, un testimonio, un precio o un botón que no lleve a ningún sitio. Lo que no existe se dice a lápiz de grasa.
