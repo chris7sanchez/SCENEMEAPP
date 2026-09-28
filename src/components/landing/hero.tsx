@@ -1,11 +1,23 @@
 'use client';
 
 import { BotonPelicula, Codigo, Dato, Fotograma, Perforado, useVentanilla } from '@/components/landing/tira';
-import { Definicion } from '@/components/landing/definicion';
 
 /*
  * El primer pantallazo: negro de leader a la izquierda con el rótulo, y la
  * tira corriendo por la derecha, sangrando por arriba y por abajo.
+ *
+ * LO PRIMERO QUE SE LEE DICE QUÉ ES ESTO (28/09/2026, decisión de Christian).
+ * Antes abría la definición -«Un actor interpreta historias…»-, y quien
+ * llegaba leía una frase preciosa sin saber todavía qué se le ofrecía: lo
+ * concreto (que aquí se rueda tu book, tu escena y tu self-tape) salía
+ * pequeño y en tercer lugar. Ahora el titular lo dice con todas las letras
+ * -y el texto de debajo, el de siempre, dice dónde y lo de los Estudios-, y
+ * la definición abre el Método, que es justo lo que ella anuncia: el paso de
+ * actor a estrella. El texto de la definición no se ha tocado.
+ *
+ * En el móvil, además, la primera pantalla era sólo texto: la tira quedaba
+ * debajo de todo. Ahora, justo después del titular, entra un fotograma: lo
+ * primero que se ve es trabajo rodado aquí.
  *
  * Los datos del raíl están MEDIDOS de los ficheros de vídeo, no inventados:
  * duración real y 24 cuadros por segundo, que es a lo que está rodado.
@@ -51,15 +63,26 @@ export function Hero() {
                 {/* ---------- Izquierda: el rótulo ---------- */}
                 <div className="flex flex-col justify-center gap-8 px-6 pb-14 pt-14 sm:px-10 lg:min-h-[86vh] lg:px-14 lg:pb-16 lg:pt-20">
 
-                    {/* Lo primero de la página es la definición, no el eslogan:
-                        "De actor a estrella" es ahora el título del Método. */}
-                    <h1 className="sr-only">
-                        SCENE ME — un studio para el actor, en Madrid
+                    {/* Lo primero que se lee: qué es esto, con todas las letras. */}
+                    {/* «self‑tape» con guion que no parte (U+2011): con el normal,
+                        el navegador cortaba «SELF-» al final de una línea y «TAPE»
+                        al principio de la siguiente. */}
+                    <h1 className="pel-titulo-seccion max-w-[18ch] text-balance text-[clamp(2.25rem,4.6vw,4rem)]">
+                        Tu book, tu escena y tu self‑tape
                     </h1>
 
-                    <Definicion />
+                    {/* En el móvil la tira queda muy abajo: un fotograma aquí para
+                        que la primera pantalla no sea sólo texto. En escritorio no
+                        hace falta, la tira ya está al lado. */}
+                    <Fotograma
+                        video={VENTANILLA[0].video}
+                        poster={VENTANILLA[0].poster}
+                        alt={VENTANILLA[0].alt}
+                        activo
+                        className="aspect-video w-full lg:hidden"
+                    />
 
-                    <p className="pel-cuerpo max-w-[34ch] text-[1.0625rem]">
+                    <p className="pel-cuerpo max-w-[40ch] text-[1.0625rem]">
                         Un studio para el actor, en Madrid. Aquí se rueda el material con
                         el que te presentas y aquí se entrena el actor que lo defiende.
                     </p>

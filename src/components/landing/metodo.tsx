@@ -1,6 +1,7 @@
 'use client';
 
 import { Codigo, Fotograma, Nota, Perforado, useVentanilla } from '@/components/landing/tira';
+import { Definicion } from '@/components/landing/definicion';
 
 /*
  * El Método: tres tomas colgando de una sola tira que baja por la página.
@@ -82,6 +83,13 @@ export function Metodo() {
                 </div>
 
                 <div className="min-w-0 flex-1 px-6 py-20 sm:px-10 lg:px-14 lg:py-28">
+
+                    {/* La definición abre el Método porque es lo que el Método
+                        promete: pasar de la primera frase a la segunda. Antes abría
+                        la portada, donde todavía no se sabía de qué iba esto. */}
+                    <div className="mb-16 lg:mb-20">
+                        <Definicion />
+                    </div>
 
                     <div className="mb-16 flex flex-col gap-6 border-b border-[var(--pel-sombra)] pb-12 lg:mb-24 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
                         <h2 className="pel-titulo-seccion max-w-[15ch] text-[clamp(2.75rem,6vw,5rem)]">

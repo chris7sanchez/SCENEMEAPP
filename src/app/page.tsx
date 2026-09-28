@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { icono } from '@/lib/iconos-version';
+import { LetrasSceneMe } from '@/components/marca/letras-scene-me';
 
 import '@/components/landing/pelicula.css';
 import { Hero } from '@/components/landing/hero';
@@ -83,9 +84,9 @@ export default function Portada() {
                         />
                     </Link>
 
-                    <span className="pel-display text-[clamp(2.5rem,7vw,4.5rem)]">
-                        Scene Me
-                    </span>
+                    {/* El nombre, con su letra cromada: esa tipografía no existe
+                        como fuente, sólo como imagen (components/marca). */}
+                    <LetrasSceneMe prioridad className="h-[clamp(2rem,5.4vw,3.5rem)] w-auto" />
 
                     <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
                         <a href="#metodo" className="pel-codigo">El Método</a>

@@ -206,9 +206,10 @@ es un efecto, es lo que permite que dos o tres líneas de versales llenen la
 columna izquierda sin partirse.
 
 ### Hierarchy
-- **Display** (`{typography.display}`): el rótulo de la lata. Dos sitios en toda la página: el nombre «Scene Me» de la cabecera (a `clamp(2.5rem, 7vw, 4.5rem)`) y el titular del cierre (a `clamp(2.75rem, 8vw, 6rem)`). El `h1` de la portada existe pero va en `sr-only`: lo primero que se ve no es un titular, es la definición.
+- **Display** (`{typography.display}`): el rótulo de la lata. Un solo sitio: el titular del cierre (a `clamp(2.75rem, 8vw, 6rem)`). El nombre de la cabecera ya no va en Archivo: va con las letras cromadas de la marca (ver **Marca**).
+- **Titular de portada** (el `h1`, visible desde el 28/09/2026): «Tu book, tu escena y tu self‑tape», en la voz de headline a `clamp(2.25rem, 4.6vw, 4rem)`, dos líneas. Es lo primero que se lee: dice qué es esto con todas las letras. «self‑tape» lleva guion que no parte (U+2011), porque con el normal el navegador partía «SELF-» / «TAPE» entre líneas.
 - **Headline** (`{typography.headline}`): titulares de sección y de toma, la llamada de primera plana y el nombre de la marca en el pie. Mismo carácter, un punto menos estrecho (`wdth 65`) e interlineado 0,92. Su rampa baja por secciones: `clamp(2.75rem, 6vw, 5rem)` en el Método, `clamp(2.25rem, 4.6vw, 4rem)` en Estudios y Laboratorio, `clamp(2rem, 4vw, 3rem)` en Preguntas, `clamp(1.5rem, 2.6vw, 2rem)` en los títulos de fila y `1.375rem` en los fotogramas sin revelar.
-- **Definición** (`{typography.definicion}`): la voz de la promesa, y **lo primero que se lee en la portada**. No va en versales: son dos frases seguidas que hay que leer, así que van en caja normal con anchura 92, peso 500, medida de 34ch y `text-wrap: balance`. La diferencia entre las dos frases la lleva el tono —apagada la del actor, plena la de la estrella—, no el color ni el cuerpo. Ese salto es la transformación dicha con la paleta.
+- **Definición** (`{typography.definicion}`): la voz de la promesa, y **lo que abre el Método**, justo antes de «De actor a estrella en 3 pasos», que es lo que ella anuncia. Hasta el 28/09/2026 abría la portada; Christian la movió porque quien llegaba leía una frase preciosa sin saber todavía qué se le ofrecía. El texto no se ha tocado. No va en versales: son dos frases seguidas que hay que leer, así que van en caja normal con anchura 92, peso 500, medida de 34ch y `text-wrap: balance`. La diferencia entre las dos frases la lleva el tono —apagada la del actor, plena la de la estrella—, no el color ni el cuerpo. Ese salto es la transformación dicha con la paleta.
 - **Body** (`{typography.body}`): el texto corrido. Interlineado 1,62 y cifras tabulares siempre activas, que es lo que mantiene alineada la columna de precios.
 - **Nota** (`{typography.nota}`): la anotación a lápiz de grasa, en sepia, al margen. Sólo para decir qué falta o qué está sin cerrar.
 - **Label / código de margen** (`{typography.label}`): lo que va impreso en el margen de la película. Versales a 11px con 0,24em de espaciado; en vertical (`writing-mode: vertical-rl`) cuando corre por el canto de la tira.
@@ -333,7 +334,7 @@ La ventanilla donde va el trabajo del actor, y sale limpio.
 - **Prohibido:** cualquier texto, dato, degradado o textura encima del fotograma.
 
 ### Definición
-Las dos frases que abren la página, y el único sitio donde el gris base lleva
+Las dos frases que abren el Método, y el único sitio donde el gris base lleva
 texto.
 
 - **Apagada:** la frase del actor, en gris base (`{colors.base}`), a 24px o más, donde el mínimo es 3:1.
@@ -362,6 +363,13 @@ El logo es la imagen real del icono de la app (`/android-chrome-512x512.png` en
 cabecera, `/android-chrome-192x192.png` en el pie), servida por el helper
 `icono()` con su huella de versión. No se redibuja, no se recolorea y no se
 sustituye por texto: el oro de todo el sistema sale de él.
+
+El **nombre** «SCENE ME» tiene su propia letra: versales cromadas plateadas que
+no existen como fuente, sólo como imagen (`/sceneme-letras.webp`, maestro en
+`brand/sceneme-letras-maestro.webp`). Allí donde el nombre sale como marca -la
+cabecera, el pie- va con `LetrasSceneMe` (`components/marca`), nunca escrito en
+Archivo. Decisión de Christian del 28/09/2026. El cromo es plata, no oro: no
+compite con la Regla del Oro Único.
 
 ### Preguntas
 `<details>` nativo, sin una línea de JavaScript: se abre con teclado de serie.

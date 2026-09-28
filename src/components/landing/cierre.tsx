@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { icono } from '@/lib/iconos-version';
 import { BotonPelicula, Codigo, Perforado } from '@/components/landing/tira';
 import { LazyVideo } from '@/components/landing/lazy-video';
+import { LetrasSceneMe } from '@/components/marca/letras-scene-me';
 
 /*
  * El final de la bobina: la llamada y el pie.
@@ -71,7 +72,7 @@ export function Cierre() {
                                 height={40}
                                 className="h-10 w-10 rounded-[10px]"
                             />
-                            <span className="pel-titulo-seccion text-[1.5rem]">Scene Me</span>
+                            <LetrasSceneMe className="h-6 w-auto" />
                         </div>
                         <p className="pel-cuerpo max-w-[26ch] text-[0.9375rem]">
                             Un studio para el actor. Madrid, y con desplazamiento donde haga
