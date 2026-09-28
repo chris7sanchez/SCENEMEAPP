@@ -170,7 +170,7 @@ compuesta con `scripts/contraste-sobre-fondo.mjs`, no calculados contra el
 ### Primary
 - **Oro del logo** (`{colors.oro}`, 11,3:1): el dorado del marco del icono maestro de SCENE ME. Marca **una sola cosa: lo que está activo ahora**. Es el fotograma en la ventanilla, el código de su margen, el enlace bajo el cursor, la pregunta abierta, el anillo de foco, la selección de texto, el cursor de escritura, el cuerpo del botón primario y el filete inferior de la banda de claqueta. La fuga de luz del borde del fotograma se tiñe de él (`--pel-fuga` es un alias de `--pel-oro`, no un segundo color). No es un color de marca que se reparta por la página.
 - **Ámbar de la cabecera** (`--pel-ambar`, `#C9911A`): el dorado del vídeo del nombre, muestreado de sus píxeles dorados (percentil 75). Tiene **un solo uso**: partir en horizontal las tres tomas del Método (el book, la escena, el self-tape) con un filete de 2px que echa un poco de luz hacia abajo, y teñir al 13% la banda del medio. Lo pidió Christian el 28/09/2026 para que las tres se lean como tres piezas. No marca estados: eso sigue siendo del oro del logo.
-- **Oro metálico** (`.pel-titulo-oro`): los nombres de las tomas (EL BOOK, LA ESCENA, EL SELF‑TAPE), que Christian pidió en el dorado de la cabecera «con efecto oro brillo pero realista». Degradado vertical con una raya de horizonte fina, como el cromo de las letras del logo pero en oro, y un reflejo que lo cruza cada 7 s (quieto con «reducir movimiento»). Es la única excepción de texto a la Regla del Oro Único, y sólo en esos tres titulares. Su `color` de respaldo (`#DDAE45`) es el que mide el contraste.
+- **Oro en movimiento** (`AnimatedText` de `components/ui/animated-shiny-text.tsx` con `ORO_BRILLO` en `metodo.tsx`, y `.pel-titulo-oro` para el relieve): los nombres de las tomas (EL BOOK, LA ESCENA, EL SELF‑TAPE). Degradado radial en los tonos de la cabecera con el centro luminoso amplio y suave, que va y viene por dentro de las letras cada 3,2 s (quieto con «reducir movimiento»). Es la única excepción de texto a la Regla del Oro Único, y sólo en esos tres titulares. Su `color` de respaldo (`#DDAE45`) es el que mide el contraste.
 - **Oro hondo** (`{colors.oro-hondo}`, 7,0:1): el mismo oro en su parte honda. Declarado en la paleta y **todavía sin uso en la portada**; existe para que un segundo paso del oro no se invente cuando haga falta.
 
 ### Secondary
@@ -213,9 +213,9 @@ columna izquierda sin partirse.
 
 ### Hierarchy
 - **Display** (`{typography.display}`): el rótulo de la lata. Un solo sitio: el titular del cierre (a `clamp(2.75rem, 8vw, 6rem)`). El nombre de la cabecera ya no va en Archivo: lo forma el vídeo de presentación (ver **Marca** y **Movimiento**).
-- **Titular de portada** (el `h1`, visible desde el 28/09/2026): «Tu book, tu escena y tu self‑tape», en la voz de headline a `clamp(1.5rem, 3vw, 2.75rem)` (la mitad desde el 28/09/2026), dos líneas, **centrado a todo lo ancho** con su frase debajo; la portada se parte en dos (llamada a la izquierda, tira de vídeos a la derecha) sólo a partir de ahí. Es lo primero que se lee: dice qué es esto con todas las letras. «self‑tape» lleva guion que no parte (U+2011), porque con el normal el navegador partía «SELF-» / «TAPE» entre líneas.
+- **Titular de portada** (desde el 28/09/2026): el `h1` es «De actor a estrella / en 3 pasos» (la segunda línea en minúscula) a `clamp(1.5rem, 3vw, 2.75rem)`; debajo, en una sola línea y en la voz de rótulo, «Tu book, tu escena y tu self‑tape»; y debajo la frase «La forma más cómoda, rápida y profesional para rodar TU MEJOR material». Todo centrado a todo lo ancho; la portada se parte en dos (llamada a la izquierda, tira a la derecha) sólo a partir de ahí. Entre la portada y EL BOOK ya no hay nada: el Método empieza en su primer filete ámbar. «self‑tape» lleva guion que no parte (U+2011).
 - **Headline** (`{typography.headline}`): titulares de sección y de toma, la llamada de primera plana y el nombre de la marca en el pie. Mismo carácter, un punto menos estrecho (`wdth 65`) e interlineado 0,92. Su rampa baja por secciones: `clamp(2.5rem, 5.5vw, 4.75rem)` y en oro metálico en los nombres de las tomas; `clamp(1.25rem, 2.4vw, 2rem)` en «De actor a estrella / en 3 pasos» (la segunda línea en minúscula), por debajo de ellos a propósito, `clamp(2.25rem, 4.6vw, 4rem)` en Estudios y Laboratorio, `clamp(2rem, 4vw, 3rem)` en Preguntas, `clamp(1.5rem, 2.6vw, 2rem)` en los títulos de fila y `1.375rem` en los fotogramas sin revelar.
-- **Definición** (`{typography.definicion}`): la voz de la promesa, y **lo que sigue al título del Método**: primero «De actor a estrella / en 3 pasos», centrado y en dos líneas fijas (`<br>`), y debajo la definición, también centrada y a media voz (16-18px, cada frase en una sola línea desde 1024px), que dice lo que esa promesa quiere decir. Hasta el 28/09/2026 abría la portada; Christian la movió porque quien llegaba leía una frase preciosa sin saber todavía qué se le ofrecía. El texto no se ha tocado. No va en versales: son dos frases seguidas que hay que leer, así que van en caja normal con anchura 92, peso 500, medida de 62ch y `text-wrap: balance`. La diferencia entre las dos frases la lleva el tono —apagada la del actor, plena la de la estrella—, no el color ni el cuerpo. Ese salto es la transformación dicha con la paleta.
+- **Cita** (`.pel-cita`, `definicion.tsx`): la definición («Un actor interpreta historias a través de un personaje. / Una estrella inspira y transforma a otros, a través de un personaje.», texto de Christian del 28/09/2026) va como `<blockquote>` sobre el vídeo de cabecera, abajo a la izquierda, en Instrument Serif cursiva con un filete ámbar a la izquierda y una sombra blanda detrás de las letras. En el móvil va debajo del vídeo. La diferencia entre las dos frases la lleva el tono: emulsión la del actor, casi blanco la de la estrella.
 - **Body** (`{typography.body}`): el texto corrido. Interlineado 1,62 y cifras tabulares siempre activas, que es lo que mantiene alineada la columna de precios.
 - **Nota** (`{typography.nota}`): la anotación a lápiz de grasa, en sepia, al margen. Sólo para decir qué falta o qué está sin cerrar.
 - **Label / código de margen** (`{typography.label}`): lo que va impreso en el margen de la película. Versales a 11px con 0,24em de espaciado; en vertical (`writing-mode: vertical-rl`) cuando corre por el canto de la tira.
@@ -272,7 +272,7 @@ táctil no se toca.
 ### Named Rules
 **La Regla de la Columna Propia.** Los datos, los códigos y los rótulos tienen su propia columna o su propio margen. Nada informativo se superpone a un fotograma. Cuando no cabe al lado, baja debajo.
 
-**La Regla de la Definición Primero.** Lo primero que se lee en la portada es la definición de qué separa a un actor de una estrella, no un eslogan. El eslogan («De actor a estrella») vive en el título del Método (hoy, antes de la definición), donde tiene los tres pasos detrás que lo sostienen.
+**La Regla de la Definición Primero.** Lo primero que se ve al entrar, junto al nombre, es la definición de qué separa a un actor de una estrella (la cita del vídeo de cabecera), no un eslogan. El eslogan («De actor a estrella en 3 pasos») es el primer titular de la portada, y los tres pasos vienen justo detrás.
 
 ## Elevation & Depth
 
@@ -351,12 +351,8 @@ La ventanilla donde va el trabajo del actor, y sale limpio.
 - **Estado activo** (`data-activo="si"`): la fuga de luz del borde derecho pasa de 0 a 1 en 420ms. Es un degradado de oro al 88% que muere en transparente al 100% del ancho de la banda (22%), en `mix-blend-mode: screen`. Se queda en el borde: no cruza por encima de la cara de nadie.
 - **Prohibido:** cualquier texto, dato, degradado o textura encima del fotograma.
 
-### Definición
-Las dos frases bajo el título del Método.
-
-- **Apagada:** la frase del actor, en gris de margen (`{colors.margen}`): desde que la definición va a media voz (menos de 24px), el gris base ya no puede llevarla.
-- **Plena:** la frase de la estrella, en emulsión.
-- **Forma:** caja normal (no versales), 62ch de medida, `text-wrap: balance`, 8px de separación entre las dos frases.
+### Cita
+Ver «Cita» en Tipografía: la definición vive ahora sobre el vídeo de cabecera.
 
 ### Raíl de datos
 **Fuera de la portada desde el 28/09/2026** (Christian: la tira va sola). El componente `Dato` sigue en `tira.tsx` por si vuelve; si vuelve, así era:

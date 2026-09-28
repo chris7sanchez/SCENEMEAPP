@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { conexionPobre } from '@/components/landing/lazy-video';
+import { Definicion } from '@/components/landing/definicion';
 
 /*
  * LA CABECERA: EL NOMBRE SE RUEDA DELANTE DE TI.
@@ -114,6 +115,12 @@ export function Presentacion() {
                     />
                 )}
             </div>
+
+            {/* La cita, abajo a la izquierda sobre el vídeo (lejos del nombre,
+                que va en el centro, y del botón de sonido, a la derecha). Por
+                encima de 1920 px el vídeo deja de crecer y se centra: la cita
+                le sigue. En el móvil va debajo, en la banda negra. */}
+            <Definicion className="relative mx-6 my-4 sm:absolute sm:bottom-[7%] sm:left-[max(3%,calc(50%-902px))] sm:z-10 sm:m-0 sm:max-w-[min(27%,520px)]" />
 
             {!quieto && (
                 <button

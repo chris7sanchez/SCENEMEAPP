@@ -1,7 +1,7 @@
 'use client';
 
 import { Codigo, Fotograma, Nota, Perforado, useVentanilla } from '@/components/landing/tira';
-import { Definicion } from '@/components/landing/definicion';
+import { AnimatedText } from '@/components/ui/animated-shiny-text';
 
 /*
  * El Método: tres tomas colgando de una sola tira que baja por la página.
@@ -13,6 +13,15 @@ import { Definicion } from '@/components/landing/definicion';
  * Los precios salen de src/lib/data.ts y de step1-selection.tsx. Son los de
  * verdad. Donde no hay precio decidido, se dice que no lo hay.
  */
+
+/**
+ * El oro de los titulares de las tomas: el de la cabecera, con el centro
+ * luminoso AMPLIO y SUAVE (una elipse que ocupa más de la mitad de la caja y
+ * se funde despacio hacia el ámbar). Con backgroundSize 200% ese centro va y
+ * viene por dentro de las letras.
+ */
+const ORO_BRILLO =
+    'radial-gradient(ellipse 58% 150% at 50% 50%, #FFF4CF 0%, #F6E3A1 18%, #EBCB76 38%, #DDAE45 60%, #C9911A 80%, #A87414 100%)';
 
 const TOMAS = [
     {
@@ -82,21 +91,13 @@ export function Metodo() {
                     </div>
                 </div>
 
-                <div className="min-w-0 flex-1 px-6 py-20 sm:px-10 lg:px-14 lg:py-28">
+                <div className="min-w-0 flex-1 px-6 pb-20 sm:px-10 lg:px-14 lg:pb-28">
 
-                    {/* Primero la promesa, centrada y en dos líneas, y debajo la
-                        definición, que dice lo que la promesa quiere decir. Las dos
-                        a media voz (Christian, 28/09/2026): aquí sólo presentan;
-                        los titulares grandes son los de cada toma. */}
-                    <div className="mb-16 flex flex-col items-center gap-6 text-center lg:mb-24">
-                        {/* Más bajo que los nombres de las tomas que vienen
-                            detrás: esto presenta, ellos son los titulares. */}
-                        <h2 className="pel-titulo-seccion text-[clamp(1.25rem,2.4vw,2rem)]">
-                            De actor a estrella<br />
-                            <span className="normal-case">en 3 pasos</span>
-                        </h2>
-                        <Definicion />
-                    </div>
+                    {/* La presentación del Método («De actor a estrella en 3
+                        pasos») es ahora el primer titular de la portada, y la
+                        definición es la cita del vídeo de cabecera: aquí se va
+                        directo a las tomas (Christian, 28/09/2026). */}
+                    <h2 className="sr-only">El Método: de actor a estrella en 3 pasos</h2>
 
                     {/* Cada toma es una banda a todo lo ancho, partida de la
                         siguiente por un filete del ámbar de la cabecera; la del
@@ -113,14 +114,19 @@ export function Metodo() {
                                 }`}
                             >
                                 {/* El nombre de la toma, centrado justo después del
-                                    filete ámbar: es el titular de la banda, y va en
-                                    el oro metálico de la cabecera (.pel-titulo-oro). */}
-                                <h3
-                                    id={`${toma.id}-titulo`}
-                                    className="pel-titulo-seccion pel-titulo-oro text-center text-[clamp(2.5rem,5.5vw,4.75rem)]"
-                                >
-                                    {toma.titulo}
-                                </h3>
+                                    filete ámbar: es el titular de la banda. Oro
+                                    en movimiento (AnimatedText): un degradado
+                                    radial de centro ancho y suave que va y viene
+                                    por dentro de las letras (ORO_BRILLO). */}
+                                <AnimatedText
+                                    as="h3"
+                                    text={toma.titulo}
+                                    textId={`${toma.id}-titulo`}
+                                    gradientColors={ORO_BRILLO}
+                                    gradientAnimationDuration={3.2}
+                                    className="py-0"
+                                    textClassName="pel-titulo-seccion pel-titulo-oro text-center leading-[0.92] text-[clamp(2.5rem,5.5vw,4.75rem)] sm:text-[clamp(2.5rem,5.5vw,4.75rem)] md:text-[clamp(2.5rem,5.5vw,4.75rem)] lg:text-[clamp(2.5rem,5.5vw,4.75rem)] xl:text-[clamp(2.5rem,5.5vw,4.75rem)]"
+                                />
 
                                 <div
                                     className={`flex flex-col gap-10 lg:flex-row lg:items-center lg:gap-16 ${

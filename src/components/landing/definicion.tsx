@@ -1,30 +1,24 @@
 /*
- * LA DEFINICIÓN. Es lo primero que se lee en toda la portada.
+ * LA DEFINICIÓN, como cita sobre el vídeo de la cabecera (presentacion.tsx),
+ * en la esquina de abajo a la izquierda. En el móvil va debajo del vídeo:
+ * encima taparía el nombre.
  *
- * NO REESCRIBIR. El texto es del usuario y su gracia está en la INVERSIÓN: el
- * actor va DE LAS HISTORIAS AL PERSONAJE, y la estrella DEL PERSONAJE A LAS
- * HISTORIAS. Cambiar el orden de esos dos términos se carga el argumento
- * entero y deja dos frases que dicen lo mismo.
+ * El texto es de Christian y lo dejó así el 28/09/2026. NO REESCRIBIR. La
+ * gracia está en el contraste: el actor INTERPRETA historias a través de un
+ * personaje; la estrella INSPIRA Y TRANSFORMA a otros a través de él.
  *
- * Va a media voz, bajo el título del Método: entre las dos frases, tres
- * líneas como mucho en pantalla ancha (una la del actor, dos la de la
- * estrella). La diferencia entre las dos frases la lleva el TONO, no el color
- * ni el cuerpo: la del actor apagada, la de la estrella plena. Ese salto es la
- * transformación, dicho con la paleta y sin gastar el oro, que está reservado
- * para lo que está ocurriendo ahora.
+ * La diferencia entre las dos frases la lleva el TONO: la del actor apagada,
+ * la de la estrella plena. Va en la serif cursiva y en <blockquote>, porque
+ * es eso: una cita.
  */
 
-export function Definicion() {
+export function Definicion({ className = '' }: { className?: string }) {
     return (
-        <div className="flex flex-col items-center gap-2">
-            <p className="pel-definicion pel-definicion--apagada">
-                Un actor interpreta historias a través de un personaje.
+        <blockquote className={`pel-cita ${className}`}>
+            <p className="pel-cita__actor">Un actor interpreta historias a través de un personaje.</p>
+            <p className="pel-cita__estrella">
+                Una estrella inspira y transforma a otros, a través de un personaje.
             </p>
-
-            <p className="pel-definicion pel-definicion--plena">
-                Una estrella inspira y transforma a otros, viviendo un personaje a través
-                de sus historias.
-            </p>
-        </div>
+        </blockquote>
     );
 }

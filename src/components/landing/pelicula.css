@@ -467,41 +467,32 @@
     .pel-boton__perf { width: 18px; }
 }
 
-/* ---------- El leader: la frase que define la promesa ---------- */
+/* ---------- La cita: la definición, sobre el vídeo de cabecera ---------- */
 
 /*
- * Esto NO va en versales. Las versales estrechadas son para rotular una lata,
- * y esto son dos frases seguidas que hay que leer. Va en caja normal, con
- * tamaño de titular y medida de lectura.
- *
- * La diferencia entre las dos frases la lleva el TONO, no el color ni el
- * cuerpo: la del actor apagada, la de la estrella plena. Ese salto es la
- * transformación, dicho con la paleta. A 32px o más el mínimo es 3:1, y el
- * gris base da 4,0:1.
+ * Las dos frases que separan a un actor de una estrella (definicion.tsx),
+ * abajo a la izquierda del vídeo del nombre. Serif cursiva, como lo citado;
+ * un filete ámbar a la izquierda, el mismo que parte las tomas; y una sombra
+ * blanda detrás de las letras porque van encima de una imagen que se mueve.
+ * La diferencia entre las dos frases la lleva el TONO: apagada la del actor,
+ * plena la de la estrella.
  */
-.pel-definicion {
-    font-family: 'Archivo', system-ui, sans-serif;
-    font-variation-settings: 'wdth' 92, 'wght' 500;
-    /* La mitad que antes (28/09/2026): bajo el título del Método, a media
-       voz. A 62ch, la frase del actor cabe en una línea y la de la estrella
-       en dos: tres líneas entre las dos, como pidió Christian. */
-    font-size: clamp(1rem, 1.35vw, 1.125rem);
-    line-height: 1.5;
-    letter-spacing: 0;
-    max-width: 62ch;
-    margin: 0;
+.pel-cita {
+    /* Sin margin aquí: lo pone quien la coloca (presentacion.tsx), y el reset
+       de Tailwind ya deja el <blockquote> a cero. */
+    padding-left: 0.875rem;
+    border-left: 2px solid var(--pel-ambar);
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(0.9375rem, 1.15vw, 1.3125rem);
+    line-height: 1.3;
     text-wrap: balance;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 18px rgba(0, 0, 0, 0.85);
 }
-/* En pantalla ancha, cada frase en UNA línea (Christian, 28/09/2026): caben
-   de sobra desde 1024px. Por debajo no caben a un cuerpo legible y parten. */
-@media (min-width: 1024px) {
-    .pel-definicion { max-width: none; white-space: nowrap; }
-}
-
-/* Por debajo de 24px el gris base no lleva texto (Regla del Gris que no
-   Habla): la frase apagada sube al gris de margen. */
-.pel-definicion--apagada { color: var(--pel-margen); }
-.pel-definicion--plena { color: var(--pel-emulsion); }
+.pel-cita p { margin: 0; }
+.pel-cita p + p { margin-top: 0.35em; }
+.pel-cita__actor { color: var(--pel-emulsion); }
+.pel-cita__estrella { color: #EFEAE0; }
 
 
 /* ---------- La banda de claqueta ---------- */
@@ -712,40 +703,15 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* ORO METÁLICO para los nombres de las tomas (28/09/2026).            */
-/* Los colores salen del vídeo de la cabecera: luz #FBEAB0, cuerpo     */
-/* #E4C46C / #D29A26, horizonte #8A5A12 (una raya fina). El degradado va de arriba abajo  */
-/* con una línea de horizonte oscura, como el cromo de las letras del   */
-/* logo pero en oro; un reflejo lo cruza cada pocos segundos. El color */
-/* de respaldo (sin background-clip) es el ámbar oscuro, que se lee.   */
+/* ORO de los nombres de las tomas (28/09/2026).                       */
+/* El degradado y su movimiento van en AnimatedText (metodo.tsx,       */
+/* ORO_BRILLO); aquí sólo el relieve: una sombra dura de 2px debajo y  */
+/* un halo ámbar muy suave, para que las letras se despeguen del fondo.*/
+/* `color` es el respaldo sin background-clip, y el que mide el        */
+/* contraste: el tono medio-bajo del oro (≥ 3:1 sobre la estrella más  */
+/* clara del cielo).                                                  */
 /* ------------------------------------------------------------------ */
 .pel-titulo-oro {
-    color: #DDAE45;   /* respaldo = el tono medio-bajo del cuerpo del oro; es el que mide el contraste (≥ 3:1 sobre la estrella más clara) */
-    background-image:
-        linear-gradient(105deg, transparent 42%, rgba(255, 250, 230, 0.85) 50%, transparent 58%),
-        linear-gradient(
-            180deg,
-            #FBEAB0 0%,
-            #E4C46C 30%,
-            #D29A26 50%,
-            #8A5A12 52.5%,
-            #D8A63C 58%,
-            #E4C46C 82%,
-            #F6DE93 100%
-        );
-    background-size: 260% 100%, 100% 100%;
-    background-position: 130% 0, 0 0;
-    background-repeat: no-repeat;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #DDAE45;
     filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.6)) drop-shadow(0 0 22px rgba(201, 145, 26, 0.22));
-    animation: pel-oro-reflejo 7s var(--pel-salida) infinite;
-}
-@keyframes pel-oro-reflejo {
-    0%, 62% { background-position: 130% 0, 0 0; }
-    86%, 100% { background-position: -30% 0, 0 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-    .pel-titulo-oro { animation: none; }
 }

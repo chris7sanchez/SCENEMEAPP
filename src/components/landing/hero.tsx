@@ -152,18 +152,27 @@ export function Hero() {
             {/* ---------- Arriba, en el centro: qué es esto ---------- */}
             <div
                 ref={titular}
-                className="relative z-10 flex flex-col items-center gap-5 px-6 pb-12 pt-14 text-center sm:px-10 lg:gap-6 lg:px-14 lg:pb-16 lg:pt-20"
+                className="relative z-10 flex flex-col items-center gap-4 px-6 pb-12 pt-14 text-center sm:px-10 lg:gap-5 lg:px-14 lg:pb-16 lg:pt-20"
             >
-                {/* «self‑tape» con guion que no parte (U+2011): con el normal,
-                    el navegador cortaba «SELF-» al final de una línea y «TAPE»
-                    al principio de la siguiente. */}
-                <h1 className="pel-titulo-seccion max-w-[18ch] text-balance text-[clamp(1.5rem,3vw,2.75rem)]">
-                    Tu book, tu escena y tu self‑tape
+                {/* Primero la promesa del Método, y debajo, en una línea, lo que
+                    se rueda aquí (Christian, 28/09/2026: más compacto y directo;
+                    el bloque que había entre los vídeos y EL BOOK desaparece). */}
+                <h1 className="pel-titulo-seccion text-[clamp(1.5rem,3vw,2.75rem)]">
+                    De actor a estrella<br />
+                    <span className="normal-case">en 3 pasos</span>
                 </h1>
 
+                {/* «self‑tape» con guion que no parte (U+2011): con el normal,
+                    el navegador cortaba «SELF-» al final de una línea y «TAPE»
+                    al principio de la siguiente. En una línea a cualquier ancho. */}
+                <p className="pel-titulo-seccion whitespace-nowrap text-[clamp(0.9375rem,1.7vw,1.5rem)] text-[var(--pel-emulsion)]">
+                    Tu book, tu escena y tu self‑tape
+                </p>
+
                 <p className="pel-cuerpo max-w-[46ch] text-balance text-[1.0625rem] lg:text-[1.1875rem]">
-                    Un studio para el actor, en Madrid. Aquí se rueda el material con
-                    el que te presentas y aquí se entrena el actor que lo defiende.
+                    La forma más cómoda, rápida y profesional para rodar{' '}
+                    <strong className="font-semibold uppercase tracking-[0.02em] text-[var(--pel-emulsion)]">tu mejor</strong>{' '}
+                    material.
                 </p>
             </div>
 
