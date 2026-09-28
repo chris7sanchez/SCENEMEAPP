@@ -1,6 +1,6 @@
 'use client';
 
-import { BotonPelicula, Codigo, Dato, Fotograma, Perforado, useVentanilla } from '@/components/landing/tira';
+import { BotonPelicula, Codigo, Fotograma, Perforado, useVentanilla } from '@/components/landing/tira';
 import Link from 'next/link';
 import { icono } from '@/lib/iconos-version';
 
@@ -23,8 +23,9 @@ import { icono } from '@/lib/iconos-version';
  * es la cabecera con el vídeo del nombre (presentacion.tsx), que se mueve y
  * es la marca; y el logo baja aquí, junto a la llamada, como puerta de entrada.
  *
- * Los datos del raíl están MEDIDOS de los ficheros de vídeo, no inventados:
- * duración real y 24 cuadros por segundo, que es a lo que está rodado.
+ * La tira va sola: el raíl de datos que tenía a su derecha («En la
+ * ventanilla: Amanda», pieza, duración, cuadros por segundo) lo quitó
+ * Christian el 28/09/2026. Lo que se vende es la imagen, y la imagen basta.
  */
 
 const VENTANILLA = [
@@ -33,30 +34,23 @@ const VENTANILLA = [
         video: '/videos/AMANDA-loop.mp4',
         poster: '/videos/AMANDA-loop-poster.jpg',
         alt: 'Fotograma de la escena de Amanda rodada en SCENE ME',
-        duracion: '3:19',
-        pieza: 'Escena a medida',
     },
     {
         nombre: 'Rodrigues',
         video: '/videos/SHOGUN-loop.mp4',
         poster: '/videos/SHOGUN-loop-poster.jpg',
         alt: 'Fotograma de la escena de Rodrigues rodada en SCENE ME',
-        duracion: '2:35',
-        pieza: 'Escena a medida',
     },
     {
         nombre: 'Sonia Dorado',
         video: '/videos/SONIA_DORADO-loop.mp4',
         poster: '/videos/SONIA_DORADO-loop-poster.jpg',
         alt: 'Fotograma de la escena de Sonia Dorado rodada en SCENE ME',
-        duracion: '1:42',
-        pieza: 'Escena a medida',
     },
 ];
 
 export function Hero() {
     const { activo, registrar } = useVentanilla(VENTANILLA.length);
-    const enVentanilla = VENTANILLA[activo];
 
     return (
         <section className="relative overflow-hidden">
@@ -186,33 +180,6 @@ export function Hero() {
                             </div>
                             <Perforado />
                         </div>
-
-                        {/*
-                            El raíl, en su propia columna FUERA de la tira. Antes iba
-                            flotando encima del último fotograma y le tapaba la cara a
-                            la actriz: en este mundo eso es exactamente lo que no puede
-                            pasar, porque lo que se vende es la imagen.
-                        */}
-                        <div
-                            className="hidden w-[184px] shrink-0 flex-col justify-center gap-2 py-8 pl-5 pr-6 lg:flex"
-                            aria-live="polite"
-                        >
-                            <Dato clave="En la ventanilla" valor={enVentanilla.nombre} />
-                            <Dato clave="Pieza" valor={enVentanilla.pieza} />
-                            <Dato clave="Duración" valor={enVentanilla.duracion} />
-                            <Dato clave="Rodado a" valor="24 cuadros / s" />
-                        </div>
-                    </div>
-
-                    {/* En pantalla estrecha el raíl va debajo de la tira, nunca encima. */}
-                    <div
-                        className="grid grid-cols-2 gap-2 px-4 py-4 sm:grid-cols-4 lg:hidden"
-                        aria-live="polite"
-                    >
-                        <Dato clave="En la ventanilla" valor={enVentanilla.nombre} />
-                        <Dato clave="Pieza" valor={enVentanilla.pieza} />
-                        <Dato clave="Duración" valor={enVentanilla.duracion} />
-                        <Dato clave="Rodado a" valor="24 cuadros / s" />
                     </div>
                 </div>
             </div>

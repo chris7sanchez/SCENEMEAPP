@@ -84,21 +84,14 @@ export function Metodo() {
 
                 <div className="min-w-0 flex-1 px-6 py-20 sm:px-10 lg:px-14 lg:py-28">
 
-                    {/* Primero la promesa, centrada y en tres líneas justas
-                        (Christian, 28/09/2026); luego la definición, que es lo que
-                        la promesa quiere decir: pasar de la primera frase a la
-                        segunda. Los <br> fijan las tres líneas a cualquier ancho. */}
-                    <div className="mb-16 flex flex-col items-center gap-6 text-center lg:mb-20">
-                        <h2 className="pel-titulo-seccion text-[clamp(2.75rem,7vw,6rem)]">
-                            De actor<br />a estrella<br />en 3 pasos
+                    {/* Primero la promesa, centrada y en dos líneas, y debajo la
+                        definición, que dice lo que la promesa quiere decir. Las dos
+                        a media voz (Christian, 28/09/2026): aquí sólo presentan;
+                        los titulares grandes son los de cada toma. */}
+                    <div className="mb-16 flex flex-col items-center gap-6 text-center lg:mb-24">
+                        <h2 className="pel-titulo-seccion text-[clamp(1.5rem,3.5vw,3rem)]">
+                            De actor a estrella<br />en 3 pasos
                         </h2>
-                        <p className="pel-cuerpo max-w-[46ch] text-balance">
-                            No es un catálogo de servicios. Es el orden en el que un actor
-                            construye la versión de sí mismo que la industria todavía no ha visto.
-                        </p>
-                    </div>
-
-                    <div className="mb-16 flex justify-center text-center lg:mb-24">
                         <Definicion />
                     </div>
 
@@ -108,15 +101,25 @@ export function Metodo() {
                         como tres cosas (.pel-toma-banda en pelicula.css). */}
                     <div className="-mx-6 flex flex-col sm:-mx-10 lg:-mx-14">
                         {TOMAS.map((toma, i) => (
-                            <div
+                            <article
                                 key={toma.id}
-                                className={`pel-toma-banda px-6 py-16 sm:px-10 lg:px-14 lg:py-24 ${
+                                id={toma.id}
+                                aria-labelledby={`${toma.id}-titulo`}
+                                className={`pel-toma-banda flex scroll-mt-16 flex-col gap-10 px-6 py-16 sm:px-10 lg:gap-14 lg:px-14 lg:py-24 ${
                                     i % 2 === 1 ? 'pel-toma-banda--tinte' : ''
                                 }`}
                             >
-                                <article
-                                    id={toma.id}
-                                    className={`flex scroll-mt-16 flex-col gap-10 lg:flex-row lg:items-center lg:gap-16 ${
+                                {/* El nombre de la toma, centrado justo después del
+                                    filete ámbar: es el titular de la banda. */}
+                                <h3
+                                    id={`${toma.id}-titulo`}
+                                    className="pel-titulo-seccion text-center text-[clamp(2.25rem,4.5vw,3.5rem)]"
+                                >
+                                    {toma.titulo}
+                                </h3>
+
+                                <div
+                                    className={`flex flex-col gap-10 lg:flex-row lg:items-center lg:gap-16 ${
                                         i % 2 === 1 ? 'lg:flex-row-reverse' : ''
                                     }`}
                                 >
@@ -150,10 +153,6 @@ export function Metodo() {
                                     </div>
 
                                     <div className="flex min-w-0 flex-1 flex-col gap-5">
-                                        <h3 className="pel-titulo-seccion text-[clamp(2.25rem,4.5vw,3.5rem)]">
-                                            {toma.titulo}
-                                        </h3>
-
                                         <p className="pel-cuerpo max-w-[44ch]">{toma.texto}</p>
 
                                         {toma.precios.length > 0 && (
@@ -185,8 +184,8 @@ export function Metodo() {
                                             {toma.accion}
                                         </a>
                                     </div>
-                                </article>
-                            </div>
+                                </div>
+                            </article>
                         ))}
                     </div>
                 </div>

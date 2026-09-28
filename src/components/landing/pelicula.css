@@ -482,15 +482,20 @@
 .pel-definicion {
     font-family: 'Archivo', system-ui, sans-serif;
     font-variation-settings: 'wdth' 92, 'wght' 500;
-    font-size: clamp(1.5rem, 2.7vw, 2.25rem);
-    line-height: 1.26;
-    letter-spacing: -0.015em;
-    max-width: 34ch;
+    /* La mitad que antes (28/09/2026): bajo el título del Método, a media
+       voz. A 62ch, la frase del actor cabe en una línea y la de la estrella
+       en dos: tres líneas entre las dos, como pidió Christian. */
+    font-size: clamp(1rem, 1.35vw, 1.125rem);
+    line-height: 1.5;
+    letter-spacing: 0;
+    max-width: 62ch;
     margin: 0;
     text-wrap: balance;
 }
 
-.pel-definicion--apagada { color: var(--pel-base); }
+/* Por debajo de 24px el gris base no lleva texto (Regla del Gris que no
+   Habla): la frase apagada sube al gris de margen. */
+.pel-definicion--apagada { color: var(--pel-margen); }
 .pel-definicion--plena { color: var(--pel-emulsion); }
 
 

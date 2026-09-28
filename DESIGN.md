@@ -30,9 +30,9 @@ typography:
     textTransform: "uppercase"
   definicion:
     fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "clamp(1.5rem, 2.7vw, 2.25rem)"
-    lineHeight: 1.26
-    letterSpacing: "-0.015em"
+    fontSize: "clamp(1rem, 1.35vw, 1.125rem)"
+    lineHeight: 1.5
+    letterSpacing: "0"
     fontVariation: "'wdth' 92, 'wght' 500"
   body:
     fontFamily: "Archivo, system-ui, sans-serif"
@@ -136,7 +136,7 @@ jamás sobre la imagen del actor**, porque esa imagen es el producto que se vend
 El grano va en una capa a `opacity: 0.09` por debajo de todo el contenido
 (`z-index: 0`); la fuga de luz entra por el 22% derecho del fotograma y se queda
 en el borde; el raíl de datos se sacó a su propia columna precisamente porque
-flotando encima tapaba la cara de la actriz. Si alguna vez se ve grano sobre una
+flotando encima tapaba la cara de la actriz (y el 28/09/2026 se quitó del todo). Si alguna vez se ve grano sobre una
 cara, está mal.
 
 El acento del mundo es ahora **el oro del logo**, muestreado del marco del icono
@@ -213,8 +213,8 @@ columna izquierda sin partirse.
 ### Hierarchy
 - **Display** (`{typography.display}`): el rótulo de la lata. Un solo sitio: el titular del cierre (a `clamp(2.75rem, 8vw, 6rem)`). El nombre de la cabecera ya no va en Archivo: lo forma el vídeo de presentación (ver **Marca** y **Movimiento**).
 - **Titular de portada** (el `h1`, visible desde el 28/09/2026): «Tu book, tu escena y tu self‑tape», en la voz de headline a `clamp(2.25rem, 6vw, 5.5rem)`, dos líneas, **centrado a todo lo ancho** con su frase debajo; la portada se parte en dos (llamada a la izquierda, tira de vídeos a la derecha) sólo a partir de ahí. Es lo primero que se lee: dice qué es esto con todas las letras. «self‑tape» lleva guion que no parte (U+2011), porque con el normal el navegador partía «SELF-» / «TAPE» entre líneas.
-- **Headline** (`{typography.headline}`): titulares de sección y de toma, la llamada de primera plana y el nombre de la marca en el pie. Mismo carácter, un punto menos estrecho (`wdth 65`) e interlineado 0,92. Su rampa baja por secciones: `clamp(2.75rem, 6vw, 5rem)` en el Método, `clamp(2.25rem, 4.6vw, 4rem)` en Estudios y Laboratorio, `clamp(2rem, 4vw, 3rem)` en Preguntas, `clamp(1.5rem, 2.6vw, 2rem)` en los títulos de fila y `1.375rem` en los fotogramas sin revelar.
-- **Definición** (`{typography.definicion}`): la voz de la promesa, y **lo que sigue al título del Método**: primero «De actor / a estrella / en 3 pasos», centrado y en tres líneas fijas (`<br>`), y debajo la definición, también centrada, que dice lo que esa promesa quiere decir. Hasta el 28/09/2026 abría la portada; Christian la movió porque quien llegaba leía una frase preciosa sin saber todavía qué se le ofrecía. El texto no se ha tocado. No va en versales: son dos frases seguidas que hay que leer, así que van en caja normal con anchura 92, peso 500, medida de 34ch y `text-wrap: balance`. La diferencia entre las dos frases la lleva el tono —apagada la del actor, plena la de la estrella—, no el color ni el cuerpo. Ese salto es la transformación dicha con la paleta.
+- **Headline** (`{typography.headline}`): titulares de sección y de toma, la llamada de primera plana y el nombre de la marca en el pie. Mismo carácter, un punto menos estrecho (`wdth 65`) e interlineado 0,92. Su rampa baja por secciones: `clamp(2.25rem, 4.5vw, 3.5rem)` en los nombres de las tomas del Método (centrados tras cada filete ámbar), `clamp(1.5rem, 3.5vw, 3rem)` en «De actor a estrella / en 3 pasos», a media voz, `clamp(2.25rem, 4.6vw, 4rem)` en Estudios y Laboratorio, `clamp(2rem, 4vw, 3rem)` en Preguntas, `clamp(1.5rem, 2.6vw, 2rem)` en los títulos de fila y `1.375rem` en los fotogramas sin revelar.
+- **Definición** (`{typography.definicion}`): la voz de la promesa, y **lo que sigue al título del Método**: primero «De actor a estrella / en 3 pasos», centrado y en dos líneas fijas (`<br>`), y debajo la definición, también centrada y a media voz (16-18px, tres líneas como mucho entre las dos frases en pantalla ancha), que dice lo que esa promesa quiere decir. Hasta el 28/09/2026 abría la portada; Christian la movió porque quien llegaba leía una frase preciosa sin saber todavía qué se le ofrecía. El texto no se ha tocado. No va en versales: son dos frases seguidas que hay que leer, así que van en caja normal con anchura 92, peso 500, medida de 62ch y `text-wrap: balance`. La diferencia entre las dos frases la lleva el tono —apagada la del actor, plena la de la estrella—, no el color ni el cuerpo. Ese salto es la transformación dicha con la paleta.
 - **Body** (`{typography.body}`): el texto corrido. Interlineado 1,62 y cifras tabulares siempre activas, que es lo que mantiene alineada la columna de precios.
 - **Nota** (`{typography.nota}`): la anotación a lápiz de grasa, en sepia, al margen. Sólo para decir qué falta o qué está sin cerrar.
 - **Label / código de margen** (`{typography.label}`): lo que va impreso en el margen de la película. Versales a 11px con 0,24em de espaciado; en vertical (`writing-mode: vertical-rl`) cuando corre por el canto de la tira.
@@ -244,8 +244,8 @@ respecto a la **página** y no respecto al hueco que deja el logo; por debajo de
 
 La composición es deliberadamente asimétrica y cambia de sección a sección: el
 hero parte en `1fr / 51%` con la definición, el texto, la llamada y los botones a
-la izquierda y la tira vertical sangrando arriba y abajo a la derecha, más una
-columna propia de 184px para el raíl de datos; el Método alterna el lado del
+la izquierda y la tira vertical a la derecha, sola (el raíl de datos se quitó
+el 28/09/2026); el Método alterna el lado del
 fotograma toma a toma (`lg:flex-row-reverse` en las impares) con una tira de
 perforaciones fija (`sticky`) por el borde izquierdo; los Estudios ponen la tira
 tumbada en horizontal y resuelven el contenido en un listado con filete, no en
@@ -257,9 +257,7 @@ la escena, 3/4 el self-tape— porque cada medio tiene la suya. Los titulares y 
 textos llevan tope de medida en caracteres (`12ch`, `15ch`, `32ch`, `34ch`,
 `44ch`, `46ch`, `52ch`) en vez de anchos fijos.
 
-El comportamiento responsivo es de recolocación, no de reducción: el raíl de
-datos pasa de columna lateral a una fila de cuatro casillas **debajo** de la
-tira, nunca encima; los códigos verticales del margen desaparecen por debajo de
+El comportamiento responsivo es de recolocación, no de reducción: los códigos verticales del margen desaparecen por debajo de
 `sm`; y por debajo de 480px el botón aprieta relleno (16px), cuerpo (13px) y
 espaciado (0,1em) manteniendo intactos los 56px de alto, porque el objetivo
 táctil no se toca.
@@ -347,14 +345,14 @@ La ventanilla donde va el trabajo del actor, y sale limpio.
 - **Prohibido:** cualquier texto, dato, degradado o textura encima del fotograma.
 
 ### Definición
-Las dos frases que abren el Método, y el único sitio donde el gris base lleva
-texto.
+Las dos frases bajo el título del Método.
 
-- **Apagada:** la frase del actor, en gris base (`{colors.base}`), a 24px o más, donde el mínimo es 3:1.
+- **Apagada:** la frase del actor, en gris de margen (`{colors.margen}`): desde que la definición va a media voz (menos de 24px), el gris base ya no puede llevarla.
 - **Plena:** la frase de la estrella, en emulsión.
-- **Forma:** caja normal (no versales), 34ch de medida, `text-wrap: balance`, 24px de separación entre las dos frases.
+- **Forma:** caja normal (no versales), 62ch de medida, `text-wrap: balance`, 8px de separación entre las dos frases.
 
 ### Raíl de datos
+**Fuera de la portada desde el 28/09/2026** (Christian: la tira va sola). El componente `Dato` sigue en `tira.tsx` por si vuelve; si vuelve, así era:
 - **Casilla:** filete de 1px de cromo, radio de control, relleno 12px/14px, fondo leader al 82%.
 - **Clave:** 10px en gris de margen, versales, 0,24em.
 - **Valor:** 15px en emulsión, `wght 500`, cifras tabulares.
@@ -422,7 +420,7 @@ El otro momento, el de siempre: **el avance de fotograma.** La tira
 encaja de uno en uno (`scroll-snap-type: y proximity`, hijos a
 `scroll-snap-align: center`) y un `IntersectionObserver` con umbrales
 `[0, 0.2, 0.4, 0.6, 0.8, 1]` decide cuál es el que más superficie enseña: sólo
-ése se lleva la fuga de luz y sus datos suben al raíl.
+ése se lleva la fuga de luz y su número en el margen («01 de 03»).
 
 Todo lo demás es estado, no espectáculo: transiciones de 420ms con
 `cubic-bezier(0.16, 1, 0.3, 1)` sobre color, opacidad, `filter` y `transform`.

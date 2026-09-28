@@ -6,15 +6,17 @@
  * HISTORIAS. Cambiar el orden de esos dos términos se carga el argumento
  * entero y deja dos frases que dicen lo mismo.
  *
- * La diferencia entre las dos frases la lleva el TONO, no el color ni el
- * cuerpo: la del actor apagada, la de la estrella plena. Ese salto es la
+ * Va a media voz, bajo el título del Método: entre las dos frases, tres
+ * líneas como mucho en pantalla ancha (una la del actor, dos la de la
+ * estrella). La diferencia entre las dos frases la lleva el TONO, no el color
+ * ni el cuerpo: la del actor apagada, la de la estrella plena. Ese salto es la
  * transformación, dicho con la paleta y sin gastar el oro, que está reservado
  * para lo que está ocurriendo ahora.
  */
 
 export function Definicion() {
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col items-center gap-2">
             <p className="pel-definicion pel-definicion--apagada">
                 Un actor interpreta historias a través de un personaje.
             </p>
