@@ -18,12 +18,21 @@ import { conexionPobre } from '@/components/landing/lazy-video';
  * formado. En bucle dejaría de ser una entrada y pasaría a ser un
  * salvapantallas.
  *
- * El encuadre: el fotograma entero, siempre, sin recortar. En el móvil ocupa
- * todo el ancho. En pantalla ancha va a la altura de la franja y centrado, con
- * los cuatro bordes fundidos con el cielo de la página (.pel-presentacion en
- * pelicula.css), como una pantalla encendida en mitad del cielo. Se probó a
- * estirarlo a todo el ancho recortando arriba y abajo: el nombre salía enorme
- * y «Studios» quedaba cortado por abajo.
+ * El encuadre (tercera versión, la que dibujó Christian sobre una captura): el
+ * vídeo LLENA la franja de lado a lado. En el móvil, el fotograma entero
+ * (16:9). En pantalla ancha, una franja 32:9 -la mitad de alto que el vídeo-
+ * encuadrada al 80% vertical: lo visible va del 40% al 90% del alto del
+ * fotograma. Las letras están MEDIDAS en el último fotograma (píxeles claros y
+ * poco saturados, fila a fila): «SCENE ME» del 43,6% al 56,5% y «Studios» del
+ * 65% al 86,3%. Caben enteras con margen; lo que se recorta es techo y suelo.
+ * La proporción se mantiene a cualquier ancho (si topara en altura, el margen
+ * se comería las letras); por encima de 1920 px la franja deja de crecer y se
+ * centra.
+ *
+ * Intentos anteriores, para no repetirlos: estirado a una franja de alto fijo
+ * con el encuadre al 60%, y luego al 72% con las letras estimadas a ojo,
+ * «Studios» quedaba cortado por abajo; centrado y con
+ * los bordes fundidos con el cielo, se veía entero pero no llenaba la franja.
  *
  * El póster depende de lo que vaya a pasar: el primer fotograma si va a
  * arrancar (para no enseñar el nombre hecho y luego deshecho), y el último si
@@ -39,6 +48,7 @@ import { conexionPobre } from '@/components/landing/lazy-video';
 const VIDEO = '/marca/presentacion.mp4';
 const INICIO = '/marca/presentacion-inicio.jpg';
 const FINAL = '/marca/presentacion-poster.jpg';
+const ENCUADRE = { objectPosition: '50% 80%' };
 
 export function Presentacion() {
     const video = useRef<HTMLVideoElement>(null);
@@ -68,12 +78,12 @@ export function Presentacion() {
     };
 
     return (
-        <div className="relative w-full overflow-hidden bg-[#0E0F10] sm:bg-transparent">
+        <div className="relative w-full overflow-hidden bg-[#0E0F10]">
             <h2 className="sr-only">SCENE ME Studios</h2>
-            <div className="relative aspect-video w-full sm:aspect-auto sm:h-[clamp(240px,36vh,400px)]">
+            <div className="relative mx-auto aspect-video w-full max-w-[1920px] sm:aspect-[32/9]">
                 {quieto ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={FINAL} alt="" className="pel-presentacion mx-auto block aspect-video h-full object-cover" />
+                    <img src={FINAL} alt="" className="absolute inset-0 h-full w-full object-cover" style={ENCUADRE} />
                 ) : (
                     <video
                         ref={video}
@@ -83,13 +93,11 @@ export function Presentacion() {
                         playsInline
                         preload="auto"
                         onEnded={() => setConSonido(false)}
-                        className="pel-presentacion mx-auto block aspect-video h-full object-cover"
+                        className="absolute inset-0 h-full w-full object-cover"
+                        style={ENCUADRE}
                         aria-hidden="true"
                     />
                 )}
-                {/* Funde el borde de abajo con el cielo de la página: la
-                    cabecera no acaba en un corte, se posa. */}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-b from-transparent to-[#0E0F10]/80 sm:hidden" />
             </div>
 
             {!quieto && (

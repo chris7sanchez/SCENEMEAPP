@@ -395,9 +395,11 @@ gris base al pasar por encima).
 veía la portada quieta y pobre: **la presentación**, el vídeo en el que un rollo
 de película se desenrolla y sobre él se forma el nombre (`components/landing/presentacion.tsx`,
 `public/marca/presentacion.mp4`). Vive en la cabecera, donde antes estaban el
-icono y las letras: el vídeo ES el nombre. En el móvil va el fotograma entero
-(16:9); en pantalla ancha, una franja encuadrada a la altura del nombre
-(`object-position: 50% 60%`). Arranca al cargar, suena sólo si se pide («Ver con
+icono y las letras: el vídeo ES el nombre, y llena la franja de lado a lado. En
+el móvil va el fotograma entero (16:9); en pantalla ancha, una franja 32:9
+encuadrada al 80% vertical (se ve del 40% al 90% del alto del fotograma; las
+letras, medidas, van del 43,6% al 86,3%), que deja enteros el nombre y
+«Studios» y recorta techo y suelo. Deja de crecer a 1920px de ancho. Arranca al cargar, suena sólo si se pide («Ver con
 sonido») y se queda en el último fotograma con el nombre formado; nunca en
 bucle. Con «reducir movimiento», conexión pobre o reproducción automática
 bloqueada, sólo ese último fotograma.
