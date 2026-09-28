@@ -20,18 +20,21 @@ import { conexionPobre } from '@/components/landing/lazy-video';
  *
  * El encuadre (tercera versión, la que dibujó Christian sobre una captura): el
  * vídeo LLENA la franja de lado a lado. En el móvil, el fotograma entero
- * (16:9). En pantalla ancha, una franja 32:9 en la que se ve el 53% del alto
- * del fotograma, del 35% al 88%. Las letras están MEDIDAS en el último
+ * (16:9). En pantalla ancha, una franja 32:9 en la que se ve el 60% del alto
+ * del fotograma, del 28% al 88%. Las letras están MEDIDAS en el último
  * fotograma (píxeles claros y poco saturados, fila a fila): «SCENE ME» del
  * 43,6% al 56,5% y «Studios» del 65% al 86,3%.
  *
- * Ese 35-88% es lo que pidió Christian: aire por encima del nombre y
- * «Studios» casi rozando abajo, mejor que al revés. Para que quepa hay que
- * reducir un poco el vídeo, y el hueco que dejaría a los lados se rellena
- * estirándolo en horizontal un 6% (object-fit: fill sobre una caja 1,88:1 en
- * vez de 1,78:1): a ese punto no se nota, y un filete negro a cada lado sí.
- * Los números: alto de la caja = 1/0,53 = 188,7% de la franja; arriba,
- * -0,35 × 188,7% = -66%.
+ * Ese 28-88% es lo que pidió Christian: mucho aire por encima del nombre y
+ * «Studios» casi rozando abajo. Para que quepa, el vídeo se reduce; se estira
+ * sólo un 6% en horizontal (object-fit: fill), que no se nota, y aun así no
+ * llega a los bordes: le falta un 5,8% por cada lado. Ese hueco lo llena el
+ * último fotograma a toda la franja, desenfocado y oscurecido, y los bordes
+ * del vídeo se funden con él (.pel-presentacion-medio en pelicula.css): la
+ * franja sigue llena de lado a lado y no hay filete.
+ * Los números: alto de la caja = 1/0,60 = 166,67% de la franja; arriba,
+ * -0,28 × 166,67% = -46,67%; ancho = 166,67% × (9/32) × (16/9) × 1,06 =
+ * 88,33%, así que empieza en el 5,83%.
  *
  * La proporción se mantiene a cualquier ancho (si topara en altura, el
  * encuadre se comería las letras); por encima de 1920 px la franja deja de
@@ -56,9 +59,9 @@ import { conexionPobre } from '@/components/landing/lazy-video';
 const VIDEO = '/marca/presentacion.mp4';
 const INICIO = '/marca/presentacion-inicio.jpg';
 const FINAL = '/marca/presentacion-poster.jpg';
-/** Móvil: el fotograma entero. Ancho: ver el cálculo de arriba (35-88%, estirado un 6%). */
+/** Móvil: el fotograma entero. Ancho: ver el cálculo de arriba (28-88%, estirado un 6%). */
 const ENCUADRE =
-    'absolute inset-0 h-full w-full object-cover sm:inset-auto sm:left-0 sm:top-[-66%] sm:h-[188.7%] sm:object-fill';
+    'pel-presentacion-medio absolute inset-0 h-full w-full object-cover sm:inset-auto sm:left-[5.83%] sm:top-[-46.67%] sm:h-[166.67%] sm:w-[88.33%] sm:object-fill';
 
 export function Presentacion() {
     const video = useRef<HTMLVideoElement>(null);
@@ -91,6 +94,9 @@ export function Presentacion() {
         <div className="relative w-full overflow-hidden bg-[#0E0F10]">
             <h2 className="sr-only">SCENE ME Studios</h2>
             <div className="relative mx-auto aspect-video w-full max-w-[1920px] overflow-hidden sm:aspect-[32/9]">
+                {/* Relleno de los lados en pantalla ancha: ver el encuadre arriba. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={FINAL} alt="" aria-hidden="true" className="pel-presentacion-relleno hidden sm:block" />
                 {quieto ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={FINAL} alt="" className={ENCUADRE} />

@@ -26,6 +26,9 @@
                                 inventado. Sólo marca lo activo: lo que está
                                 ahora en la ventanilla. No es un color de relleno. */
     --pel-fuga: var(--pel-oro);   /* la fuga de luz se tiñe del oro de la marca */
+    --pel-ambar: #C9911A;    /* El dorado de la CABECERA: muestreado del vídeo del
+                                nombre (percentil 75 de sus píxeles dorados). Sólo
+                                para partir las tomas del Método; no lleva texto. */
     --pel-sepia: #C8B089;    /* 9,1:1 — lo escrito a mano */
 
     /* La perforación, dibujada como geometría y repetida por el margen. */
@@ -626,4 +629,51 @@
         font-size: 0.5625rem;     /* 9px: «LABORATORIO» cabe en su barra a 360px */
         letter-spacing: 0.02em;
     }
+}
+
+/* ------------------------------------------------------------------ */
+/* CABECERA: el vídeo reducido y su relleno a los lados (≥ 640px).    */
+/* El vídeo no llega a los bordes (ver presentacion.tsx); detrás va el */
+/* último fotograma a toda la franja, desenfocado y oscurecido, y los  */
+/* bordes del vídeo se funden con él para que no se vea el corte.      */
+/* ------------------------------------------------------------------ */
+.pel-presentacion-relleno {
+    position: absolute;
+    inset: -8%;
+    width: 116%;
+    max-width: none;           /* el reset de Tailwind lo capaba al 100% y dejaba un filete */
+    height: 116%;
+    object-fit: cover;
+    object-position: 50% 58%;
+    filter: blur(28px) brightness(0.7);
+}
+@media (min-width: 640px) {
+    .pel-presentacion-medio {
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+        mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* LAS TOMAS DEL MÉTODO, en bandas (28/09/2026).                       */
+/* El book, la escena y el self-tape se parten en horizontal con un    */
+/* filete del ámbar de la cabecera, que echa un poco de luz hacia      */
+/* abajo; la banda del medio va teñida de ese ámbar. Así las tres se   */
+/* leen como tres piezas sin necesidad de cajas.                       */
+/* ------------------------------------------------------------------ */
+.pel-toma-banda {
+    position: relative;
+    border-top: 2px solid var(--pel-ambar);
+    box-shadow: inset 0 22px 34px -26px rgba(201, 145, 26, 0.6);
+}
+.pel-toma-banda:last-child {
+    border-bottom: 2px solid var(--pel-ambar);
+}
+.pel-toma-banda--tinte {
+    background-image: linear-gradient(
+        180deg,
+        rgba(201, 145, 26, 0.13),
+        rgba(201, 145, 26, 0.05) 55%,
+        rgba(14, 15, 16, 0.3)
+    );
 }

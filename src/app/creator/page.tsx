@@ -28,6 +28,8 @@ import ProfileForm from "@/components/profile-form"; // Import directly for simp
 import { AnimatePresence, motion } from "framer-motion";
 import StudioInvite from "@/components/studio/StudioInvite";
 import { LetrasSceneMe } from '@/components/marca/letras-scene-me';
+import Link from 'next/link';
+import { Clapperboard } from 'lucide-react';
 
 function CreatorContent() {
     const { toast } = useToast();
@@ -173,18 +175,28 @@ function CreatorContent() {
     return (
         <div className="min-h-screen bg-[hsl(var(--sm-bg-base))] text-[hsl(var(--sm-text-muted))] flex flex-col">
             <header className="border-b border-white/10 bg-[hsl(var(--sm-bg-surface)/0.8)] backdrop-blur-md sticky top-0 z-[110] transition-all duration-200 h-16 md:h-20 flex items-center shadow-lg">
-                <div className="max-w-7xl mx-auto w-full px-6 flex items-center justify-between">
-                    <div className="cursor-pointer flex flex-col items-center flex-1 group" onClick={() => router.push('/')}>
-                        <h1 className="transition-transform duration-300 group-hover:scale-105"><LetrasSceneMe className="h-7 w-auto md:h-9" /></h1>
-                        <p className="text-[8px] md:text-[10px] text-[hsl(var(--sm-text-primary)/0.6)] tracking-[0.4em] font-headline uppercase mt-1">the ACTOR'S STORE concept</p>
-                    </div>
+                {/* El nombre va centrado con los márgenes de la página, no en el
+                    hueco que deja el botón de la derecha: por eso va en absoluto
+                    sobre la caja de la cabecera y el botón no le empuja. En el
+                    móvil el botón se queda en icono para no pisarlo. */}
+                <div className="relative max-w-7xl mx-auto w-full h-full px-6 flex items-center justify-end">
+                    <Link
+                        href="/"
+                        className="group absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
+                    >
+                        <h1 className="flex transition-transform duration-300 group-hover:scale-105"><LetrasSceneMe className="h-6 w-auto md:h-9" /></h1>
+                        {/* El pl iguala el tracking que queda tras la última letra */}
+                        <p className="whitespace-nowrap text-[8px] md:text-[10px] text-[hsl(var(--sm-text-primary)/0.6)] tracking-[0.4em] pl-[0.4em] font-headline uppercase mt-1">the ACTOR&apos;S STORE concept</p>
+                    </Link>
                     {/* Entrada al backlot: es un HTML estatico fuera del router de
                         Next, asi que va como enlace normal y no con router.push. */}
                     <a
                         href="/backlot"
-                        className="shrink-0 inline-flex items-center rounded-full border border-amber-400/50 bg-amber-500/10 px-4 py-2 text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-amber-300 hover:bg-amber-500/20 transition-all"
+                        aria-label="Los estudios"
+                        className="relative shrink-0 inline-flex items-center justify-center rounded-full border border-amber-400/50 bg-amber-500/10 h-9 w-9 sm:h-auto sm:w-auto sm:px-4 sm:py-2 text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-amber-300 hover:bg-amber-500/20 transition-all"
                     >
-                        Los estudios
+                        <Clapperboard className="h-4 w-4 sm:hidden" aria-hidden="true" />
+                        <span className="hidden sm:inline">Los estudios</span>
                     </a>
                 </div>
             </header>

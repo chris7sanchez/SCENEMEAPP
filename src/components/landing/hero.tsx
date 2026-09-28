@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { icono } from '@/lib/iconos-version';
 
 /*
- * El primer pantallazo: negro de leader a la izquierda con el rótulo, y la
- * tira corriendo por la derecha, sangrando por arriba y por abajo.
+ * El primer pantallazo: el titular y su frase CENTRADOS, a todo lo ancho
+ * (Christian, 28/09/2026: que la frase ocupe el centro de la portada), y a
+ * partir de ahí la página se parte en dos: la llamada y los botones a la
+ * izquierda, y la tira con los vídeos encuadrados a la derecha.
  *
  * LO PRIMERO QUE SE LEE DICE QUÉ ES ESTO (28/09/2026, decisión de Christian).
  * Antes abría la definición -«Un actor interpreta historias…»-, y quien
@@ -60,24 +62,25 @@ export function Hero() {
         <section className="relative overflow-hidden">
             <div className="pel-grano" />
 
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_51%]">
+            {/* ---------- Arriba, en el centro: qué es esto ---------- */}
+            <div className="relative z-10 flex flex-col items-center gap-6 px-6 pb-12 pt-14 text-center sm:px-10 lg:gap-8 lg:px-14 lg:pb-16 lg:pt-20">
+                {/* «self‑tape» con guion que no parte (U+2011): con el normal,
+                    el navegador cortaba «SELF-» al final de una línea y «TAPE»
+                    al principio de la siguiente. */}
+                <h1 className="pel-titulo-seccion max-w-[18ch] text-balance text-[clamp(2.25rem,6vw,5.5rem)]">
+                    Tu book, tu escena y tu self‑tape
+                </h1>
 
-                {/* ---------- Izquierda: el rótulo ---------- */}
-                <div className="flex flex-col justify-center gap-8 px-6 pb-14 pt-14 sm:px-10 lg:min-h-[86vh] lg:px-14 lg:pb-16 lg:pt-20">
+                <p className="pel-cuerpo max-w-[46ch] text-balance text-[1.0625rem] lg:text-[1.1875rem]">
+                    Un studio para el actor, en Madrid. Aquí se rueda el material con
+                    el que te presentas y aquí se entrena el actor que lo defiende.
+                </p>
+            </div>
 
-                    {/* Lo primero que se lee: qué es esto, con todas las letras. */}
-                    {/* «self‑tape» con guion que no parte (U+2011): con el normal,
-                        el navegador cortaba «SELF-» al final de una línea y «TAPE»
-                        al principio de la siguiente. */}
-                    <h1 className="pel-titulo-seccion max-w-[18ch] text-balance text-[clamp(2.25rem,4.6vw,4rem)]">
-                        Tu book, tu escena y tu self‑tape
-                    </h1>
+            <div className="relative z-10 grid grid-cols-1 border-t border-[var(--pel-sombra)] lg:grid-cols-[1fr_51%]">
 
-
-                    <p className="pel-cuerpo max-w-[40ch] text-[1.0625rem]">
-                        Un studio para el actor, en Madrid. Aquí se rueda el material con
-                        el que te presentas y aquí se entrena el actor que lo defiende.
-                    </p>
+                {/* ---------- Izquierda: la llamada y las puertas ---------- */}
+                <div className="flex flex-col justify-center gap-8 px-6 pb-14 pt-12 sm:px-10 lg:min-h-[72vh] lg:px-14 lg:pb-16 lg:pt-16">
 
                     {/*
                         La llamada, con el logo al lado como PUERTA: pincharlo lleva
@@ -147,7 +150,7 @@ export function Hero() {
                 {/* ---------- Derecha: la tira ---------- */}
                 <div className="flex flex-col">
 
-                    <div className="relative flex min-h-[70vh] lg:min-h-[86vh]">
+                    <div className="relative flex min-h-[70vh] lg:min-h-[72vh]">
 
                         {/* Margen izquierdo: perforación y el código impreso en vertical. */}
                         <div className="relative flex">

@@ -84,98 +84,109 @@ export function Metodo() {
 
                 <div className="min-w-0 flex-1 px-6 py-20 sm:px-10 lg:px-14 lg:py-28">
 
-                    {/* La definición abre el Método porque es lo que el Método
-                        promete: pasar de la primera frase a la segunda. Antes abría
-                        la portada, donde todavía no se sabía de qué iba esto. */}
-                    <div className="mb-16 lg:mb-20">
-                        <Definicion />
-                    </div>
-
-                    <div className="mb-16 flex flex-col gap-6 border-b border-[var(--pel-sombra)] pb-12 lg:mb-24 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
-                        <h2 className="pel-titulo-seccion max-w-[15ch] text-[clamp(2.75rem,6vw,5rem)]">
-                            De actor a estrella en 3 pasos
+                    {/* Primero la promesa, centrada y en tres líneas justas
+                        (Christian, 28/09/2026); luego la definición, que es lo que
+                        la promesa quiere decir: pasar de la primera frase a la
+                        segunda. Los <br> fijan las tres líneas a cualquier ancho. */}
+                    <div className="mb-16 flex flex-col items-center gap-6 text-center lg:mb-20">
+                        <h2 className="pel-titulo-seccion text-[clamp(2.75rem,7vw,6rem)]">
+                            De actor<br />a estrella<br />en 3 pasos
                         </h2>
-                        <p className="pel-cuerpo max-w-[46ch]">
+                        <p className="pel-cuerpo max-w-[46ch] text-balance">
                             No es un catálogo de servicios. Es el orden en el que un actor
                             construye la versión de sí mismo que la industria todavía no ha visto.
                         </p>
                     </div>
 
-                    <div className="flex flex-col gap-24 lg:gap-36">
+                    <div className="mb-16 flex justify-center text-center lg:mb-24">
+                        <Definicion />
+                    </div>
+
+                    {/* Cada toma es una banda a todo lo ancho, partida de la
+                        siguiente por un filete del ámbar de la cabecera; la del
+                        medio, teñida de ese ámbar, para que las tres se lean
+                        como tres cosas (.pel-toma-banda en pelicula.css). */}
+                    <div className="-mx-6 flex flex-col sm:-mx-10 lg:-mx-14">
                         {TOMAS.map((toma, i) => (
-                            <article
+                            <div
                                 key={toma.id}
-                                id={toma.id}
-                                className={`flex scroll-mt-16 flex-col gap-10 lg:flex-row lg:items-center lg:gap-16 ${
-                                    i % 2 === 1 ? 'lg:flex-row-reverse' : ''
+                                className={`pel-toma-banda px-6 py-16 sm:px-10 lg:px-14 lg:py-24 ${
+                                    i % 2 === 1 ? 'pel-toma-banda--tinte' : ''
                                 }`}
                             >
-                                {/*
-                                    El fotograma con su margen: el código va
-                                    IMPRESO EN VERTICAL al lado, que es donde
-                                    vive en la película. Encima del titular era
-                                    un antetítulo, y eso está prohibido.
-                                */}
-                                <div
-                                    ref={registrar(i)}
-                                    className="flex w-full shrink-0 items-stretch lg:w-[48%]"
+                                <article
+                                    id={toma.id}
+                                    className={`flex scroll-mt-16 flex-col gap-10 lg:flex-row lg:items-center lg:gap-16 ${
+                                        i % 2 === 1 ? 'lg:flex-row-reverse' : ''
+                                    }`}
                                 >
-                                    <div className="flex shrink-0 items-stretch gap-2 pr-3">
-                                        <Perforado />
-                                        <span className="flex items-center">
-                                            <Codigo vertical activo={i === activo}>
-                                                {toma.codigo}
-                                            </Codigo>
-                                        </span>
+                                    {/*
+                                        El fotograma con su margen: el código va
+                                        IMPRESO EN VERTICAL al lado, que es donde
+                                        vive en la película. Encima del titular era
+                                        un antetítulo, y eso está prohibido.
+                                    */}
+                                    <div
+                                        ref={registrar(i)}
+                                        className="flex w-full shrink-0 items-stretch lg:w-[48%]"
+                                    >
+                                        <div className="flex shrink-0 items-stretch gap-2 pr-3">
+                                            <Perforado />
+                                            <span className="flex items-center">
+                                                <Codigo vertical activo={i === activo}>
+                                                    {toma.codigo}
+                                                </Codigo>
+                                            </span>
+                                        </div>
+                                        <Fotograma
+                                            video={toma.video}
+                                            poster={toma.poster}
+                                            imagen={toma.imagen}
+                                            alt={toma.alt}
+                                            activo={i === activo}
+                                            style={{ aspectRatio: toma.proporcion }}
+                                            className="min-w-0 flex-1"
+                                        />
                                     </div>
-                                    <Fotograma
-                                        video={toma.video}
-                                        poster={toma.poster}
-                                        imagen={toma.imagen}
-                                        alt={toma.alt}
-                                        activo={i === activo}
-                                        style={{ aspectRatio: toma.proporcion }}
-                                        className="min-w-0 flex-1"
-                                    />
-                                </div>
 
-                                <div className="flex min-w-0 flex-1 flex-col gap-5">
-                                    <h3 className="pel-titulo-seccion text-[clamp(2.25rem,4.5vw,3.5rem)]">
-                                        {toma.titulo}
-                                    </h3>
+                                    <div className="flex min-w-0 flex-1 flex-col gap-5">
+                                        <h3 className="pel-titulo-seccion text-[clamp(2.25rem,4.5vw,3.5rem)]">
+                                            {toma.titulo}
+                                        </h3>
 
-                                    <p className="pel-cuerpo max-w-[44ch]">{toma.texto}</p>
+                                        <p className="pel-cuerpo max-w-[44ch]">{toma.texto}</p>
 
-                                    {toma.precios.length > 0 && (
-                                        <dl className="mt-2 flex flex-col border-t border-[var(--pel-sombra)]">
-                                            {toma.precios.map((p) => (
-                                                <div
-                                                    key={p.que}
-                                                    className="flex items-baseline justify-between gap-6 border-b border-[var(--pel-sombra)] py-3"
-                                                >
-                                                    <dt className="min-w-0">
-                                                        <span className="block text-[1.0625rem] text-[var(--pel-emulsion)]">
-                                                            {p.que}
-                                                        </span>
-                                                        <span className="block text-[0.9375rem] text-[var(--pel-emulsion)] opacity-75">
-                                                            {p.detalle}
-                                                        </span>
-                                                    </dt>
-                                                    <dd className="shrink-0 text-[1.125rem] tabular-nums text-[var(--pel-emulsion)]">
-                                                        {p.cuanto}
-                                                    </dd>
-                                                </div>
-                                            ))}
-                                        </dl>
-                                    )}
+                                        {toma.precios.length > 0 && (
+                                            <dl className="mt-2 flex flex-col border-t border-[var(--pel-sombra)]">
+                                                {toma.precios.map((p) => (
+                                                    <div
+                                                        key={p.que}
+                                                        className="flex items-baseline justify-between gap-6 border-b border-[var(--pel-sombra)] py-3"
+                                                    >
+                                                        <dt className="min-w-0">
+                                                            <span className="block text-[1.0625rem] text-[var(--pel-emulsion)]">
+                                                                {p.que}
+                                                            </span>
+                                                            <span className="block text-[0.9375rem] text-[var(--pel-emulsion)] opacity-75">
+                                                                {p.detalle}
+                                                            </span>
+                                                        </dt>
+                                                        <dd className="shrink-0 text-[1.125rem] tabular-nums text-[var(--pel-emulsion)]">
+                                                            {p.cuanto}
+                                                        </dd>
+                                                    </div>
+                                                ))}
+                                            </dl>
+                                        )}
 
-                                    {toma.nota && <Nota className="mt-1">{toma.nota}</Nota>}
+                                        {toma.nota && <Nota className="mt-1">{toma.nota}</Nota>}
 
-                                    <a href={toma.enlace} className="pel-enlace mt-3 w-fit text-[1.0625rem]">
-                                        {toma.accion}
-                                    </a>
-                                </div>
-                            </article>
+                                        <a href={toma.enlace} className="pel-enlace mt-3 w-fit text-[1.0625rem]">
+                                            {toma.accion}
+                                        </a>
+                                    </div>
+                                </article>
+                            </div>
                         ))}
                     </div>
                 </div>
