@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 
 import '@/components/landing/pelicula.css';
 import { Hero } from '@/components/landing/hero';
 import { Presentacion } from '@/components/landing/presentacion';
+import { ClaquetaMenu } from '@/components/landing/claqueta-menu';
 import { Metodo } from '@/components/landing/metodo';
 import { Estudios } from '@/components/landing/estudios';
 import { Laboratorio } from '@/components/landing/laboratorio';
@@ -58,30 +58,16 @@ export default function Portada() {
 
             {/*
                 La cabecera: el nombre se rueda delante de ti (vídeo de
-                presentación, components/landing/presentacion.tsx) y debajo la
-                fila de navegación. El icono ya no va aquí: el vídeo es el
-                nombre, y el icono bajó a la portada como puerta a /login.
+                presentación, components/landing/presentacion.tsx), y justo
+                debajo la banda de la claqueta, que ahora es el menú: cada
+                sección en un tramo blanco (components/landing/claqueta-menu.tsx).
+                El icono ya no va aquí: el vídeo es el nombre, y el icono bajó a
+                la portada como puerta a /login.
             */}
-            <header className="relative z-30 border-b border-[var(--pel-sombra)]">
+            <header className="relative z-30">
                 <Presentacion />
-
-                <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 px-6 py-5 sm:px-10 lg:px-14">
-                    <a href="#metodo" className="pel-codigo">El Método</a>
-                    <a href="#estudios" className="pel-codigo">Estudios</a>
-                    <a href="#laboratorio" className="pel-codigo">Laboratorio</a>
-                    <a href="#preguntas" className="pel-codigo">Preguntas</a>
-                    <Link
-                        href="/login"
-                        className="pel-codigo pel-codigo--activo"
-                        style={{ textDecoration: 'underline', textUnderlineOffset: '5px' }}
-                    >
-                        Entrar
-                    </Link>
-                </nav>
+                <ClaquetaMenu />
             </header>
-
-            {/* Las barras del brazo de la claqueta del logo abren la página. */}
-            <div className="pel-claqueta" aria-hidden="true" />
 
             <Hero />
             <Metodo />

@@ -20,14 +20,22 @@ import { conexionPobre } from '@/components/landing/lazy-video';
  *
  * El encuadre (tercera versión, la que dibujó Christian sobre una captura): el
  * vídeo LLENA la franja de lado a lado. En el móvil, el fotograma entero
- * (16:9). En pantalla ancha, una franja 32:9 -la mitad de alto que el vídeo-
- * encuadrada al 80% vertical: lo visible va del 40% al 90% del alto del
- * fotograma. Las letras están MEDIDAS en el último fotograma (píxeles claros y
- * poco saturados, fila a fila): «SCENE ME» del 43,6% al 56,5% y «Studios» del
- * 65% al 86,3%. Caben enteras con margen; lo que se recorta es techo y suelo.
- * La proporción se mantiene a cualquier ancho (si topara en altura, el margen
- * se comería las letras); por encima de 1920 px la franja deja de crecer y se
- * centra.
+ * (16:9). En pantalla ancha, una franja 32:9 en la que se ve el 53% del alto
+ * del fotograma, del 35% al 88%. Las letras están MEDIDAS en el último
+ * fotograma (píxeles claros y poco saturados, fila a fila): «SCENE ME» del
+ * 43,6% al 56,5% y «Studios» del 65% al 86,3%.
+ *
+ * Ese 35-88% es lo que pidió Christian: aire por encima del nombre y
+ * «Studios» casi rozando abajo, mejor que al revés. Para que quepa hay que
+ * reducir un poco el vídeo, y el hueco que dejaría a los lados se rellena
+ * estirándolo en horizontal un 6% (object-fit: fill sobre una caja 1,88:1 en
+ * vez de 1,78:1): a ese punto no se nota, y un filete negro a cada lado sí.
+ * Los números: alto de la caja = 1/0,53 = 188,7% de la franja; arriba,
+ * -0,35 × 188,7% = -66%.
+ *
+ * La proporción se mantiene a cualquier ancho (si topara en altura, el
+ * encuadre se comería las letras); por encima de 1920 px la franja deja de
+ * crecer y se centra.
  *
  * Intentos anteriores, para no repetirlos: estirado a una franja de alto fijo
  * con el encuadre al 60%, y luego al 72% con las letras estimadas a ojo,
@@ -48,7 +56,9 @@ import { conexionPobre } from '@/components/landing/lazy-video';
 const VIDEO = '/marca/presentacion.mp4';
 const INICIO = '/marca/presentacion-inicio.jpg';
 const FINAL = '/marca/presentacion-poster.jpg';
-const ENCUADRE = { objectPosition: '50% 80%' };
+/** Móvil: el fotograma entero. Ancho: ver el cálculo de arriba (35-88%, estirado un 6%). */
+const ENCUADRE =
+    'absolute inset-0 h-full w-full object-cover sm:inset-auto sm:left-0 sm:top-[-66%] sm:h-[188.7%] sm:object-fill';
 
 export function Presentacion() {
     const video = useRef<HTMLVideoElement>(null);
@@ -80,10 +90,10 @@ export function Presentacion() {
     return (
         <div className="relative w-full overflow-hidden bg-[#0E0F10]">
             <h2 className="sr-only">SCENE ME Studios</h2>
-            <div className="relative mx-auto aspect-video w-full max-w-[1920px] sm:aspect-[32/9]">
+            <div className="relative mx-auto aspect-video w-full max-w-[1920px] overflow-hidden sm:aspect-[32/9]">
                 {quieto ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={FINAL} alt="" className="absolute inset-0 h-full w-full object-cover" style={ENCUADRE} />
+                    <img src={FINAL} alt="" className={ENCUADRE} />
                 ) : (
                     <video
                         ref={video}
@@ -93,8 +103,7 @@ export function Presentacion() {
                         playsInline
                         preload="auto"
                         onEnded={() => setConSonido(false)}
-                        className="absolute inset-0 h-full w-full object-cover"
-                        style={ENCUADRE}
+                        className={ENCUADRE}
                         aria-hidden="true"
                     />
                 )}

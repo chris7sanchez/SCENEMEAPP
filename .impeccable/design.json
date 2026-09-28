@@ -14,8 +14,8 @@
       "velo-cielo": {
         "role": "neutral",
         "displayName": "Velo de cielo",
-        "canonical": "rgba(14, 15, 16, 0.62)",
-        "note": "La capa de leader entre el cielo estrellado fijo y todo lo demas. Valor BUSCADO barriendo de 0,30 a 0,66 con scripts/contraste-sobre-fondo.mjs: el primero que no rompe ningun texto es 0,60; se deja 0,62 de margen. Sin velo, el gris de margen a 11px cae a 2,1:1 sobre las zonas claras del cielo."
+        "canonical": "rgba(8, 9, 10, 0.72)",
+        "note": "La capa de leader entre el cielo estrellado fijo y todo lo demas. Valor BUSCADO barriendo de 0,30 a 0,66 con scripts/contraste-sobre-fondo.mjs: el primero que no rompe ningun texto es 0,60; se dejo 0,62 de margen, y luego se oscurecio a rgba(8,9,10,0.72) por direccion de arte (azul mas profundo en la misma tinta; oscurecer solo sube el contraste). Sin velo, el gris de margen a 11px cae a 2,1:1 sobre las zonas claras del cielo."
       },
       "scrim-video": {
         "role": "neutral",
@@ -133,7 +133,7 @@
       }
     ],
     "textures": [
-      { "name": "cielo-estrellas", "file": "/texturas/cielo-estrellas.webp", "tile": "cover, background-attachment: fixed", "blend": "bajo velo rgba(14,15,16,0.62)", "purpose": "EL SUELO. Raster preexistente aportado por el usuario: Texturelabs_Film_176L, serie Film, 4240x3123, procesado con sharp (resize 2400, linear(0.78,0), webp q76). Procedencia en public/texturas/cielo-estrellas.webp.json. Fija, asi que la pagina se desplaza por delante como una tira por delante de una mesa de luz." },
+      { "name": "cielo-estrellas", "file": "/texturas/cielo-estrellas.webp", "tile": "cover, background-attachment: fixed", "blend": "bajo velo rgba(8,9,10,0.72)", "purpose": "EL SUELO. Raster preexistente aportado por el usuario: Texturelabs_Film_176L, serie Film, 4240x3123, procesado con sharp (resize 2400, linear(0.78,0), webp q76). Procedencia en public/texturas/cielo-estrellas.webp.json. Fija, asi que la pagina se desplaza por delante como una tira por delante de una mesa de luz." },
       { "name": "grano-16mm", "file": "/texturas/grano-16mm.webp", "tile": "256x256", "blend": "normal", "purpose": "Grano de emulsion del soporte. Producido con ffmpeg; procedencia en public/texturas/grano-16mm.webp.json." },
       { "name": "raya-16mm", "file": "/texturas/raya-16mm.webp", "tile": "1024x1024", "blend": "screen", "purpose": "Rayas verticales del paso por el proyector." },
       { "name": "mancha-quimica", "file": "/texturas/mancha-quimica.webp", "tile": "820x820", "blend": "soft-light", "purpose": "Mancha del revelado a mano." },
@@ -247,7 +247,7 @@
     "northStar": "La tira de 16 mm, revelada a mano y mirada contra el cielo",
     "overview": "La portada no es una pagina con fotos dentro: es un trozo de pelicula sostenido a contraluz. El suelo ya no es un negro liso, es una fotografia de emulsion de pelicula que lee como cielo estrellado (/texturas/cielo-estrellas.webp; original Texturelabs, serie Film, aportado por el usuario y procesado con sharp, con su procedencia en el sidecar del fichero), puesta en background-attachment: fixed bajo un velo de negro de leader. La pagina se desplaza por delante de ese cielo como una tira por delante de una mesa de luz. Sobre el, los contenedores llevan perforaciones a los extremos, los rotulos van impresos en vertical por el margen y la imagen aparece dentro de una ventanilla de proyector.\n\nDe ahi sale la unica ley que ordena el resto. La emulsion vive en el soporte y jamas sobre la imagen del actor, porque esa imagen es el producto que se vende. El grano va en una capa a opacity 0,09 por debajo de todo el contenido; la fuga de luz entra por el 22% derecho del fotograma y se queda en el borde; el rail de datos se saco a su propia columna precisamente porque flotando encima tapaba la cara de la actriz. Si alguna vez se ve grano sobre una cara, esta mal.\n\nEl acento del mundo es ahora el oro del logo, muestreado del marco del icono maestro (brand/icono-maestro.webp), no elegido de una rueda de color. Ese oro sustituyo al naranja de fuga que el contrato de direccion habia fijado: donde el contrato decia #FF8A33, el artefacto dice #E4C46C, y manda el artefacto, porque el color sale de un objeto que la marca ya tenia. El mundo sigue siendo oscuro, denso y mecanico, sin nada blando: cero sombras, cero degradados decorativos, cero tarjetas. Rechaza el arreglo por defecto de la categoria —video a pantalla completa con titular centrado y tres tarjetas de servicio iguales— y lo sustituye por composicion asimetrica, listados con filete y fotogramas de proporcion distinta segun lo que ensenan.",
     "keyCharacteristics": [
-      "Suelo unico: el cielo de emulsion fijo bajo velo de leader al 0,62. Ni blanco ni crema en ninguna superficie.",
+      "Suelo unico: el cielo de emulsion fijo bajo velo casi negro al 0,72. Ni blanco ni crema en ninguna superficie.",
       "Emulsion texturada solo en el soporte, nunca sobre la imagen.",
       "Versales estrechadas de Archivo variable (wdth 62-65, wght 800) como voz de rotulo de lata.",
       "El oro del logo reservado a una sola cosa: lo que esta activo.",
@@ -259,7 +259,7 @@
     "rules": [
       { "name": "La Regla de la Emulsion en el Soporte", "body": "El grano, la raya, el hollin, la mancha de quimica y la fuga de luz viven en el soporte —el cielo velado, el margen perforado, el cromo de los controles— y nunca encima de la imagen. Prueba: si una cara lleva grano u oro por encima, esta mal.", "section": "colors" },
       { "name": "La Regla del Oro Unico", "body": "El oro marca lo que esta activo en este momento y nada mas. Lo que no esta ocurriendo va en gris pleno, aunque sea la llamada mas importante de la pagina: la llamada de primera plana (Empieza a creer en ti, accede a Scene Me) esta deliberadamente en emulsion y no en oro, porque quien lleva la accion es el boton que hay debajo. Si dos cosas de la misma pantalla estan en oro sin estar las dos activas, sobra una.", "section": "colors" },
-      { "name": "La Regla del 0,62", "body": "El velo de leader sobre el cielo estrellado es un valor buscado, no elegido: barriendo de 0,30 a 0,66 y midiendo con scripts/contraste-sobre-fondo.mjs en cada paso, el primero que no rompe ningun texto es 0,60; se deja en 0,62 de margen. Sin velo, el gris de margen a 11px cae a 2,1:1 sobre las zonas claras del cielo. Si se sube la luz de la textura o se cambia la textura, se vuelve a barrer. No se toca a ojo.", "section": "colors" },
+      { "name": "La Regla del Velo Buscado", "body": "El velo sobre el cielo estrellado tiene un minimo buscado, no elegido: barriendo de 0,30 a 0,66 y midiendo con scripts/contraste-sobre-fondo.mjs en cada paso, el primero que no rompe ningun texto es 0,60. Por encima, la oscuridad es de direccion de arte: hoy rgba(8,9,10,0.72). Sin velo, el gris de margen a 11px cae a 2,1:1 sobre las zonas claras del cielo. Si se sube la luz de la textura o se cambia la textura, se vuelve a barrer. No se toca a ojo.", "section": "colors" },
       { "name": "La Regla del Gris que no Habla", "body": "El gris base (#6E7377) no lleva texto por debajo de 24px, a ningun peso. Es cromo: filetes, subrayados, barras y el tono apagado de la definicion, que va a 24px o mas. Para texto pequeno se sube al gris de margen; para texto normal, al de emulsion.", "section": "colors" },
       { "name": "La Regla de los 54 Caracteres", "body": "El cuerpo y la respuesta de las preguntas topan en 54ch, no en 68. El glifo 0 de Archivo es mas ancho que su letra media, asi que 68ch daban 85 caracteres reales por linea. Medido con scripts/inspeccion-landing.mjs: maximo 73 caracteres a 1440. Si se cambia de tipografia, se vuelve a medir; el numero que manda es el de caracteres reales, no el ch.", "section": "typography" },
       { "name": "La Regla del Margen", "body": "Lo que identifica una pieza —Toma 01, 16 mm, Sin revelar, Scene Me— va impreso en el margen, normalmente en vertical, junto a la perforacion. Nunca encima del titular. Un rotulo pequeno sobre un titular es un antetitulo, y aqui los antetitulos estan prohibidos.", "section": "typography" },
@@ -290,7 +290,7 @@
     ],
     "donts": [
       "Don't poner grano, raya, fuga, texto ni dato encima de la imagen del actor. Esa imagen es el producto.",
-      "Don't cambiar el velo del 0,62 ni la luz de la textura del cielo sin volver a barrer el valor con el medidor. Un fondo fotografico no se ajusta a ojo.",
+      "Don't bajar el velo del minimo medido (0,60) ni cambiar la luz de la textura del cielo sin volver a barrer el valor con el medidor. Un fondo fotografico no se ajusta a ojo.",
       "Don't usar el gris base (#6E7377) para texto por debajo de 24px: a 4,0:1 no llega.",
       "Don't repartir el oro como color de marca, ni gastarlo en una llamada que no esta ocurriendo.",
       "Don't meter una tercera banda de claqueta.",

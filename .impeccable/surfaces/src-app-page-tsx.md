@@ -33,8 +33,9 @@ categoría: vídeo a pantalla completa con titular centrado y tres tarjetas de
 servicio iguales.
 
 OWN-WORLD: El suelo es el cielo de emulsión `/texturas/cielo-estrellas.webp`,
-fijo, bajo un velo de leader al 0,62 sobre `#0E0F10`; el 0,62 está buscado con
-`scripts/contraste-sobre-fondo.mjs`, no elegido. Texto en gris de emulsión
+fijo, bajo un velo `rgba(8, 9, 10, 0.72)` sobre `#0E0F10`; el mínimo (0,60)
+está buscado con `scripts/contraste-sobre-fondo.mjs`, y por encima se oscureció
+en la misma tinta a petición de Christian. Texto en gris de emulsión
 `#A6ABB0`; margen `#8F969B` para lo impreso a 11px; base `#6E7377` sólo a 24px o
 más y en cromo. Oro del logo `#E4C46C`, muestreado del marco del icono maestro,
 sólo para lo activo. Sepia `#C8B089` para lo escrito a mano. Archivo variable

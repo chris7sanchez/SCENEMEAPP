@@ -46,10 +46,20 @@
      * hay detrás de cada letra, el primer valor que no rompe ningún texto es
      * 0,60. Se deja en 0,62 de margen. Si se sube la luz de la textura, hay que
      * volver a buscarlo: no se toca a ojo.
+     *
+     * 28/09/2026: Christian lo pidió MÁS OSCURO, «un azul más profundo, en el
+     * mismo tinte y tono». El 0,62 era el mínimo para que el texto se leyera;
+     * oscurecer sólo mejora el contraste, así que el suelo de seguridad sigue
+     * valiendo. Para no cambiar el tinte, el nuevo velo está CALCULADO y no
+     * elegido: se midió el color medio que se veía (rgb 23, 32, 34), se
+     * despejó el del cielo que hay debajo (rgb 38, 59, 62) y se buscó un velo
+     * que dejara cada canal al 72% de lo que era: rgba(8, 9, 10, 0,72) da
+     * rgb 16,5, 23, 24,5. Mismo tono, un 28% más hondo. Medido después con
+     * scripts/contraste-sobre-fondo.mjs.
      */
     background-color: var(--pel-leader);
     background-image:
-        linear-gradient(rgba(14, 15, 16, 0.62), rgba(14, 15, 16, 0.62)),
+        linear-gradient(rgba(8, 9, 10, 0.72), rgba(8, 9, 10, 0.72)),
         url('/texturas/cielo-estrellas.webp');
     background-size: auto, cover;
     background-position: center, center;
@@ -503,4 +513,117 @@
         var(--pel-leader) 42px 84px
     );
     border-bottom: 2px solid var(--pel-oro);
+}
+
+/*
+ * LA CLAQUETA COMO MENÚ (28/09/2026, idea de Christian).
+ *
+ * La banda de barras blancas y negras que abre la página es ahora la
+ * navegación: cada sección va en un tramo BLANCO y los tramos NEGROS son el
+ * espacio entre ellas. Todos los tramos miden lo mismo (una rejilla de 11
+ * columnas iguales: negro, sección, negro, sección… negro), así que la banda
+ * sigue leyendo como el brazo de la claqueta y no como una fila de botones.
+ *
+ * La inclinación es la misma que la de la banda de siempre (104° en el
+ * degradado, es decir 14° respecto a la vertical): skewX(-14deg) en el tramo y
+ * la contraria en el texto, para que la letra vaya derecha.
+ *
+ * 44px de alto: es la altura mínima de un objetivo táctil, y a esa altura la
+ * banda sigue siendo una banda.
+ *
+ * En tableta y móvil, 11 tramos iguales no dejan sitio a los nombres. Ahí
+ * los negros se quedan en filetes de 6px y los cinco blancos se reparten el
+ * resto a partes iguales: se ven las cinco secciones sin deslizar nada, y la
+ * banda sigue siendo blanca y negra (reglas al final del bloque).
+ */
+.pel-claqueta-menu {
+    position: relative;
+    z-index: 1;                /* por encima del vídeo, que sobresale de su caja */
+    overflow: hidden;
+    background-color: var(--pel-leader);
+    border-bottom: 2px solid var(--pel-oro);
+}
+.pel-claqueta-menu__lista {
+    display: grid;
+    grid-template-columns: repeat(11, minmax(0, 1fr));
+    height: 44px;
+    margin: 0 -14px;           /* la inclinación asoma por los bordes: se tapa */
+    padding: 0;
+    list-style: none;
+}
+.pel-claqueta-menu__tramo {
+    transform: skewX(-14deg);
+    background-color: var(--pel-leader);
+}
+.pel-claqueta-menu__tramo--blanco {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--pel-emulsion);
+    transition: background-color 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pel-claqueta-menu__enlace {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    color: var(--pel-leader);     /* 8,2:1 sobre la barra blanca */
+    text-decoration: none;
+}
+.pel-claqueta-menu__texto {
+    display: inline-block;
+    transform: skewX(14deg);      /* la letra, derecha */
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-variation-settings: 'wdth' 100, 'wght' 700;
+    font-size: clamp(0.625rem, 0.78vw, 0.75rem);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* El brillo al pasar: la barra se enciende y un reflejo la cruza de lado a
+   lado, como la luz sobre el cromo del logo. También con el teclado. */
+.pel-claqueta-menu__tramo--blanco::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.9) 50%, transparent 70%);
+    transform: translateX(-130%);
+}
+.pel-claqueta-menu__tramo--blanco:hover,
+.pel-claqueta-menu__tramo--blanco:focus-within {
+    background-color: #E9ECEE;
+    box-shadow: 0 0 22px rgba(233, 236, 238, 0.4);   /* el halo cae sobre los negros de al lado */
+    z-index: 1;
+}
+.pel-claqueta-menu__tramo--blanco:hover::after,
+.pel-claqueta-menu__tramo--blanco:focus-within::after {
+    transform: translateX(130%);
+    transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pel-claqueta-menu__enlace:focus-visible {
+    outline: 2px solid var(--pel-oro);
+    outline-offset: -4px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .pel-claqueta-menu__tramo--blanco:hover::after,
+    .pel-claqueta-menu__tramo--blanco:focus-within::after {
+        transform: translateX(-130%);
+        transition: none;
+    }
+}
+/* Por debajo de 1024px, 11 tramos iguales no dejan sitio a «LABORATORIO»
+   (medido: 87px de letra en barras de 72px a 768). Ahí los negros se quedan
+   en filetes y los cinco blancos se reparten el resto. Va al final para
+   ganar al tamaño de letra de arriba. */
+@media (max-width: 1023px) {
+    .pel-claqueta-menu__lista {
+        grid-template-columns: 10px repeat(5, minmax(0, 1fr) 6px);
+    }
+}
+@media (max-width: 639px) {
+    .pel-claqueta-menu__texto {
+        font-size: 0.5625rem;     /* 9px: «LABORATORIO» cabe en su barra a 360px */
+        letter-spacing: 0.02em;
+    }
 }

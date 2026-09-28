@@ -11,7 +11,7 @@ colors:
   oro-hondo: "#C49444"
   sepia: "#C8B089"
   tinta-rotulo: "#140A02"
-  velo-cielo: "rgba(14, 15, 16, 0.62)"
+  velo-cielo: "rgba(8, 9, 10, 0.72)"
   scrim-video: "rgba(14, 15, 16, 0.86)"
 typography:
   display:
@@ -108,6 +108,10 @@ components:
   claqueta:
     backgroundColor: "{colors.emulsion}"
     height: "26px"
+  claqueta-menu:
+    backgroundColor: "{colors.emulsion}"
+    textColor: "{colors.leader}"
+    height: "44px"
 ---
 
 # Design System: SCENE ME
@@ -147,7 +151,7 @@ iguales— y lo sustituye por composición asimétrica, listados con filete y
 fotogramas de proporción distinta según lo que enseñan.
 
 **Key Characteristics:**
-- Suelo único: el cielo de emulsión fijo bajo velo de leader al 0,62. Ni blanco ni crema en ninguna superficie.
+- Suelo único: el cielo de emulsión fijo bajo velo casi negro al 0,72. Ni blanco ni crema en ninguna superficie.
 - Emulsión texturada sólo en el soporte, nunca sobre la imagen.
 - Versales estrechadas de Archivo variable (`wdth` 62-65, `wght` 800) como voz de rótulo de lata.
 - El oro del logo reservado a una sola cosa: lo que está activo.
@@ -172,12 +176,12 @@ compuesta con `scripts/contraste-sobre-fondo.mjs`, no calculados contra el
 
 ### Neutral
 - **Negro de leader** (`{colors.leader}`): el color del suelo y el del velo que va sobre el cielo. También el fondo del raíl de datos al 82% y el scrim del vídeo del cierre al 86%. Es el único fondo del mundo.
-- **Velo de cielo** (`{colors.velo-cielo}`): la capa de leader que va entre el cielo estrellado y todo lo demás. Ver la Regla del 0,62.
+- **Velo de cielo** (`{colors.velo-cielo}`): la capa de leader que va entre el cielo estrellado y todo lo demás. Ver la Regla del Velo Buscado.
 - **Scrim de vídeo** (`{colors.scrim-video}`): el leader opaco que va entre un vídeo de fondo y el texto que cae encima, en el cierre. Sin él el titular no se lee.
 - **Gris de sombra** (`{colors.sombra}`): el cromo. Columnas de perforación, filetes de separación, bordes de casilla, cuerpo del botón secundario, pulgar de la barra de desplazamiento. Nunca lleva texto encima que no sea emulsión.
 - **Gris base** (`{colors.base}`, 4,0:1): cromo, filetes y **el tono apagado de la definición**, que a 24px o más pasa con el mínimo de 3:1. A 4,0:1 no llega al mínimo de texto normal.
 - **Gris de margen** (`{colors.margen}`): lo impreso en el margen de la película. Códigos de borde, claves del raíl de datos, la marca de estado «Abrir» de las preguntas. Siempre a 11px o menos y siempre en versales espaciadas. **Se aclaró desde `#838A8F` al meter el cielo detrás**: sobre la textura el valor viejo caía a 4,44:1 y el mínimo de texto normal es 4,5. El valor actual es el primero que pasa medido sobre la página compuesta.
-- **Gris de emulsión** (`{colors.emulsion}`, 8,3:1): el texto normal. Cuerpo, titulares, rótulos del botón secundario, respuestas, el tono pleno de la definición y las barras claras de la banda de claqueta.
+- **Gris de emulsión** (`{colors.emulsion}`, 8,3:1): el texto normal. Cuerpo, titulares, rótulos del botón secundario, respuestas, el tono pleno de la definición y las barras claras de la banda de claqueta y del menú.
 - **Tinta de rótulo** (`{colors.tinta-rotulo}`, 11,6:1 sobre el oro): el casi negro del texto dentro del botón primario y de la selección. No aparece en ningún otro sitio.
 
 ### Named Rules
@@ -185,7 +189,7 @@ compuesta con `scripts/contraste-sobre-fondo.mjs`, no calculados contra el
 
 **La Regla del Oro Único.** El oro marca lo que está activo en este momento y nada más. Lo que no está ocurriendo va en gris pleno, aunque sea la llamada más importante de la página: la llamada de primera plana («Empieza a creer en ti, accede a Scene Me») está deliberadamente en emulsión y no en oro, porque quien lleva la acción es el botón que hay debajo. Si dos cosas de la misma pantalla están en oro sin estar las dos activas, sobra una.
 
-**La Regla del 0,62.** El velo de leader sobre el cielo estrellado es un valor **buscado, no elegido**: barriendo de 0,30 a 0,66 y midiendo con `scripts/contraste-sobre-fondo.mjs` en cada paso, el primero que no rompe ningún texto es 0,60; se deja en 0,62 de margen. Sin velo, el gris de margen a 11px cae a 2,1:1 sobre las zonas claras del cielo. Si se sube la luz de la textura o se cambia la textura, se vuelve a barrer. No se toca a ojo.
+**La Regla del Velo Buscado.** El velo sobre el cielo estrellado tiene un **mínimo buscado, no elegido**: barriendo de 0,30 a 0,66 y midiendo con `scripts/contraste-sobre-fondo.mjs` en cada paso, el primero que no rompe ningún texto es 0,60 (con leader). Por encima de ese suelo, la oscuridad es de dirección de arte: Christian pidió el azul del fondo «más profundo, en la misma tinta», y el velo pasó a `rgba(8, 9, 10, 0.72)`, que deja cada canal al 72% de lo que se veía (un 28% más hondo) sin girar el tono (el fondo medio pasa de rgb(23,32,34) a unos rgb(16,23,24)). Oscurecer sólo puede subir el contraste; aclarar por debajo de 0,60 no se hace. Sin velo, el gris de margen a 11px cae a 2,1:1 sobre las zonas claras del cielo. Si se sube la luz de la textura o se cambia la textura, se vuelve a barrer. No se toca a ojo.
 
 **La Regla del Gris que no Habla.** El gris base (`{colors.base}`) no lleva texto por debajo de 24px, a ningún peso. Es cromo: filetes, subrayados, barras y el tono apagado de la definición, que va a 24px o más. Para texto pequeño se sube al gris de margen; para texto normal, al de emulsión.
 
@@ -270,7 +274,7 @@ Este mundo es **absolutamente plano: no existe ni una `box-shadow` en toda la
 portada**. La profundidad se consigue por cuatro vías, todas materiales:
 
 1. **El cielo fijo.** La textura va en `background-attachment: fixed`, así que el contenido se desplaza por delante de un fondo que no se mueve. Ése es el único paralaje del mundo y no hace falta ninguno más.
-2. **Capas tonales.** Velo de leader al 0,62 sobre el cielo, cromo (`{colors.sombra}`) para perforaciones y filetes, raíl de datos sobre leader al 82% y scrim de vídeo al 86%: siempre el mismo color, cambiando la opacidad.
+2. **Capas tonales.** Velo casi negro al 0,72 sobre el cielo, cromo (`{colors.sombra}`) para perforaciones y filetes, raíl de datos sobre leader al 82% y scrim de vídeo al 86%: siempre el mismo color, cambiando la opacidad.
 3. **Emulsión superpuesta.** La capa `.pel-grano` combina tres baldosas —raya (`screen`), mancha de química (`soft-light`) y grano (`normal`)— a `opacity: 0.09` por debajo de todo el contenido. El 0,09 está medido, no elegido a ojo: sube el negro a un equivalente de `#181818` y con eso el gris de margen sigue en 5,0:1. Los botones llevan su propia capa de emulsión a 0,08 con `mix-blend-mode: overlay`, aparte, para no tocar el color calculado del rótulo.
 4. **Luz, no sombra.** Lo que está activo se ilumina: la fuga dorada entra por el 22% derecho del fotograma en ventanilla con `mix-blend-mode: screen`, y el hover de los botones es `filter: brightness(1.12)`.
 
@@ -301,6 +305,14 @@ Son las barras del brazo de la claqueta del logo. En oro y negro leían como cin
 de obra —exactamente lo que una marca de cine no quiere decir—, así que las
 barras van blancas y negras y el oro entra debajo, de filete.
 
+Bajo la cabecera, la banda es además **el menú** (`components/landing/claqueta-menu.tsx`):
+44px de alto, once tramos iguales inclinados 14° (negro, sección, negro…
+negro), cada sección rotulada en leader sobre su tramo blanco. Al pasar el
+ratón o con el foco, la barra se enciende (`#E9ECEE`), echa un halo sobre los
+negros vecinos y un reflejo la cruza, como la luz sobre el cromo del logo; con
+«reducir movimiento» se enciende sin reflejo. Por debajo de 1024px los negros
+se quedan en filetes de 6px para que quepan los cinco nombres sin deslizar.
+
 Las separaciones son filetes de 1px de cromo. No hay contenedores con relleno y
 fondo propio salvo el raíl de datos: lo demás se estructura con filetes,
 perforaciones y espacio.
@@ -308,7 +320,7 @@ perforaciones y espacio.
 ### Named Rules
 **La Regla del Trozo de Película.** Todo contenedor de esta portada es un trozo de película: perforado en los extremos, con su código impreso en el margen. Si un bloque parece una tarjeta —caja con fondo, radio grande y relleno uniforme— está mal.
 
-**La Regla de las Dos Claquetas.** La banda de claqueta aparece exactamente dos veces en toda la página: abre la portada bajo la cabecera y anuncia el cierre. Una raya repetida deja de significar algo en cuanto aparece por tercera vez. Si hace falta una tercera, lo que falta es otra cosa.
+**La Regla de las Dos Claquetas.** La banda de claqueta aparece exactamente dos veces en toda la página: abre la portada bajo la cabecera, convertida en menú, y anuncia el cierre. Una raya repetida deja de significar algo en cuanto aparece por tercera vez. Si hace falta una tercera, lo que falta es otra cosa.
 
 ## Components
 
@@ -352,9 +364,9 @@ texto.
 - **Activo:** el mismo código en oro, sólo para el fotograma que está en la ventanilla.
 
 ### Navigation
-La cabecera es un filete inferior de cromo y una fila de códigos de margen: los
-cuatro anclajes de sección en gris de margen y «Entrar» en oro con subrayado a
-5px, porque es el único destino de la fila que abre la sesión. El pie repite el
+La navegación de la cabecera es la banda de claqueta (ver arriba): los cuatro
+anclajes de sección y «Entrar», cada uno en su tramo blanco, todos del mismo
+ancho. No hay una segunda fila de enlaces. El pie repite el
 mismo patrón en tres columnas de códigos con enlaces de texto debajo, y sólo
 lleva enlaces que llevan a algún sitio.
 
@@ -397,9 +409,10 @@ de película se desenrolla y sobre él se forma el nombre (`components/landing/p
 `public/marca/presentacion.mp4`). Vive en la cabecera, donde antes estaban el
 icono y las letras: el vídeo ES el nombre, y llena la franja de lado a lado. En
 el móvil va el fotograma entero (16:9); en pantalla ancha, una franja 32:9
-encuadrada al 80% vertical (se ve del 40% al 90% del alto del fotograma; las
-letras, medidas, van del 43,6% al 86,3%), que deja enteros el nombre y
-«Studios» y recorta techo y suelo. Deja de crecer a 1920px de ancho. Arranca al cargar, suena sólo si se pide («Ver con
+que enseña del 35% al 88% del alto del fotograma (las letras, medidas, van
+del 43,6% al 86,3%): aire por encima del nombre y «Studios» casi rozando
+abajo. Para que quepa, el vídeo se estira un 6% en horizontal en vez de dejar
+filetes negros a los lados. Deja de crecer a 1920px de ancho. Arranca al cargar, suena sólo si se pide («Ver con
 sonido») y se queda en el último fotograma con el nombre formado; nunca en
 bucle. Con «reducir movimiento», conexión pobre o reproducción automática
 bloqueada, sólo ese último fotograma.
@@ -437,7 +450,7 @@ transición y animación baja a 1ms y el encaje se desactiva.
 
 ### Don't:
 - **Don't** poner grano, raya, fuga, texto ni dato encima de la imagen del actor. Esa imagen es el producto.
-- **Don't** cambiar el velo del 0,62 ni la luz de la textura del cielo sin volver a barrer el valor con el medidor. Un fondo fotográfico no se ajusta a ojo.
+- **Don't** bajar el velo por debajo del mínimo medido (0,60) ni cambiar la luz de la textura del cielo sin volver a barrer con el medidor. Un fondo fotográfico no se ajusta a ojo.
 - **Don't** usar el gris base (`{colors.base}`) para texto por debajo de 24px: a 4,0:1 no llega.
 - **Don't** repartir el oro como color de marca, ni gastarlo en una llamada que no está ocurriendo.
 - **Don't** meter una tercera banda de claqueta.
