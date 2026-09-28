@@ -492,6 +492,11 @@
     margin: 0;
     text-wrap: balance;
 }
+/* En pantalla ancha, cada frase en UNA línea (Christian, 28/09/2026): caben
+   de sobra desde 1024px. Por debajo no caben a un cuerpo legible y parten. */
+@media (min-width: 1024px) {
+    .pel-definicion { max-width: none; white-space: nowrap; }
+}
 
 /* Por debajo de 24px el gris base no lleva texto (Regla del Gris que no
    Habla): la frase apagada sube al gris de margen. */
@@ -681,4 +686,66 @@
         rgba(201, 145, 26, 0.05) 55%,
         rgba(14, 15, 16, 0.3)
     );
+}
+
+/* ------------------------------------------------------------------ */
+/* LA TIRA DE LA PORTADA, en segunda capa (≥ 1024px).                  */
+/* Por detrás del titular la capa se aclara al 22% para que se lea lo  */
+/* de delante; debajo del titular va entera. --velo-fin lo pone        */
+/* hero.tsx midiendo el bloque del titular.                            */
+/* ------------------------------------------------------------------ */
+@media (min-width: 1024px) {
+    .pel-tira-capa {
+        -webkit-mask-image: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.22) 0,
+            rgba(0, 0, 0, 0.22) calc(var(--velo-fin, 320px) - 40px),
+            #000 calc(var(--velo-fin, 320px) + 90px)
+        );
+        mask-image: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.22) 0,
+            rgba(0, 0, 0, 0.22) calc(var(--velo-fin, 320px) - 40px),
+            #000 calc(var(--velo-fin, 320px) + 90px)
+        );
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* ORO METÁLICO para los nombres de las tomas (28/09/2026).            */
+/* Los colores salen del vídeo de la cabecera: luz #FBEAB0, cuerpo     */
+/* #E4C46C / #D29A26, horizonte #8A5A12 (una raya fina). El degradado va de arriba abajo  */
+/* con una línea de horizonte oscura, como el cromo de las letras del   */
+/* logo pero en oro; un reflejo lo cruza cada pocos segundos. El color */
+/* de respaldo (sin background-clip) es el ámbar oscuro, que se lee.   */
+/* ------------------------------------------------------------------ */
+.pel-titulo-oro {
+    color: #DDAE45;   /* respaldo = el tono medio-bajo del cuerpo del oro; es el que mide el contraste (≥ 3:1 sobre la estrella más clara) */
+    background-image:
+        linear-gradient(105deg, transparent 42%, rgba(255, 250, 230, 0.85) 50%, transparent 58%),
+        linear-gradient(
+            180deg,
+            #FBEAB0 0%,
+            #E4C46C 30%,
+            #D29A26 50%,
+            #8A5A12 52.5%,
+            #D8A63C 58%,
+            #E4C46C 82%,
+            #F6DE93 100%
+        );
+    background-size: 260% 100%, 100% 100%;
+    background-position: 130% 0, 0 0;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.6)) drop-shadow(0 0 22px rgba(201, 145, 26, 0.22));
+    animation: pel-oro-reflejo 7s var(--pel-salida) infinite;
+}
+@keyframes pel-oro-reflejo {
+    0%, 62% { background-position: 130% 0, 0 0; }
+    86%, 100% { background-position: -30% 0, 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pel-titulo-oro { animation: none; }
 }

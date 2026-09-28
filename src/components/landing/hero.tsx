@@ -3,6 +3,7 @@
 import { BotonPelicula, Codigo, Fotograma, Perforado, useVentanilla } from '@/components/landing/tira';
 import Link from 'next/link';
 import { icono } from '@/lib/iconos-version';
+import { useEffect, useRef } from 'react';
 
 /*
  * El primer pantallazo: el titular y su frase CENTRADOS, a todo lo ancho
@@ -26,6 +27,20 @@ import { icono } from '@/lib/iconos-version';
  * La tira va sola: el raíl de datos que tenía a su derecha («En la
  * ventanilla: Amanda», pieza, duración, cuadros por segundo) lo quitó
  * Christian el 28/09/2026. Lo que se vende es la imagen, y la imagen basta.
+ *
+ * LA TIRA EN SEGUNDA CAPA (Christian, 28/09/2026). En pantalla ancha la tira
+ * es una capa de fondo que ocupa la mitad derecha de toda la portada, de
+ * arriba abajo, y corre con el scroll (parallax): baja la página y la
+ * película sube más deprisa que ella, pasando por DETRÁS del titular. Allí,
+ * en la franja del titular, la capa se aclara (máscara al 22%) para que se
+ * lea lo de delante; debajo va entera. Cinco fotogramas en vez de tres.
+ *
+ * Los códigos de borde van impresos en la película y corren con ella, como
+ * en una tira de verdad: «16 mm» a la izquierda y el número a la derecha, en
+ * oro el del fotograma que está en la ventanilla.
+ *
+ * En el móvil, y con «reducir movimiento», la tira no se mueve: va debajo de
+ * la llamada, quieta, con los tres primeros fotogramas.
  */
 
 const VENTANILLA = [
@@ -47,21 +62,102 @@ const VENTANILLA = [
         poster: '/videos/SONIA_DORADO-loop-poster.jpg',
         alt: 'Fotograma de la escena de Sonia Dorado rodada en SCENE ME',
     },
+    {
+        nombre: 'Mudanza',
+        video: '/videos/MUDANZA-loop.mp4',
+        poster: '/videos/MUDANZA-loop-poster.jpg',
+        alt: 'Fotograma de una escena a medida rodada en SCENE ME',
+    },
+    {
+        nombre: 'Oliver',
+        video: '/videos/OLIVER-loop.mp4',
+        poster: '/videos/OLIVER-loop-poster.jpg',
+        alt: 'Un actor trabajando una escena en los Estudios SCENE ME',
+    },
 ];
+
+/** Cuántos fotogramas salen en el móvil, donde la tira no corre. */
+const EN_MOVIL = 3;
+
+/**
+ * El parallax de la tira, sin librería: en cada scroll (un rAF como mucho por
+ * cuadro) se mira cuánto de la portada ha pasado por la pantalla y la tira se
+ * desplaza en proporción, de su borde de arriba a su borde de abajo. Escribe
+ * el transform a mano: nada de estado de React en cada cuadro.
+ *
+ * También deja en la sección la altura del bloque del titular (--velo-fin),
+ * que es donde termina la franja en la que la tira se aclara.
+ */
+function useTiraEnParallax() {
+    const seccion = useRef<HTMLElement>(null);
+    const titular = useRef<HTMLDivElement>(null);
+    const capa = useRef<HTMLDivElement>(null);
+    const pista = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const s = seccion.current, t = titular.current, c = capa.current, p = pista.current;
+        if (!s || !t || !c || !p) return;
+
+        const ancho = window.matchMedia('(min-width: 1024px)');
+        const quieto = window.matchMedia('(prefers-reduced-motion: reduce)');
+        let cuadro = 0;
+
+        const colocar = () => {
+            cuadro = 0;
+            if (!ancho.matches || quieto.matches) {
+                p.style.transform = '';
+                return;
+            }
+            const r = s.getBoundingClientRect();
+            const alto = window.innerHeight;
+            const avance = Math.min(1, Math.max(0, (alto - r.top) / (alto + r.height)));
+            const recorrido = Math.max(0, p.offsetHeight - c.offsetHeight);
+            p.style.transform = `translate3d(0, ${(-avance * recorrido).toFixed(1)}px, 0)`;
+        };
+        const pedir = () => { if (!cuadro) cuadro = requestAnimationFrame(colocar); };
+
+        const medir = new ResizeObserver(() => {
+            s.style.setProperty('--velo-fin', `${t.offsetHeight}px`);
+            pedir();
+        });
+        medir.observe(t);
+        medir.observe(s);
+
+        window.addEventListener('scroll', pedir, { passive: true });
+        ancho.addEventListener('change', pedir);
+        quieto.addEventListener('change', pedir);
+        pedir();
+
+        return () => {
+            cancelAnimationFrame(cuadro);
+            medir.disconnect();
+            window.removeEventListener('scroll', pedir);
+            ancho.removeEventListener('change', pedir);
+            quieto.removeEventListener('change', pedir);
+        };
+    }, []);
+
+    return { seccion, titular, capa, pista };
+}
 
 export function Hero() {
     const { activo, registrar } = useVentanilla(VENTANILLA.length);
+    const { seccion, titular, capa, pista } = useTiraEnParallax();
+    const total = String(VENTANILLA.length).padStart(2, '0');
 
     return (
-        <section className="relative overflow-hidden">
+        <section ref={seccion} className="relative overflow-hidden">
             <div className="pel-grano" />
 
             {/* ---------- Arriba, en el centro: qué es esto ---------- */}
-            <div className="relative z-10 flex flex-col items-center gap-6 px-6 pb-12 pt-14 text-center sm:px-10 lg:gap-8 lg:px-14 lg:pb-16 lg:pt-20">
+            <div
+                ref={titular}
+                className="relative z-10 flex flex-col items-center gap-5 px-6 pb-12 pt-14 text-center sm:px-10 lg:gap-6 lg:px-14 lg:pb-16 lg:pt-20"
+            >
                 {/* «self‑tape» con guion que no parte (U+2011): con el normal,
                     el navegador cortaba «SELF-» al final de una línea y «TAPE»
                     al principio de la siguiente. */}
-                <h1 className="pel-titulo-seccion max-w-[18ch] text-balance text-[clamp(2.25rem,6vw,5.5rem)]">
+                <h1 className="pel-titulo-seccion max-w-[18ch] text-balance text-[clamp(1.5rem,3vw,2.75rem)]">
                     Tu book, tu escena y tu self‑tape
                 </h1>
 
@@ -71,95 +167,113 @@ export function Hero() {
                 </p>
             </div>
 
-            <div className="relative z-10 grid grid-cols-1 border-t border-[var(--pel-sombra)] lg:grid-cols-[1fr_51%]">
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_51%]">
 
                 {/* ---------- Izquierda: la llamada y las puertas ---------- */}
-                <div className="flex flex-col justify-center gap-8 px-6 pb-14 pt-12 sm:px-10 lg:min-h-[72vh] lg:px-14 lg:pb-16 lg:pt-16">
-
-                    {/*
-                        La llamada, con el logo al lado como PUERTA: pincharlo lleva
-                        a entrar (/login). Lo pidió Christian el 28/09/2026 en el
-                        hueco que quedaba a la derecha de la llamada; el logo salió
-                        de la cabecera cuando entró allí el vídeo del nombre.
-                        Al lado en todas las anchuras: la llamada son dos líneas
-                        cortas y el logo es cuadrado, caben juntos hasta en 390 px.
-                    */}
-                    <div className="grid grid-cols-[minmax(0,1fr)_clamp(72px,12vw,176px)] items-center gap-6 lg:gap-10">
+                <div className="flex flex-col justify-center gap-8 px-6 pb-14 pt-4 sm:px-10 lg:min-h-[72vh] lg:px-14 lg:pb-16 lg:pt-8">
                         {/*
-                            La llamada, en primera plana y con todas las letras. Va
-                            en la voz de rótulo y en gris pleno, no en oro: el oro
-                            está reservado para lo que está ocurriendo ahora, y aquí
-                            quien lleva la acción es el botón que hay justo debajo.
+                            La llamada, con el logo al lado como PUERTA: pincharlo lleva
+                            a entrar (/login). Lo pidió Christian el 28/09/2026 en el
+                            hueco que quedaba a la derecha de la llamada; el logo salió
+                            de la cabecera cuando entró allí el vídeo del nombre.
+                            Al lado en todas las anchuras: la llamada son dos líneas
+                            cortas y el logo es cuadrado, caben juntos hasta en 390 px.
                         */}
-                        <p className="pel-titulo-seccion max-w-[32ch] text-[clamp(1.5rem,2.6vw,2.125rem)] leading-[1.02]">
-                            Empieza a creer en ti,
-                            <br />
-                            accede a Scene Me
-                        </p>
+                        <div className="grid grid-cols-[minmax(0,1fr)_clamp(72px,12vw,176px)] items-center gap-6 lg:gap-10">
+                            {/*
+                                La llamada, en primera plana y con todas las letras. Va
+                                en la voz de rótulo y en gris pleno, no en oro: el oro
+                                está reservado para lo que está ocurriendo ahora, y aquí
+                                quien lleva la acción es el botón que hay justo debajo.
+                            */}
+                            <p className="pel-titulo-seccion max-w-[32ch] text-[clamp(1.5rem,2.6vw,2.125rem)] leading-[1.02]">
+                                Empieza a creer en ti,
+                                <br />
+                                accede a Scene Me
+                            </p>
 
-                        <Link
-                            href="/login"
-                            aria-label="Entrar en SCENE ME"
-                            className="block rounded-[21%] transition-transform duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--pel-oro)]"
-                        >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                                src={icono('/android-chrome-512x512.png')}
-                                alt=""
-                                width={176}
-                                height={176}
-                                className="h-auto w-full rounded-[21%]"
-                            />
-                        </Link>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                        <BotonPelicula href="/booking">Reservar sesión</BotonPelicula>
-                        <BotonPelicula href="/login" variante="secundario">
-                            Entrar a los Estudios
-                        </BotonPelicula>
-                    </div>
-
-                    {/* Los dos caminos, como dos entradas de reparto. */}
-                    <dl className="mt-2 grid max-w-xl grid-cols-1 gap-px border-t border-[var(--pel-sombra)] pt-6 sm:grid-cols-2 sm:gap-8">
-                        <div className="flex flex-col gap-2">
-                            <dt className="pel-codigo">Aún no tengo material</dt>
-                            <dd>
-                                <a href="#book" className="pel-enlace text-[1.0625rem]">
-                                    Empieza por el book
-                                </a>
-                            </dd>
+                            <Link
+                                href="/login"
+                                aria-label="Entrar en SCENE ME"
+                                className="block rounded-[21%] transition-transform duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--pel-oro)]"
+                            >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={icono('/android-chrome-512x512.png')}
+                                    alt=""
+                                    width={176}
+                                    height={176}
+                                    className="h-auto w-full rounded-[21%]"
+                                />
+                            </Link>
                         </div>
-                        <div className="flex flex-col gap-2 pt-6 sm:pt-0">
-                            <dt className="pel-codigo">El mío ya no me representa</dt>
-                            <dd>
-                                <a href="#escena" className="pel-enlace text-[1.0625rem]">
-                                    Ve directo a la escena
-                                </a>
-                            </dd>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                            <BotonPelicula href="/booking">Reservar sesión</BotonPelicula>
+                            <BotonPelicula href="/login" variante="secundario">
+                                Entrar a los Estudios
+                            </BotonPelicula>
                         </div>
-                    </dl>
-                </div>
 
-                {/* ---------- Derecha: la tira ---------- */}
-                <div className="flex flex-col">
-
-                    <div className="relative flex min-h-[70vh] lg:min-h-[72vh]">
-
-                        {/* Margen izquierdo: perforación y el código impreso en vertical. */}
-                        <div className="relative flex">
-                            <Perforado />
-                            <div className="hidden w-9 flex-col items-center justify-center gap-10 sm:flex">
-                                <Codigo vertical>16 mm</Codigo>
-                                <Codigo vertical>Scene Me</Codigo>
+                        {/* Los dos caminos, como dos entradas de reparto. */}
+                        <dl className="mt-2 grid max-w-xl grid-cols-1 gap-px border-t border-[var(--pel-sombra)] pt-6 sm:grid-cols-2 sm:gap-8">
+                            <div className="flex flex-col gap-2">
+                                <dt className="pel-codigo">Aún no tengo material</dt>
+                                <dd>
+                                    <a href="#book" className="pel-enlace text-[1.0625rem]">
+                                        Empieza por el book
+                                    </a>
+                                </dd>
                             </div>
-                        </div>
+                            <div className="flex flex-col gap-2 pt-6 sm:pt-0">
+                                <dt className="pel-codigo">El mío ya no me representa</dt>
+                                <dd>
+                                    <a href="#escena" className="pel-enlace text-[1.0625rem]">
+                                        Ve directo a la escena
+                                    </a>
+                                </dd>
+                            </div>
+                        </dl>
+                </div>
+            </div>
 
-                        {/* Los fotogramas, uno encima de otro. Aquí no se pone nada
-                            encima: lo que hay dentro es el trabajo del actor. */}
-                        <div className="flex flex-1 flex-col gap-2 py-2">
-                            {VENTANILLA.map((f, i) => (
-                                <div key={f.nombre} ref={registrar(i)} className="min-h-0 flex-1">
+            {/* ---------- La tira: segunda capa, a la derecha ----------
+                En pantalla ancha va de arriba abajo por detrás de todo, y la
+                franja del titular la aclara (.pel-tira-capa). En el móvil va
+                en su sitio, debajo de la llamada. */}
+            <div
+                ref={capa}
+                className="pel-tira-capa relative overflow-hidden lg:absolute lg:inset-y-0 lg:right-0 lg:w-[51%]"
+            >
+                <div
+                    ref={pista}
+                    className="grid grid-cols-[auto_0_minmax(0,1fr)_0_auto] gap-y-2 will-change-transform sm:grid-cols-[auto_2.25rem_minmax(0,1fr)_2.25rem_auto]"
+                >
+                    {/* Las perforaciones, de un tirón por los dos cantos. */}
+                    <div style={{ gridColumn: 1, gridRow: `1 / span ${VENTANILLA.length}` }} className="flex">
+                        <Perforado />
+                    </div>
+                    <div style={{ gridColumn: 5, gridRow: `1 / span ${VENTANILLA.length}` }} className="flex">
+                        <Perforado />
+                    </div>
+
+                    {/* Los fotogramas. Aquí no se pone nada encima: lo que hay
+                        dentro es el trabajo del actor. */}
+                    {VENTANILLA.map((f, i) => {
+                        const fila = { gridRow: i + 1 };
+                        const soloAncho = i >= EN_MOVIL ? 'hidden lg:flex' : 'flex';
+                        return (
+                            <div key={f.nombre} className="contents">
+                                <div style={{ ...fila, gridColumn: 2 }} className={`${soloAncho} items-center justify-center`}>
+                                    <span className="hidden sm:inline" aria-hidden="true">
+                                        <Codigo vertical>16 mm</Codigo>
+                                    </span>
+                                </div>
+                                <div
+                                    ref={registrar(i)}
+                                    style={{ ...fila, gridColumn: 3 }}
+                                    className={`${soloAncho} aspect-video min-w-0`}
+                                >
                                     <Fotograma
                                         video={f.video}
                                         poster={f.poster}
@@ -168,19 +282,16 @@ export function Hero() {
                                         className="h-full w-full"
                                     />
                                 </div>
-                            ))}
-                        </div>
-
-                        {/* Margen derecho: perforación y el número del que está dentro. */}
-                        <div className="relative flex">
-                            <div className="hidden w-9 flex-col items-center justify-center sm:flex">
-                                <Codigo vertical activo>
-                                    {String(activo + 1).padStart(2, '0')} de {String(VENTANILLA.length).padStart(2, '0')}
-                                </Codigo>
+                                <div style={{ ...fila, gridColumn: 4 }} className={`${soloAncho} items-center justify-center`}>
+                                    <span className="hidden sm:inline" aria-hidden="true">
+                                        <Codigo vertical activo={i === activo}>
+                                            {String(i + 1).padStart(2, '0')} de {total}
+                                        </Codigo>
+                                    </span>
+                                </div>
                             </div>
-                            <Perforado />
-                        </div>
-                    </div>
+                        );
+                    })}
                 </div>
             </div>
         </section>

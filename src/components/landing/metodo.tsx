@@ -89,8 +89,11 @@ export function Metodo() {
                         a media voz (Christian, 28/09/2026): aquí sólo presentan;
                         los titulares grandes son los de cada toma. */}
                     <div className="mb-16 flex flex-col items-center gap-6 text-center lg:mb-24">
-                        <h2 className="pel-titulo-seccion text-[clamp(1.5rem,3.5vw,3rem)]">
-                            De actor a estrella<br />en 3 pasos
+                        {/* Más bajo que los nombres de las tomas que vienen
+                            detrás: esto presenta, ellos son los titulares. */}
+                        <h2 className="pel-titulo-seccion text-[clamp(1.25rem,2.4vw,2rem)]">
+                            De actor a estrella<br />
+                            <span className="normal-case">en 3 pasos</span>
                         </h2>
                         <Definicion />
                     </div>
@@ -110,10 +113,11 @@ export function Metodo() {
                                 }`}
                             >
                                 {/* El nombre de la toma, centrado justo después del
-                                    filete ámbar: es el titular de la banda. */}
+                                    filete ámbar: es el titular de la banda, y va en
+                                    el oro metálico de la cabecera (.pel-titulo-oro). */}
                                 <h3
                                     id={`${toma.id}-titulo`}
-                                    className="pel-titulo-seccion text-center text-[clamp(2.25rem,4.5vw,3.5rem)]"
+                                    className="pel-titulo-seccion pel-titulo-oro text-center text-[clamp(2.5rem,5.5vw,4.75rem)]"
                                 >
                                     {toma.titulo}
                                 </h3>

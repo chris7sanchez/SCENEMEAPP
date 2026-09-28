@@ -67,6 +67,11 @@ for (const [nombre, ancho, alto] of TAMANOS) {
             // donde no hay nada escrito y salen fallos que no existen.
             if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, opacityProperty: true, visibilityProperty: true })) continue;
             if (el.closest('details:not([open])') && !el.matches('summary, summary *')) continue;
+            // Lo marcado como decoración (aria-hidden) no es texto que haya que
+            // leer: los códigos impresos en la tira de la portada se aclaran A
+            // PROPÓSITO al pasar por detrás del titular. Las pautas de contraste
+            // eximen la decoración pura, y medirla daba falsos fallos.
+            if (el.closest('[aria-hidden="true"]')) continue;
             const r = el.getBoundingClientRect();
             if (r.width < 4 || r.height < 4) continue;
             const m = cs.color.match(/rgba?\(([^)]+)\)/);
@@ -91,6 +96,16 @@ for (const [nombre, ancho, alto] of TAMANOS) {
     // El subrayado NO lleva el color del texto (se fija aparte), así que si no
     // se apaga también, sus píxeles se cuelan en la medida del fondo y dan un
     // falso fallo de 2:1 en todos los enlaces.
+    // El texto pintado con degradado (background-clip: text, el oro metálico de
+    // los nombres de las tomas) no se apaga con el color: el degradado sigue
+    // ahí y se mediría el oro contra sí mismo. Se le quita el degradado; su
+    // `color`, que es el tono más oscuro del cuerpo del oro, es el que se mide.
+    await pagina.evaluate(() => {
+        for (const el of document.querySelectorAll('body *')) {
+            const cs = getComputedStyle(el);
+            if (`${cs.backgroundClip} ${cs.webkitBackgroundClip}`.includes('text')) el.style.setProperty('background-image', 'none', 'important');
+        }
+    });
     await pagina.addStyleTag({ content: '*, *::before, *::after { color: transparent !important; text-shadow: none !important; -webkit-text-fill-color: transparent !important; text-decoration-color: transparent !important; caret-color: transparent !important; }' });
     await new Promise((r) => setTimeout(r, 400));
 
