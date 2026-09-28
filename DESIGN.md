@@ -426,8 +426,8 @@ el móvil va el fotograma entero (16:9); en pantalla ancha, una franja 32:9
 que enseña del 35% al 88% del alto del fotograma (las letras, medidas, van
 del 43,6% al 86,3%): aire por encima del nombre y «Studios» casi rozando
 abajo. Para que quepa, el vídeo se estira un 6% en horizontal en vez de dejar
-filetes negros a los lados. Deja de crecer a 1920px de ancho. Arranca al cargar, suena sólo si se pide («Ver con
-sonido») y se queda en el último fotograma con el nombre formado; nunca en
+filetes negros a los lados. Deja de crecer a 1920px de ancho. Arranca al cargar, en silencio y sin botón de
+sonido (se quitó el 28/09/2026, y con él la pista de audio), y se queda en el último fotograma con el nombre formado; nunca en
 bucle. Con «reducir movimiento», conexión pobre o reproducción automática
 bloqueada, sólo ese último fotograma.
 

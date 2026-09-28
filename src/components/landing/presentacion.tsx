@@ -51,10 +51,8 @@ import { Definicion } from '@/components/landing/definicion';
  * no va a arrancar -«reducir movimiento», conexión pobre o reproducción
  * automática bloqueada-: la cabecera nunca se queda sin nombre.
  *
- * El sonido no puede arrancar solo; ningún navegador lo permite. El botón lo
- * pone y vuelve a empezar desde el principio, para que se oiga la entrada
- * entera. El estado va dicho con palabras, sobre fondo opaco porque cae encima
- * de un vídeo.
+ * Sin sonido y sin botón de sonido (Christian, 28/09/2026: el «Ver con
+ * sonido» sobraba). El fichero ya no lleva pista de audio.
  */
 
 const VIDEO = '/marca/presentacion.mp4';
@@ -67,7 +65,6 @@ const ENCUADRE =
 export function Presentacion() {
     const video = useRef<HTMLVideoElement>(null);
     const [quieto, setQuieto] = useState(false);
-    const [conSonido, setConSonido] = useState(false);
 
     useEffect(() => {
         const sinMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -77,19 +74,6 @@ export function Presentacion() {
         }
         video.current?.play().catch(() => setQuieto(true));
     }, []);
-
-    const alternarSonido = () => {
-        const v = video.current;
-        if (!v) return;
-        if (conSonido) {
-            v.muted = true;
-            setConSonido(false);
-            return;
-        }
-        v.muted = false;
-        v.currentTime = 0;
-        v.play().then(() => setConSonido(true)).catch(() => { v.muted = true; });
-    };
 
     return (
         <div className="relative w-full overflow-hidden bg-[#0E0F10]">
@@ -109,7 +93,6 @@ export function Presentacion() {
                         muted
                         playsInline
                         preload="auto"
-                        onEnded={() => setConSonido(false)}
                         className={ENCUADRE}
                         aria-hidden="true"
                     />
@@ -117,22 +100,10 @@ export function Presentacion() {
             </div>
 
             {/* La cita, abajo a la izquierda sobre el vídeo (lejos del nombre,
-                que va en el centro, y del botón de sonido, a la derecha). Por
-                encima de 1920 px el vídeo deja de crecer y se centra: la cita
-                le sigue. En el móvil va debajo, en la banda negra. */}
+                que va en el centro). Por encima de 1920 px el vídeo deja de
+                crecer y se centra: la cita le sigue. En el móvil va debajo, en
+                la banda negra. */}
             <Definicion className="relative mx-6 my-4 sm:absolute sm:bottom-[7%] sm:left-[max(3%,calc(50%-902px))] sm:z-10 sm:m-0 sm:max-w-[min(27%,520px)]" />
-
-            {!quieto && (
-                <button
-                    type="button"
-                    onClick={alternarSonido}
-                    aria-pressed={conSonido}
-                    className="pel-codigo absolute bottom-2 right-2 z-10 min-h-[44px] rounded-[6px] px-4 sm:bottom-4 sm:right-6"
-                    style={{ backgroundColor: 'rgba(14, 15, 16, 0.86)' }}
-                >
-                    {conSonido ? 'Quitar sonido' : 'Ver con sonido'}
-                </button>
-            )}
         </div>
     );
 }
