@@ -522,23 +522,29 @@
 /*
  * LA CLAQUETA COMO MENÚ (28/09/2026, idea de Christian).
  *
- * La banda de barras blancas y negras que abre la página es ahora la
- * navegación: cada sección va en un tramo BLANCO y los tramos NEGROS son el
- * espacio entre ellas. Todos los tramos miden lo mismo (una rejilla de 11
- * columnas iguales: negro, sección, negro, sección… negro), así que la banda
- * sigue leyendo como el brazo de la claqueta y no como una fila de botones.
+ * La banda de barras blancas y negras que abre la página es la navegación.
+ * Once tramos iguales, negro y blanco alternos, y las cinco secciones
+ * AGRUPADAS en el centro, una por tramo y seguidas: empiezan en el segundo
+ * blanco y terminan en el cuarto (EL MÉTODO blanco, ESTUDIOS negro,
+ * LABORATORIO blanco, PREGUNTAS negro, ENTRAR blanco). Christian lo pidió así
+ * porque repartidas por todo el ancho no se veían como un menú.
  *
- * La inclinación es la misma que la de la banda de siempre (104° en el
- * degradado, es decir 14° respecto a la vertical): skewX(-14deg) en el tramo y
- * la contraria en el texto, para que la letra vaya derecha.
+ * CÓMO SE NOTA QUE SE PUEDE PULSAR, sin romper la claqueta:
+ * - Los tramos de los lados son sólo claqueta y van APAGADOS (el blanco baja
+ *   a gris base); los cinco del centro van encendidos. El grupo se ve solo.
+ * - Cada nombre va subrayado, que es la seña de enlace de toda la página.
+ * - Cada pocos segundos un reflejo recorre los cinco, de uno en uno, como una
+ *   invitación (quieto con «reducir movimiento»).
+ * - Al pasar el ratón o con el foco, el tramo se enciende, echa un halo y el
+ *   reflejo lo cruza. En los negros, además, la letra pasa a oro.
  *
- * 44px de alto: es la altura mínima de un objetivo táctil, y a esa altura la
- * banda sigue siendo una banda.
+ * La inclinación es la de la banda de siempre (104° en el degradado, 14°
+ * respecto a la vertical): skewX(-14deg) en el tramo y la contraria en el
+ * texto, para que la letra vaya derecha. 44px de alto: la altura mínima de un
+ * objetivo táctil.
  *
- * En tableta y móvil, 11 tramos iguales no dejan sitio a los nombres. Ahí
- * los negros se quedan en filetes de 6px y los cinco blancos se reparten el
- * resto a partes iguales: se ven las cinco secciones sin deslizar nada, y la
- * banda sigue siendo blanca y negra (reglas al final del bloque).
+ * Por debajo de 1024px los seis tramos de los lados se quedan en filetes de
+ * 8px y los cinco del centro se reparten el resto (reglas al final).
  */
 .pel-claqueta-menu {
     position: relative;
@@ -552,26 +558,31 @@
     grid-template-columns: repeat(11, minmax(0, 1fr));
     height: 44px;
     margin: 0 -14px;           /* la inclinación asoma por los bordes: se tapa */
-    padding: 0;
-    list-style: none;
 }
 .pel-claqueta-menu__tramo {
     transform: skewX(-14deg);
     background-color: var(--pel-leader);
 }
-.pel-claqueta-menu__tramo--blanco {
+/* Los blancos de los lados, apagados: son claqueta, no botones. */
+.pel-claqueta-menu__tramo--blanco { background-color: var(--pel-base); }
+
+/* ---- Los cinco que se pulsan ---- */
+.pel-claqueta-menu__boton {
     position: relative;
     overflow: hidden;
-    background-color: var(--pel-emulsion);
-    transition: background-color 420ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-.pel-claqueta-menu__enlace {
     display: flex;
-    height: 100%;
     align-items: center;
     justify-content: center;
-    color: var(--pel-leader);     /* 8,2:1 sobre la barra blanca */
     text-decoration: none;
+    color: var(--pel-emulsion);   /* sobre negro: 8,3:1 */
+    background-color: #15181A;    /* el negro que se pulsa, un punto por encima del leader */
+    box-shadow: inset 0 0 0 1px var(--pel-sombra);
+    transition: background-color 420ms var(--pel-salida), color 420ms var(--pel-salida), box-shadow 420ms var(--pel-salida);
+}
+.pel-claqueta-menu__boton.pel-claqueta-menu__tramo--blanco {
+    color: var(--pel-leader);     /* sobre blanco: 8,2:1 */
+    background-color: #C3C7CA;    /* más claro que la emulsión: el blanco encendido */
+    box-shadow: none;
 }
 .pel-claqueta-menu__texto {
     display: inline-block;
@@ -582,53 +593,78 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     white-space: nowrap;
+    /* Subrayado: la seña de enlace de toda la página. */
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 5px;
+    text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
 }
 
-/* El brillo al pasar: la barra se enciende y un reflejo la cruza de lado a
-   lado, como la luz sobre el cromo del logo. También con el teclado. */
-.pel-claqueta-menu__tramo--blanco::after {
+/* El reflejo: cruza el tramo al pasar el ratón, y de vez en cuando por su
+   cuenta, recorriendo los cinco de uno en uno (--orden lo pone el menú). */
+.pel-claqueta-menu__boton::after {
     content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.9) 50%, transparent 70%);
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.75) 50%, transparent 70%);
     transform: translateX(-130%);
+    animation: pel-menu-invita 9s var(--pel-salida) infinite;
+    animation-delay: calc(1.6s + var(--orden, 0) * 140ms);
 }
-.pel-claqueta-menu__tramo--blanco:hover,
-.pel-claqueta-menu__tramo--blanco:focus-within {
-    background-color: #E9ECEE;
-    box-shadow: 0 0 22px rgba(233, 236, 238, 0.4);   /* el halo cae sobre los negros de al lado */
+.pel-claqueta-menu__boton:not(.pel-claqueta-menu__tramo--blanco)::after {
+    background: linear-gradient(100deg, transparent 30%, rgba(228, 196, 108, 0.35) 50%, transparent 70%);
+}
+@keyframes pel-menu-invita {
+    0% { transform: translateX(-130%); }
+    9%, 100% { transform: translateX(130%); }
+}
+
+.pel-claqueta-menu__boton:hover,
+.pel-claqueta-menu__boton:focus-visible {
+    background-color: #2A2E31;
+    color: var(--pel-oro);
+    box-shadow: inset 0 0 0 1px var(--pel-oro), 0 0 22px rgba(228, 196, 108, 0.28);
     z-index: 1;
 }
-.pel-claqueta-menu__tramo--blanco:hover::after,
-.pel-claqueta-menu__tramo--blanco:focus-within::after {
-    transform: translateX(130%);
-    transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+.pel-claqueta-menu__boton.pel-claqueta-menu__tramo--blanco:hover,
+.pel-claqueta-menu__boton.pel-claqueta-menu__tramo--blanco:focus-visible {
+    background-color: #F1F3F4;
+    color: var(--pel-leader);
+    box-shadow: 0 0 22px rgba(233, 236, 238, 0.45);
 }
-.pel-claqueta-menu__enlace:focus-visible {
+.pel-claqueta-menu__boton:hover::after,
+.pel-claqueta-menu__boton:focus-visible::after {
+    animation: none;
+    transform: translateX(130%);
+    transition: transform 700ms var(--pel-salida);
+}
+.pel-claqueta-menu__boton:focus-visible {
     outline: 2px solid var(--pel-oro);
     outline-offset: -4px;
 }
 @media (prefers-reduced-motion: reduce) {
-    .pel-claqueta-menu__tramo--blanco:hover::after,
-    .pel-claqueta-menu__tramo--blanco:focus-within::after {
+    .pel-claqueta-menu__boton::after,
+    .pel-claqueta-menu__boton:hover::after,
+    .pel-claqueta-menu__boton:focus-visible::after {
+        animation: none;
         transform: translateX(-130%);
         transition: none;
     }
 }
-/* Por debajo de 1024px, 11 tramos iguales no dejan sitio a «LABORATORIO»
-   (medido: 87px de letra en barras de 72px a 768). Ahí los negros se quedan
-   en filetes y los cinco blancos se reparten el resto. Va al final para
-   ganar al tamaño de letra de arriba. */
+/* Por debajo de 1024px, 11 tramos iguales no dejan sitio a «LABORATORIO».
+   Ahí los seis de los lados se quedan en filetes de 8px y los cinco del
+   centro se reparten el resto. Va al final para ganar a lo de arriba. */
 @media (max-width: 1023px) {
     .pel-claqueta-menu__lista {
-        grid-template-columns: 10px repeat(5, minmax(0, 1fr) 6px);
+        grid-template-columns: 8px 8px 8px repeat(5, minmax(0, 1fr)) 8px 8px 8px;
     }
 }
 @media (max-width: 639px) {
     .pel-claqueta-menu__texto {
-        font-size: 0.5625rem;     /* 9px: «LABORATORIO» cabe en su barra a 360px */
+        font-size: 0.5625rem;     /* 9px: «LABORATORIO» cabe en su tramo a 360px */
         letter-spacing: 0.02em;
+        text-underline-offset: 4px;
     }
 }
 
@@ -714,4 +750,81 @@
 .pel-titulo-oro {
     color: #DDAE45;
     filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.6)) drop-shadow(0 0 22px rgba(201, 145, 26, 0.22));
+}
+
+/* ------------------------------------------------------------------ */
+/* EL ESQUEMA DE LA ESCENA (esquema-escena.tsx).                       */
+/* Los pasos de la app unidos por la línea ámbar de las tomas: en      */
+/* horizontal en pantalla ancha, en vertical en el móvil. Las opciones */
+/* van como etiquetas de rodaje (filete de cromo, radio de control),   */
+/* no como botones: aquí se enseña, se elige dentro de la app.         */
+/* ------------------------------------------------------------------ */
+.pel-esquema {
+    position: relative;
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: minmax(0, 1fr);
+    padding-left: 2.75rem;
+}
+.pel-esquema::before {                /* la línea que une los pasos */
+    content: '';
+    position: absolute;
+    left: 0.9375rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--pel-ambar), rgba(201, 145, 26, 0.25));
+}
+.pel-esquema__paso {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.pel-esquema__numero {
+    position: absolute;
+    left: -2.75rem;
+    top: -0.125rem;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 2px solid var(--pel-ambar);
+    background-color: var(--pel-leader);
+    color: #DDAE45;                   /* el oro de los titulares de las tomas */
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-variation-settings: 'wdth' 100, 'wght' 700;
+    font-size: 0.875rem;
+    font-feature-settings: 'tnum' 1;
+}
+.pel-esquema__opcion {
+    border: 1px solid var(--pel-sombra);
+    border-radius: 4px;
+    padding: 0.3125rem 0.625rem;
+    background-color: rgba(14, 15, 16, 0.55);
+    color: var(--pel-emulsion);
+    font-size: 0.875rem;
+    line-height: 1.2;
+}
+@media (min-width: 1024px) {
+    .pel-esquema {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 2.5rem;
+        padding-left: 0;
+        padding-top: 3.25rem;
+    }
+    .pel-esquema::before {            /* en horizontal, por encima de los pasos */
+        left: 1rem;
+        right: 1rem;
+        top: 1rem;
+        bottom: auto;
+        width: auto;
+        height: 2px;
+        background: linear-gradient(to right, var(--pel-ambar), rgba(201, 145, 26, 0.25));
+    }
+    .pel-esquema__numero {
+        left: 0;
+        top: -3.25rem;
+    }
 }

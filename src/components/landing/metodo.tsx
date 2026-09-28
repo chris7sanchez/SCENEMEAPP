@@ -3,6 +3,7 @@
 import { Codigo, Fotograma, Nota, Perforado, useVentanilla } from '@/components/landing/tira';
 import { AnimatedText } from '@/components/ui/animated-shiny-text';
 import { ORO_BRILLO, ORO_DURACION } from '@/components/landing/oro';
+import { EsquemaEscena } from '@/components/landing/esquema-escena';
 
 /*
  * El Método: tres tomas colgando de una sola tira que baja por la página.
@@ -11,8 +12,10 @@ import { ORO_BRILLO, ORO_DURACION } from '@/components/landing/oro';
  * self-tape en tres cuartos— porque cada medio tiene la suya. No son tres
  * tarjetas iguales, y no deben acabar siéndolo.
  *
- * Los precios salen de src/lib/data.ts y de step1-selection.tsx. Son los de
- * verdad. Donde no hay precio decidido, se dice que no lo hay.
+ * SIN PRECIOS (Christian, 28/09/2026): aquí se enseñan las opciones, y los
+ * precios se ven dentro de la app. Las opciones salen de src/lib/data.ts y de
+ * step1-selection.tsx; no se inventa ninguna. La escena lleva además su
+ * esquema (esquema-escena.tsx): los pasos de la app para diseñarla.
  */
 
 const TOMAS = [
@@ -25,13 +28,14 @@ const TOMAS = [
         alt: 'Retrato de book actoral realizado en SCENE ME',
         proporcion: '4 / 5',
         enlace: '/booking',
-        accion: 'Reservar el book',
-        precios: [
-            { que: 'Básico', detalle: '8 fotos retocadas, 2 cambios', cuanto: '150 €' },
-            { que: 'Completo', detalle: '12-15 fotos, 2-3 cambios', cuanto: '299 €' },
-            { que: 'Premium', detalle: 'Maquillaje y peluquería, reel en 4K', cuanto: '399 €' },
+        accion: 'Ver precios y reservar el book',
+        opciones: [
+            { que: 'Básico', detalle: '8 fotos retocadas, 2 cambios' },
+            { que: 'Completo', detalle: '12-15 fotos, 2-3 cambios' },
+            { que: 'Premium', detalle: 'Maquillaje y peluquería, reel en 4K' },
         ],
         nota: null,
+        esquema: false,
     },
     {
         id: 'escena',
@@ -43,12 +47,11 @@ const TOMAS = [
         alt: 'Fotograma de una escena a medida rodada en SCENE ME',
         proporcion: '16 / 9',
         enlace: '/booking',
-        accion: 'Reservar la escena',
-        precios: [
-            { que: 'Una escena', detalle: 'Guion, dirección y montaje', cuanto: '499 €' },
-            { que: 'Dos escenas', detalle: 'Dos registros en la misma jornada', cuanto: '699 €' },
-        ],
+        accion: 'Ver precios y reservar la escena',
+        // Una o dos escenas es el primer paso del esquema: no se repite aquí.
+        opciones: [] as { que: string; detalle: string }[],
         nota: 'La escena EXPRESS en 48 h está todavía en el laboratorio.',
+        esquema: true,
     },
     {
         id: 'selftape',
@@ -60,9 +63,13 @@ const TOMAS = [
         alt: 'Fotograma de un self-tape dirigido en SCENE ME',
         proporcion: '3 / 4',
         enlace: '/booking',
-        accion: 'Pedir un self-tape',
-        precios: [],
-        nota: 'Los packs de 5 y de 10 aún no tienen precio cerrado. Se hacen hablando.',
+        accion: 'Ver precios y pedir un self-tape',
+        opciones: [
+            { que: 'Pack de 5', detalle: 'Cinco self-tapes con dirección de casting' },
+            { que: 'Pack de 10', detalle: 'Diez self-tapes con dirección de casting' },
+        ],
+        nota: null,
+        esquema: false,
     },
 ];
 
@@ -157,27 +164,16 @@ export function Metodo() {
                                     <div className="flex min-w-0 flex-1 flex-col gap-5">
                                         <p className="pel-cuerpo max-w-[44ch]">{toma.texto}</p>
 
-                                        {toma.precios.length > 0 && (
-                                            <dl className="mt-2 flex flex-col border-t border-[var(--pel-sombra)]">
-                                                {toma.precios.map((p) => (
-                                                    <div
-                                                        key={p.que}
-                                                        className="flex items-baseline justify-between gap-6 border-b border-[var(--pel-sombra)] py-3"
-                                                    >
-                                                        <dt className="min-w-0">
-                                                            <span className="block text-[1.0625rem] text-[var(--pel-emulsion)]">
-                                                                {p.que}
-                                                            </span>
-                                                            <span className="block text-[0.9375rem] text-[var(--pel-emulsion)] opacity-75">
-                                                                {p.detalle}
-                                                            </span>
-                                                        </dt>
-                                                        <dd className="shrink-0 text-[1.125rem] tabular-nums text-[var(--pel-emulsion)]">
-                                                            {p.cuanto}
-                                                        </dd>
-                                                    </div>
-                                                ))}
-                                            </dl>
+                                        {/* Las opciones, sin precio: los precios, dentro de la app. */}
+                                        {toma.opciones.length > 0 && (
+                                        <ul className="mt-2 flex flex-col border-t border-[var(--pel-sombra)]">
+                                            {toma.opciones.map((o) => (
+                                                <li key={o.que} className="border-b border-[var(--pel-sombra)] py-3">
+                                                    <span className="block text-[1.0625rem] text-[var(--pel-emulsion)]">{o.que}</span>
+                                                    <span className="block text-[0.9375rem] text-[var(--pel-emulsion)] opacity-75">{o.detalle}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
                                         )}
 
                                         {toma.nota && <Nota className="mt-1">{toma.nota}</Nota>}
@@ -187,6 +183,8 @@ export function Metodo() {
                                         </a>
                                     </div>
                                 </div>
+
+                                {toma.esquema && <EsquemaEscena />}
                             </article>
                         ))}
                     </div>

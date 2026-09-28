@@ -259,6 +259,15 @@ tumbada en horizontal y resuelven el contenido en un listado con filete, no en
 cajas; el laboratorio es una sola tira horizontal con cuatro fotogramas sin
 revelar dentro.
 
+Las tomas del Método **no llevan precios** (Christian, 28/09/2026): enseñan
+las opciones (book básico, completo, premium; self-tape en packs de 5 y de 10)
+y el enlace dice «Ver precios y…», porque los precios se ven dentro de la app.
+La escena lleva además **su esquema** (`esquema-escena.tsx`): los cuatro pasos
+de la app para diseñarla —1 o 2 escenas, género, cuántos actores, premisa—, con
+las opciones sacadas de `src/lib/data.ts` (GENRES, DYNAMICS), unidos por la
+línea ámbar de las tomas (en horizontal en pantalla ancha, en vertical en el
+móvil), y un enlace a `/creator`.
+
 Las proporciones de los fotogramas son distintas a propósito —4/5 el book, 16/9
 la escena, 3/4 el self-tape— porque cada medio tiene la suya. Los titulares y los
 textos llevan tope de medida en caracteres (`12ch`, `15ch`, `32ch`, `34ch`,
@@ -312,12 +321,16 @@ de obra —exactamente lo que una marca de cine no quiere decir—, así que las
 barras van blancas y negras y el oro entra debajo, de filete.
 
 Bajo la cabecera, la banda es además **el menú** (`components/landing/claqueta-menu.tsx`):
-44px de alto, once tramos iguales inclinados 14° (negro, sección, negro…
-negro), cada sección rotulada en leader sobre su tramo blanco. Al pasar el
-ratón o con el foco, la barra se enciende (`#E9ECEE`), echa un halo sobre los
-negros vecinos y un reflejo la cruza, como la luz sobre el cromo del logo; con
-«reducir movimiento» se enciende sin reflejo. Por debajo de 1024px los negros
-se quedan en filetes de 6px para que quepan los cinco nombres sin deslizar.
+44px de alto, once tramos iguales inclinados 14°, negro y blanco alternos, y
+las cinco secciones **agrupadas en el centro**, una por tramo y seguidas: del
+segundo blanco al cuarto (EL MÉTODO blanco, ESTUDIOS negro, LABORATORIO blanco,
+PREGUNTAS negro, ENTRAR blanco). Para que se note que se pulsan: los tramos de
+los lados van apagados (el blanco baja a gris base) y los cinco del centro
+encendidos; cada nombre va subrayado; cada 9 s un reflejo los recorre de uno en
+uno; y al pasar el ratón o con el foco el tramo se enciende con halo (en los
+negros, la letra y el filete pasan a oro). Con «reducir movimiento», sin
+reflejos. Por debajo de 1024px los tramos de los lados se quedan en filetes de
+8px.
 
 Las separaciones son filetes de 1px de cromo. No hay contenedores con relleno y
 fondo propio salvo el raíl de datos: lo demás se estructura con filetes,
@@ -367,8 +380,7 @@ Ver «Cita» en Tipografía: la definición vive ahora sobre el vídeo de cabece
 
 ### Navigation
 La navegación de la cabecera es la banda de claqueta (ver arriba): los cuatro
-anclajes de sección y «Entrar», cada uno en su tramo blanco, todos del mismo
-ancho. No hay una segunda fila de enlaces. El pie repite el
+anclajes de sección y «Entrar», agrupados en los cinco tramos del centro. No hay una segunda fila de enlaces. El pie repite el
 mismo patrón en tres columnas de códigos con enlaces de texto debajo, y sólo
 lleva enlaces que llevan a algún sitio.
 
