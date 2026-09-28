@@ -4,6 +4,8 @@ import { BotonPelicula, Codigo, Fotograma, Perforado, useVentanilla } from '@/co
 import Link from 'next/link';
 import { icono } from '@/lib/iconos-version';
 import { useEffect, useRef } from 'react';
+import { AnimatedText } from '@/components/ui/animated-shiny-text';
+import { ORO_BRILLO, ORO_DURACION } from '@/components/landing/oro';
 
 /*
  * El primer pantallazo: el titular y su frase CENTRADOS, a todo lo ancho
@@ -157,10 +159,22 @@ export function Hero() {
                 {/* Primero la promesa del Método, y debajo, en una línea, lo que
                     se rueda aquí (Christian, 28/09/2026: más compacto y directo;
                     el bloque que había entre los vídeos y EL BOOK desaparece). */}
-                <h1 className="pel-titulo-seccion text-[clamp(1.5rem,3vw,2.75rem)]">
-                    De actor a estrella<br />
-                    <span className="normal-case">en 3 pasos</span>
-                </h1>
+                {/* En el mismo oro en movimiento que EL BOOK, LA ESCENA y EL
+                    SELF‑TAPE, para que los titulares de la página sean una sola
+                    familia; un escalón más pequeño que ellos, a propósito. */}
+                <AnimatedText
+                    as="h1"
+                    text={
+                        <>
+                            De actor a estrella<br />
+                            <span className="normal-case">en 3 pasos</span>
+                        </>
+                    }
+                    gradientColors={ORO_BRILLO}
+                    gradientAnimationDuration={ORO_DURACION}
+                    className="py-0"
+                    textClassName="pel-titulo-seccion pel-titulo-oro leading-[0.92] text-[clamp(1.5rem,3vw,2.75rem)] sm:text-[clamp(1.5rem,3vw,2.75rem)] md:text-[clamp(1.5rem,3vw,2.75rem)] lg:text-[clamp(1.5rem,3vw,2.75rem)] xl:text-[clamp(1.5rem,3vw,2.75rem)]"
+                />
 
                 {/* «self‑tape» con guion que no parte (U+2011): con el normal,
                     el navegador cortaba «SELF-» al final de una línea y «TAPE»

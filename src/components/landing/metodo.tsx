@@ -2,6 +2,7 @@
 
 import { Codigo, Fotograma, Nota, Perforado, useVentanilla } from '@/components/landing/tira';
 import { AnimatedText } from '@/components/ui/animated-shiny-text';
+import { ORO_BRILLO, ORO_DURACION } from '@/components/landing/oro';
 
 /*
  * El Método: tres tomas colgando de una sola tira que baja por la página.
@@ -13,15 +14,6 @@ import { AnimatedText } from '@/components/ui/animated-shiny-text';
  * Los precios salen de src/lib/data.ts y de step1-selection.tsx. Son los de
  * verdad. Donde no hay precio decidido, se dice que no lo hay.
  */
-
-/**
- * El oro de los titulares de las tomas: el de la cabecera, con el centro
- * luminoso AMPLIO y SUAVE (una elipse que ocupa más de la mitad de la caja y
- * se funde despacio hacia el ámbar). Con backgroundSize 200% ese centro va y
- * viene por dentro de las letras.
- */
-const ORO_BRILLO =
-    'radial-gradient(ellipse 58% 150% at 50% 50%, #FFF4CF 0%, #F6E3A1 18%, #EBCB76 38%, #DDAE45 60%, #C9911A 80%, #A87414 100%)';
 
 const TOMAS = [
     {
@@ -117,13 +109,13 @@ export function Metodo() {
                                     filete ámbar: es el titular de la banda. Oro
                                     en movimiento (AnimatedText): un degradado
                                     radial de centro ancho y suave que va y viene
-                                    por dentro de las letras (ORO_BRILLO). */}
+                                    por dentro de las letras (oro.ts). */}
                                 <AnimatedText
                                     as="h3"
                                     text={toma.titulo}
                                     textId={`${toma.id}-titulo`}
                                     gradientColors={ORO_BRILLO}
-                                    gradientAnimationDuration={3.2}
+                                    gradientAnimationDuration={ORO_DURACION}
                                     className="py-0"
                                     textClassName="pel-titulo-seccion pel-titulo-oro text-center leading-[0.92] text-[clamp(2.5rem,5.5vw,4.75rem)] sm:text-[clamp(2.5rem,5.5vw,4.75rem)] md:text-[clamp(2.5rem,5.5vw,4.75rem)] lg:text-[clamp(2.5rem,5.5vw,4.75rem)] xl:text-[clamp(2.5rem,5.5vw,4.75rem)]"
                                 />

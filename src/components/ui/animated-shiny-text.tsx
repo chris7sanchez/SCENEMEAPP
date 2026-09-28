@@ -5,16 +5,18 @@ import { cn } from "@/lib/utils";
 /*
  * Texto con un degradado que se desplaza por dentro de las letras.
  *
- * Es el componente original (animated-shiny-text) con dos añadidos:
+ * Es el componente original (animated-shiny-text) con tres añadidos:
  * - `as`: la etiqueta del texto. El original pinta siempre un <h1>, y en una
  *   página no puede haber un <h1> por cada titular; por defecto sigue siendo h1.
  * - Con «reducir movimiento» el degradado se queda quieto.
+ * - `text` admite marcado (un <br />, un <span>), no sólo una cadena: el
+ *   titular de la portada va en dos líneas y la segunda en minúscula.
  */
 
 type Etiqueta = "h1" | "h2" | "h3" | "h4" | "p" | "span";
 
 interface AnimatedTextProps extends React.HTMLAttributes<HTMLDivElement> {
-  text: string;
+  text: React.ReactNode;
   as?: Etiqueta;
   gradientColors?: string;
   gradientAnimationDuration?: number;
