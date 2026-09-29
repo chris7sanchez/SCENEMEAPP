@@ -9,6 +9,7 @@ import {
 import { dudasDeReparto, claveDuda, type DudaReparto } from '@/lib/personajes';
 import { repartirVoces, generoDeNombre } from '@/lib/genero';
 import { claveDeLinea, idDeGuion, tomasDeGuion, type TomaVoz } from '@/lib/voces-grabadas';
+import { explicarFalloMicrofono, nombreDelError } from '@/lib/microfono';
 import GrabadorDeVoces, { type LineaGrabable } from '@/components/studio/GrabadorDeVoces';
 import { SelectorDeVoz } from '@/components/studio/SelectorDeVoz';
 import {
@@ -970,7 +971,7 @@ function ActivePlayer(props: {
                     setMicError(e instanceof Error ? `audio: ${e.name}` : 'audio');
                 }
             })
-            .catch((err: unknown) => { setMicDenied(true); setMicError(err instanceof Error ? err.name : 'error'); });
+            .catch((err: unknown) => { setMicDenied(true); setMicError(nombreDelError(err)); });
         return () => {
             cancelled = true;
             window.removeEventListener('pointerdown', resumeCtx);
@@ -1114,16 +1115,13 @@ function ActivePlayer(props: {
                             <div className="mt-2 text-center text-xs text-zinc-500">
                                 {micDenied ? (
                                     <p>
-                                        ⚠️ Micrófono no disponible{micError ? ` (${micError})` : ''} — permítelo en el candado de la barra (y en macOS → Ajustes → Privacidad → Micrófono → Chrome).{' '}
+                                        ⚠️ {explicarFalloMicrofono(micError)}{' '}
                                         <button onClick={() => setMicAttempt(n => n + 1)} className="font-bold text-amber-400 underline hover:text-amber-300">Reintentar</button>{' '}o pulsa SIGUIENTE.
                                     </p>
                                 ) : !micReady ? (
                                     micTarda ? (
                                         <p className="mx-auto max-w-md rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-amber-200">
-                                            El micrófono no acaba de abrirse. Mira el candado de la barra de direcciones
-                                            (Micrófono → Permitir) y, en Chrome, que el micro elegido en
-                                            <span className="font-mono"> chrome://settings/content/microphone </span>
-                                            sea el que usas.{' '}
+                                            El micrófono no acaba de abrirse. {explicarFalloMicrofono('')}{' '}
                                             <button onClick={() => { setMicTarda(false); setMicAttempt(n => n + 1); }} className="font-bold text-amber-300 underline hover:text-amber-200">Reintentar</button>
                                             {' '}· o sigue con SIGUIENTE, que funciona igual.
                                         </p>

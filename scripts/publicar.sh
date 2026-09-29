@@ -23,7 +23,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-echo "▸ 1/3  Trayendo lo último de GitHub…"
+echo "▸ 1/4  Trayendo lo último de GitHub…"
 git checkout main
 # --ff-only: si hay algo sin guardar o el historial se ha separado, para aquí
 # en vez de mezclar a ciegas y desplegar un revoltijo.
@@ -31,11 +31,29 @@ git pull --ff-only origin main
 echo "   estás en $(git rev-parse --short HEAD) — $(git log -1 --pretty=%s)"
 
 echo
-echo "▸ 2/3  Desplegando en producción…"
+echo "▸ 2/4  Comprobando antes de publicar (las pruebas)…"
+# Si algo está roto, NO se publica. Entre las pruebas está la que vigila que
+# el vídeo de la cabecera se vea en Safari y en Chrome
+# (src/lib/cabecera-video.test.ts) y la de los ficheros que tienen que llegar
+# al despliegue. Mejor pararse aquí que enterarse por la web.
+# Las pruebas necesitan las dependencias del proyecto; si en este Mac aún no
+# están (o faltan las de las pruebas), se instalan una vez.
+if [ ! -x node_modules/.bin/vitest ]; then
+    echo "   (instalando dependencias, sólo la primera vez…)"
+    npm install --no-audit --no-fund
+fi
+if ! npx vitest run --reporter=dot; then
+    echo
+    echo "❌ No se publica: alguna prueba ha fallado (mira arriba cuál)."
+    echo "   Pásale este mensaje a Claude y lo arregla."
+    exit 1
+fi
+echo
+echo "▸ 3/4  Desplegando en producción…"
 npx vercel --prod
 
 echo
-echo "▸ 3/3  Comprobando que los ficheros llegaron…"
+echo "▸ 4/4  Comprobando que los ficheros llegaron…"
 # El propio servidor pide sus ficheros y contesta cuáles faltan. Es la única
 # comprobación que vale: lo que se ve en local no dice nada de lo desplegado.
 sleep 5

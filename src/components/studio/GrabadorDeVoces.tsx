@@ -12,6 +12,7 @@ import {
     guardarToma, borrarToma, borrarPersonaje, formatoDeGrabacion,
     comoPeso, pesoDeTomas, BITS_POR_SEGUNDO, type TomaVoz,
 } from '@/lib/voces-grabadas';
+import { explicarFalloMicrofono, nombreDelError } from '@/lib/microfono';
 
 export interface LineaGrabable {
     clave: string;
@@ -40,6 +41,8 @@ export default function GrabadorDeVoces({ guionId, uid, personaje, lineas, tomas
     const [nivel, setNivel] = useState(0);
     const [segundos, setSegundos] = useState(0);
     const [permiso, setPermiso] = useState<'pidiendo' | 'ok' | 'denegado'>('pidiendo');
+    /** El nombre del error del micrófono, para decir qué tocar en ESTE navegador. */
+    const [falloMicro, setFalloMicro] = useState('');
     const [reproduciendo, setReproduciendo] = useState(false);
     /** Qué ha pasado con la última toma: '' si fue bien a la cuenta. */
     const [avisoGuardado, setAvisoGuardado] = useState('');
@@ -65,9 +68,9 @@ export default function GrabadorDeVoces({ guionId, uid, personaje, lineas, tomas
         && typeof navigator !== 'undefined'
         && !!navigator.mediaDevices?.getUserMedia;
     const error = !soportado
-        ? 'Este navegador no sabe grabar desde el micrófono. Prueba con Chrome, Edge o Safari actualizados.'
+        ? explicarFalloMicrofono('sin-soporte')
         : permiso === 'denegado'
-            ? 'No has dado permiso al micrófono. Actívalo en el candado de la barra de direcciones y vuelve a entrar.'
+            ? explicarFalloMicrofono(falloMicro)
             : '';
 
     // El micro se abre UNA vez y se queda abierto: pedir permiso en cada línea
@@ -90,7 +93,7 @@ export default function GrabadorDeVoces({ guionId, uid, personaje, lineas, tomas
                     analizadorRef.current = analizador;
                 } catch { /* el medidor es un lujo, grabar no */ }
             })
-            .catch(() => { if (vivo) setPermiso('denegado'); });
+            .catch((e: unknown) => { if (vivo) { setFalloMicro(nombreDelError(e)); setPermiso('denegado'); } });
 
         return () => {
             vivo = false;

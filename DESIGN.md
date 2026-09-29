@@ -428,9 +428,12 @@ del 43,6% al 86,3%): aire por encima del nombre y «Studios» casi rozando
 abajo. Para que quepa, el vídeo se estira un 6% en horizontal en vez de dejar
 filetes negros a los lados. Deja de crecer a 1920px de ancho. Arranca al cargar, en silencio y sin botón de
 sonido (se quitó el 28/09/2026, y con él la pista de audio), y se queda en el último fotograma con el nombre formado; nunca en
-bucle. Con «reducir movimiento» o conexión pobre, sólo ese último fotograma. Con la
-reproducción automática bloqueada (iPhone en modo ahorro), ese fotograma y el
-vídeo arranca desde el principio con el primer toque. El fundido de los bordes
+bucle. Con «reducir movimiento» o conexión pobre, sólo ese último fotograma. Si el
+vídeo no arranca por lo que sea (reproducción automática bloqueada, modo ahorro
+del iPhone, códec, fallo de carga), la misma animación como AVIF animado
+(`presentacion-animada.avif`, 390 kB), que no depende de la reproducción
+automática. `src/lib/cabecera-video.test.ts` lo vigila, y `npm run publicar`
+no publica si falla una prueba. El fundido de los bordes
 NO va como máscara sobre el <video> (Safari los pinta mal): es una copia del
 relleno por encima (`.pel-presentacion-bordes`).
 

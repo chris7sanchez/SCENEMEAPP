@@ -46,10 +46,23 @@ import { Definicion } from '@/components/landing/definicion';
  * «Studios» quedaba cortado por abajo; centrado y con
  * los bordes fundidos con el cielo, se veía entero pero no llenaba la franja.
  *
- * El póster depende de lo que vaya a pasar: el primer fotograma si va a
- * arrancar (para no enseñar el nombre hecho y luego deshecho), y el último si
- * no va a arrancar -«reducir movimiento», conexión pobre o reproducción
- * automática bloqueada-: la cabecera nunca se queda sin nombre.
+ * QUE SE VEA SIEMPRE, SIN DEPENDER DEL NAVEGADOR (Christian, 29/09/2026).
+ * Un <video> que arranca solo depende de que el navegador lo deje: Safari
+ * con la reproducción automática desactivada para el sitio, el iPhone en
+ * modo ahorro de batería o un códec que no sepa leer lo paran, y la cabecera
+ * se quedaba quieta. Por eso hay TRES caminos, en este orden:
+ *   1. el vídeo (1 MB), que es lo normal;
+ *   2. si el vídeo no arranca -play() rechazado, error de carga, o a los 3,5 s
+ *      tiene datos pero sigue sin avanzar-, la MISMA animación como AVIF
+ *      animado (presentacion-animada.avif, 390 kB, 15 fps, una sola pasada).
+ *      Una imagen animada no pasa por las reglas de reproducción automática:
+ *      se mueve sin gestos ni permisos y se queda en el nombre. (El WebP
+ *      animado se probó y a calidad razonable dejaba bloques en el último
+ *      fotograma, o pesaba 4,6 MB.) Safari la anima desde la 16.4; el
+ *      navegador que no sepa AVIF ve el último fotograma quieto;
+ *   3. con «reducir movimiento» o conexión pobre, el último fotograma quieto,
+ *      porque ahí lo correcto es no moverse o no gastar datos.
+ * El test de src/lib/cabecera-video.test.ts vigila que esto siga así.
  *
  * Sin sonido y sin botón de sonido (Christian, 28/09/2026: el «Ver con
  * sonido» sobraba). El fichero ya no lleva pista de audio.
@@ -58,44 +71,47 @@ import { Definicion } from '@/components/landing/definicion';
 const VIDEO = '/marca/presentacion.mp4';
 const INICIO = '/marca/presentacion-inicio.jpg';
 const FINAL = '/marca/presentacion-poster.jpg';
+/** La misma animación como AVIF animado (una sola pasada): el plan B, ver arriba. */
+const ANIMADA = '/marca/presentacion-animada.avif';
 /** Móvil: el fotograma entero. Ancho: ver el cálculo de arriba (28-88%, estirado un 6%). */
 const ENCUADRE =
     'absolute inset-0 h-full w-full object-cover sm:inset-auto sm:left-[5.83%] sm:top-[-46.67%] sm:h-[166.67%] sm:w-[88.33%] sm:object-fill';
 
 export function Presentacion() {
     const video = useRef<HTMLVideoElement>(null);
-    const [quieto, setQuieto] = useState(false);
-    // Reproducción automática bloqueada (iPhone en modo ahorro de batería, o
-    // el navegador que lo tenga desactivado): se enseña el nombre ya formado
-    // y el vídeo arranca desde el principio con el primer toque o tecla.
-    const [bloqueado, setBloqueado] = useState(false);
+    /** 'video' lo normal; 'animada' si el vídeo no arranca; 'quieto' si no toca moverse. */
+    const [modo, setModo] = useState<'video' | 'animada' | 'quieto'>('video');
 
     useEffect(() => {
         const sinMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (sinMovimiento || conexionPobre()) {
-            queueMicrotask(() => setQuieto(true));
+            queueMicrotask(() => setModo('quieto'));
             return;
         }
         const v = video.current;
         if (!v) return;
 
-        const gestos = ['pointerdown', 'touchend', 'keydown'] as const;
-        const alPrimerGesto = () => {
-            quitarGestos();
-            v.currentTime = 0;
-            v.play().then(() => setBloqueado(false)).catch(() => setQuieto(true));
+        let hecho = false;
+        const aLaAnimada = () => {
+            if (hecho) return;
+            hecho = true;
+            v.pause();
+            setModo('animada');
         };
-        const quitarGestos = () => gestos.forEach((g) => window.removeEventListener(g, alPrimerGesto));
+        // Si a los 3,5 s YA TIENE datos y no ha avanzado ni un fotograma, el
+        // navegador lo está parando sin decirlo. Si aún está descargando, se le
+        // espera: cambiar a la animada (más pesada) en una conexión lenta sería
+        // peor. Si la descarga falla, salta el 'error'.
+        const vigia = window.setTimeout(() => {
+            if (v.currentTime === 0 && v.readyState >= 2) aLaAnimada();
+        }, 3500);
+        v.addEventListener('error', aLaAnimada);
+        v.play().catch(aLaAnimada);
 
-        v.play().catch((e: unknown) => {
-            if (e instanceof DOMException && e.name === 'NotAllowedError') {
-                setBloqueado(true);
-                gestos.forEach((g) => window.addEventListener(g, alPrimerGesto, { passive: true }));
-            } else {
-                setQuieto(true);   // no se puede reproducir: el último fotograma
-            }
-        });
-        return quitarGestos;
+        return () => {
+            window.clearTimeout(vigia);
+            v.removeEventListener('error', aLaAnimada);
+        };
     }, []);
 
     return (
@@ -105,14 +121,19 @@ export function Presentacion() {
                 {/* Relleno de los lados en pantalla ancha: ver el encuadre arriba. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={FINAL} alt="" aria-hidden="true" className="pel-presentacion-relleno hidden sm:block" />
-                {quieto ? (
+                {modo === 'quieto' ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={FINAL} alt="" className={ENCUADRE} />
+                ) : modo === 'animada' ? (
+                    <picture>
+                        <source srcSet={ANIMADA} type="image/avif" />
+                        <img src={FINAL} alt="" className={ENCUADRE} />
+                    </picture>
                 ) : (
                     <video
                         ref={video}
                         src={VIDEO}
-                        poster={bloqueado ? FINAL : INICIO}
+                        poster={INICIO}
                         muted
                         playsInline
                         preload="auto"

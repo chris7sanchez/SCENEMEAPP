@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mic, Square, Play, Trash2, StickyNote, Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { explicarFalloMicrofono, nombreDelError } from '@/lib/microfono';
 
 export interface ChartNote {
     id: string;
@@ -77,7 +78,9 @@ const ChartNotesSystem: React.FC<ChartNotesSystemProps> = ({ chartId, onNotesCha
             };
 
             mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                // El tipo que de verdad ha grabado ESTE navegador: Safari graba
+                // audio/mp4, no webm, y con la etiqueta equivocada no lo reproduce.
+                const audioBlob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType || 'audio/webm' });
                 const audioUrl = URL.createObjectURL(audioBlob);
 
                 const newNote: ChartNote = {
@@ -102,7 +105,7 @@ const ChartNotesSystem: React.FC<ChartNotesSystemProps> = ({ chartId, onNotesCha
             setIsRecording(true);
         } catch (error) {
             console.error('Error accessing microphone:', error);
-            alert('No se pudo acceder al micrófono. Verifica los permisos.');
+            alert(explicarFalloMicrofono(nombreDelError(error)));
         }
     };
 
