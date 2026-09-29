@@ -31,7 +31,7 @@ import { Definicion } from '@/components/landing/definicion';
  * sólo un 6% en horizontal (object-fit: fill), que no se nota, y aun así no
  * llega a los bordes: le falta un 5,8% por cada lado. Ese hueco lo llena el
  * último fotograma a toda la franja, desenfocado y oscurecido, y los bordes
- * del vídeo se funden con él (.pel-presentacion-medio en pelicula.css): la
+ * del vídeo se funden con él (.pel-presentacion-bordes en pelicula.css): la
  * franja sigue llena de lado a lado y no hay filete.
  * Los números: alto de la caja = 1/0,60 = 166,67% de la franja; arriba,
  * -0,28 × 166,67% = -46,67%; ancho = 166,67% × (9/32) × (16/9) × 1,06 =
@@ -60,11 +60,15 @@ const INICIO = '/marca/presentacion-inicio.jpg';
 const FINAL = '/marca/presentacion-poster.jpg';
 /** Móvil: el fotograma entero. Ancho: ver el cálculo de arriba (28-88%, estirado un 6%). */
 const ENCUADRE =
-    'pel-presentacion-medio absolute inset-0 h-full w-full object-cover sm:inset-auto sm:left-[5.83%] sm:top-[-46.67%] sm:h-[166.67%] sm:w-[88.33%] sm:object-fill';
+    'absolute inset-0 h-full w-full object-cover sm:inset-auto sm:left-[5.83%] sm:top-[-46.67%] sm:h-[166.67%] sm:w-[88.33%] sm:object-fill';
 
 export function Presentacion() {
     const video = useRef<HTMLVideoElement>(null);
     const [quieto, setQuieto] = useState(false);
+    // Reproducción automática bloqueada (iPhone en modo ahorro de batería, o
+    // el navegador que lo tenga desactivado): se enseña el nombre ya formado
+    // y el vídeo arranca desde el principio con el primer toque o tecla.
+    const [bloqueado, setBloqueado] = useState(false);
 
     useEffect(() => {
         const sinMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -72,7 +76,26 @@ export function Presentacion() {
             queueMicrotask(() => setQuieto(true));
             return;
         }
-        video.current?.play().catch(() => setQuieto(true));
+        const v = video.current;
+        if (!v) return;
+
+        const gestos = ['pointerdown', 'touchend', 'keydown'] as const;
+        const alPrimerGesto = () => {
+            quitarGestos();
+            v.currentTime = 0;
+            v.play().then(() => setBloqueado(false)).catch(() => setQuieto(true));
+        };
+        const quitarGestos = () => gestos.forEach((g) => window.removeEventListener(g, alPrimerGesto));
+
+        v.play().catch((e: unknown) => {
+            if (e instanceof DOMException && e.name === 'NotAllowedError') {
+                setBloqueado(true);
+                gestos.forEach((g) => window.addEventListener(g, alPrimerGesto, { passive: true }));
+            } else {
+                setQuieto(true);   // no se puede reproducir: el último fotograma
+            }
+        });
+        return quitarGestos;
     }, []);
 
     return (
@@ -89,7 +112,7 @@ export function Presentacion() {
                     <video
                         ref={video}
                         src={VIDEO}
-                        poster={INICIO}
+                        poster={bloqueado ? FINAL : INICIO}
                         muted
                         playsInline
                         preload="auto"
@@ -97,6 +120,15 @@ export function Presentacion() {
                         aria-hidden="true"
                     />
                 )}
+                {/* Los bordes del vídeo, fundidos con el relleno: una copia del
+                    relleno ENCIMA, que sólo se ve en los lados y se desvanece
+                    hacia dentro. Antes el fundido era una máscara CSS sobre el
+                    propio <video>, y Safari tiene fallos pintando vídeos con
+                    máscara (salía en blanco); sobre una imagen no los tiene. */}
+                <div className="pel-presentacion-bordes hidden sm:block" aria-hidden="true">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={FINAL} alt="" className="pel-presentacion-relleno" />
+                </div>
             </div>
 
             {/* La cita, abajo a la izquierda sobre el vídeo (lejos del nombre,

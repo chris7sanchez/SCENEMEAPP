@@ -671,8 +671,8 @@
 /* ------------------------------------------------------------------ */
 /* CABECERA: el vídeo reducido y su relleno a los lados (≥ 640px).    */
 /* El vídeo no llega a los bordes (ver presentacion.tsx); detrás va el */
-/* último fotograma a toda la franja, desenfocado y oscurecido, y los  */
-/* bordes del vídeo se funden con él para que no se vea el corte.      */
+/* último fotograma a toda la franja, desenfocado y oscurecido, y una  */
+/* copia encima funde los bordes del vídeo para que no se vea el corte.*/
 /* ------------------------------------------------------------------ */
 .pel-presentacion-relleno {
     position: absolute;
@@ -684,11 +684,17 @@
     object-position: 50% 58%;
     filter: blur(28px) brightness(0.7);
 }
-@media (min-width: 640px) {
-    .pel-presentacion-medio {
-        -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
-        mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
-    }
+/* El fundido de los bordes del vídeo, SIN máscara sobre el <video> (Safari
+   pinta mal los vídeos con máscara): una copia del relleno por encima que se
+   ve entera fuera del vídeo (hasta el 5,83%) y se desvanece hacia dentro en
+   el 6% de la franja, lo mismo que antes hacía la máscara (el 7% del vídeo). */
+.pel-presentacion-bordes {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to right, #000 5.83%, transparent 12%, transparent 88%, #000 94.17%);
+    mask-image: linear-gradient(to right, #000 5.83%, transparent 12%, transparent 88%, #000 94.17%);
 }
 
 /* ------------------------------------------------------------------ */

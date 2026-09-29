@@ -428,8 +428,11 @@ del 43,6% al 86,3%): aire por encima del nombre y «Studios» casi rozando
 abajo. Para que quepa, el vídeo se estira un 6% en horizontal en vez de dejar
 filetes negros a los lados. Deja de crecer a 1920px de ancho. Arranca al cargar, en silencio y sin botón de
 sonido (se quitó el 28/09/2026, y con él la pista de audio), y se queda en el último fotograma con el nombre formado; nunca en
-bucle. Con «reducir movimiento», conexión pobre o reproducción automática
-bloqueada, sólo ese último fotograma.
+bucle. Con «reducir movimiento» o conexión pobre, sólo ese último fotograma. Con la
+reproducción automática bloqueada (iPhone en modo ahorro), ese fotograma y el
+vídeo arranca desde el principio con el primer toque. El fundido de los bordes
+NO va como máscara sobre el <video> (Safari los pinta mal): es una copia del
+relleno por encima (`.pel-presentacion-bordes`).
 
 El otro momento, el de siempre: **el avance de fotograma.** La tira
 encaja de uno en uno (`scroll-snap-type: y proximity`, hijos a
