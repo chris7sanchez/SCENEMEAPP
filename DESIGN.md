@@ -481,3 +481,29 @@ transición y animación baja a 1ms y el encaje se desactiva.
 - **Don't** usar fondo blanco ni crema en ninguna superficie.
 - **Don't** meter una tercera animación de autor: el avance de fotograma y la presentación son los dos únicos.
 - **Don't** inventar una cifra, un testimonio, un precio o un botón que no lleve a ningún sitio. Lo que no existe se dice a lápiz de grasa.
+
+## Componentes adaptados de la guía de efectos (29/09/2026)
+
+De la guía de componentes de Christian (hero, hover, scroll y menús) entraron
+dos, cada uno en su pantalla y con material real. Los dos van sin librería de
+animación, respetan «reducir movimiento» y tienen un estado quieto que se lee
+igual.
+
+- **Muro del book** (`components/landing/muro-book.tsx`), a partir de
+  «3D Marquee» de Aceternity UI (MIT). En la banda de EL BOOK, en lugar de un
+  solo retrato: los 28 retratos de book reales en un plano de seis columnas
+  girado en perspectiva (rotateX 55°, rotateZ -45°); las columnas suben y bajan
+  solas con `@keyframes` en dos ritmos, se paran al pasar el ratón. Miniaturas
+  de 300 px (`scripts/miniaturas-muro.mjs`, 238 kB las 28), con carga diferida.
+- **El reel que se abre** (`components/landing/reel-que-se-abre.tsx`), a partir
+  de «Scroll Expansion Hero» (21st.dev; recreado, no copiado). En la llamada del
+  cierre: el montaje de trabajos empieza como una ventana y se abre a pantalla
+  completa al bajar; luego cae el velo (hasta el mismo 0,86) y aparece la
+  llamada. Por defecto, y sin JavaScript o sin movimiento, se ve terminado.
+
+Se descartaron, y por qué: los fondos WebGL (rayos, persianas, cúpula), por peso
+en el móvil; el scroll-scrub de fotogramas y los menús de imagen a pantalla
+completa, porque la cabecera y el menú de claqueta ya cumplen ese papel; los
+paneles de letras que giran, porque la página ya tiene su efecto de texto (el
+oro); testimonios, logos y cifras, porque sólo valen con contenido real.
+

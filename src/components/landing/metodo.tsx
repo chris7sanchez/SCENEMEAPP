@@ -4,6 +4,7 @@ import { Codigo, Fotograma, Nota, Perforado, useVentanilla } from '@/components/
 import { AnimatedText } from '@/components/ui/animated-shiny-text';
 import { ORO_BRILLO, ORO_DURACION } from '@/components/landing/oro';
 import { EsquemaEscena } from '@/components/landing/esquema-escena';
+import { MuroBook } from '@/components/landing/muro-book';
 
 /*
  * El Método: tres tomas colgando de una sola tira que baja por la página.
@@ -150,15 +151,22 @@ export function Metodo() {
                                                 </Codigo>
                                             </span>
                                         </div>
-                                        <Fotograma
-                                            video={toma.video}
-                                            poster={toma.poster}
-                                            imagen={toma.imagen}
-                                            alt={toma.alt}
-                                            activo={i === activo}
-                                            style={{ aspectRatio: toma.proporcion }}
-                                            className="min-w-0 flex-1"
-                                        />
+                                        {toma.id === 'book' ? (
+                                            <MuroBook
+                                                style={{ aspectRatio: toma.proporcion }}
+                                                className="min-w-0 flex-1"
+                                            />
+                                        ) : (
+                                            <Fotograma
+                                                video={toma.video}
+                                                poster={toma.poster}
+                                                imagen={toma.imagen}
+                                                alt={toma.alt}
+                                                activo={i === activo}
+                                                style={{ aspectRatio: toma.proporcion }}
+                                                className="min-w-0 flex-1"
+                                            />
+                                        )}
                                     </div>
 
                                     <div className="flex min-w-0 flex-1 flex-col gap-5">

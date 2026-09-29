@@ -834,3 +834,103 @@
         top: -3.25rem;
     }
 }
+
+/* ------------------------------------------------------------------ */
+/* EL MURO DEL BOOK (muro-book.tsx), a partir de «3D Marquee».         */
+/* Un plano de seis columnas girado en perspectiva (rotateX 55°,       */
+/* rotateZ -45°, como el original), más grande que el fotograma para   */
+/* que llene las esquinas. Cada columna sube y baja sola, en dos       */
+/* ritmos alternos. Al pasar el ratón se para; con «reducir            */
+/* movimiento», quieto.                                                */
+/* ------------------------------------------------------------------ */
+.pel-muro { perspective: 1200px; }
+.pel-muro__plano {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 230%;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.625rem;
+    transform: translate(-50%, -50%) rotateX(55deg) rotateZ(-45deg);
+    transform-style: preserve-3d;
+}
+.pel-muro__columna {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    animation: pel-muro-vaiven 10s ease-in-out infinite alternate;
+}
+.pel-muro__columna[data-ritmo='lento'] { animation-duration: 15s; animation-direction: alternate-reverse; }
+.pel-muro__columna img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+}
+@keyframes pel-muro-vaiven {
+    from { transform: translateY(-12%); }
+    to { transform: translateY(12%); }
+}
+.pel-muro:hover .pel-muro__columna { animation-play-state: paused; }
+.pel-muro__velo {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.7) 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+    .pel-muro__columna { animation: none; }
+}
+
+/* ------------------------------------------------------------------ */
+/* EL REEL QUE SE ABRE (reel-que-se-abre.tsx), en la llamada del       */
+/* cierre. Por defecto, TERMINADO: abierto, con velo y con la llamada. */
+/* Sólo con [data-animado] (lo pone el componente si hay movimiento)   */
+/* la sección se alarga, la capa se fija y las tres variables mandan.  */
+/* ------------------------------------------------------------------ */
+.pel-reel { position: relative; }
+.pel-reel__fijo { position: relative; overflow: hidden; }
+.pel-reel__ventana { position: absolute; inset: 0; }
+.pel-reel__velo {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(14, 15, 16, 0.86);
+}
+.pel-reel__llamada { position: relative; z-index: 10; }
+
+.pel-reel[data-animado] { height: 180vh; }
+.pel-reel[data-animado] .pel-reel__fijo {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    display: flex;
+    align-items: center;
+}
+.pel-reel[data-animado] .pel-reel__ventana {
+    /* De una ventana centrada (16% arriba y abajo, 22% a los lados) a la
+       pantalla entera. En el móvil, más ancha desde el principio. */
+    clip-path: inset(
+        calc((1 - var(--apertura, 1)) * 16%)
+        calc((1 - var(--apertura, 1)) * 22%)
+        round calc((1 - var(--apertura, 1)) * 14px)
+    );
+}
+.pel-reel[data-animado] .pel-reel__velo { opacity: var(--velo, 1); }
+.pel-reel[data-animado] .pel-reel__llamada {
+    width: 100%;
+    opacity: var(--llamada, 1);
+    transform: translateY(calc((1 - var(--llamada, 1)) * 24px));
+}
+@media (max-width: 639px) {
+    .pel-reel[data-animado] .pel-reel__ventana {
+        clip-path: inset(
+            calc((1 - var(--apertura, 1)) * 22%)
+            calc((1 - var(--apertura, 1)) * 6%)
+            round calc((1 - var(--apertura, 1)) * 12px)
+        );
+    }
+}

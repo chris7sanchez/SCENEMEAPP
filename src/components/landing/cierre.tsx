@@ -3,15 +3,16 @@
 import Link from 'next/link';
 import { icono } from '@/lib/iconos-version';
 import { BotonPelicula, Codigo, Perforado } from '@/components/landing/tira';
-import { LazyVideo } from '@/components/landing/lazy-video';
+import { ReelQueSeAbre } from '@/components/landing/reel-que-se-abre';
 import { LetrasSceneMe } from '@/components/marca/letras-scene-me';
 
 /*
  * El final de la bobina: la llamada y el pie.
  *
- * El vídeo del fondo lleva una capa opaca por encima (regla L0: nunca texto
- * sobre imagen sin capa de contraste). El titular sale sobre 0,86 de negro,
- * así que el contraste es prácticamente el del texto sobre el leader.
+ * La llamada va sobre el montaje de trabajos, que ahora se abre al bajar
+ * (reel-que-se-abre.tsx) en vez de estar siempre tapado. La regla L0 sigue:
+ * la llamada sólo aparece cuando el velo ya está en 0,86 de negro, así que el
+ * contraste es prácticamente el del texto sobre el leader.
  */
 
 export function Cierre() {
@@ -21,24 +22,10 @@ export function Cierre() {
                 el cierre. Una tercera y dejaría de significar nada. */}
             <div className="pel-claqueta" aria-hidden="true" />
 
-            {/* La llamada */}
-            <div className="relative overflow-hidden">
-                <div className="absolute inset-0">
-                    <LazyVideo
-                        src="/videos/MIX-cine-loop.mp4"
-                        poster="/videos/MIX-cine-loop-poster.jpg"
-                        className="h-full w-full object-cover"
-                    />
-                </div>
-                {/* El scrim. Sin esto el texto no se lee, y eso no es negociable. */}
-                <div
-                    className="absolute inset-0"
-                    style={{ backgroundColor: 'rgba(14, 15, 16, 0.86)' }}
-                    aria-hidden="true"
-                />
-                <div className="pel-grano" />
-
-                <div className="relative z-10 flex flex-col items-start gap-8 px-6 py-24 sm:px-10 lg:px-14 lg:py-32">
+            {/* La llamada, sobre el montaje de trabajos que se abre al bajar
+                (reel-que-se-abre.tsx). */}
+            <ReelQueSeAbre>
+                <div className="flex flex-col items-start gap-8 px-6 py-24 sm:px-10 lg:px-14 lg:py-32">
                     <h2 className="pel-display max-w-[16ch] text-[clamp(2.75rem,8vw,6rem)]">
                         Empieza hoy tu nueva versión
                     </h2>
@@ -53,7 +40,7 @@ export function Cierre() {
                         </BotonPelicula>
                     </div>
                 </div>
-            </div>
+            </ReelQueSeAbre>
 
             <Perforado horizontal />
 
