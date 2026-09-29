@@ -33,6 +33,17 @@ const DE_LA_PORTADA = [
     '/trabajos/web/1.webp',
     '/trabajos/web/9.webp',
     '/splash-logo.webp',
+    // La cabecera: el vídeo del nombre, sus fotogramas y su plan B animado.
+    '/marca/presentacion.mp4',
+    '/marca/presentacion-inicio.jpg',
+    '/marca/presentacion-poster.jpg',
+    '/marca/presentacion-animada.avif',
+    // La tira de la portada (Silvia) y el muro del book (una miniatura basta
+    // para saber que la carpeta llegó).
+    '/videos/SILVIA-loop.mp4',
+    '/videos/SILVIA-loop-poster.jpg',
+    '/trabajos/muro/1.webp',
+    '/trabajos/muro/11.3.webp',
 ];
 
 async function comprobar(base: string, ruta: string) {
