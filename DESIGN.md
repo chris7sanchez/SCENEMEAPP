@@ -157,7 +157,7 @@ fotogramas de proporción distinta según lo que enseñan.
 - El oro del logo reservado a una sola cosa: lo que está activo.
 - Todo contenedor es un trozo de película: perforado, con código en el margen y esquina de 6px.
 - Las dos apariciones de la banda de claqueta, y ni una más.
-- Dos momentos de autor en toda la página: la presentación del nombre y el avance de fotograma.
+- Un momento de autor por pantalla: la presentación del nombre, la tira que corre por detrás del titular, el muro del book y el reel que se abre en el cierre. Nunca dos en la misma pantalla.
 - Plano absoluto: ni una sombra en todo el mundo.
 
 ## Colors
@@ -417,7 +417,7 @@ en cromo sobre leader (11px, pulgar con 3px de borde de leader y radio de 6px,
 gris base al pasar por encima).
 
 ### Movimiento
-**Dos momentos de autor, no más.** El segundo entró el 28/09/2026 porque Christian
+**Un momento de autor por pantalla** (antes «dos en toda la página»; desde el 29/09/2026 hay uno en cada pantalla que lo pide: ver «Componentes adaptados de la guía de efectos»). La presentación entró el 28/09/2026 porque Christian
 veía la portada quieta y pobre: **la presentación**, el vídeo en el que un rollo
 de película se desenrolla y sobre él se forma el nombre (`components/landing/presentacion.tsx`,
 `public/marca/presentacion.mp4`). Vive en la cabecera, donde antes estaban el
