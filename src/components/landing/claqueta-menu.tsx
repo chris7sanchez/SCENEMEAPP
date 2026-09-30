@@ -22,9 +22,10 @@ const TRAMOS = 11;
 /** El tramo de EL MÉTODO: el segundo blanco (0 negro, 1 blanco, 2 negro, 3 blanco). */
 const PRIMERO = 3;
 
-export function ClaquetaMenu() {
+/** `oro`: las barras blancas en oro (la variante que eligió Christian para la propuesta). */
+export function ClaquetaMenu({ variante }: { variante?: 'oro' } = {}) {
     return (
-        <nav aria-label="Secciones" className="pel-claqueta-menu">
+        <nav aria-label="Secciones" className={`pel-claqueta-menu ${variante === 'oro' ? 'pel-claqueta-menu--oro' : ''}`}>
             <div className="pel-claqueta-menu__lista">
                 {Array.from({ length: TRAMOS }, (_, i) => {
                     const blanco = i % 2 === 1;

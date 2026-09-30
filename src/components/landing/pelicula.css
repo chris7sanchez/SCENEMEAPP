@@ -952,3 +952,43 @@
         0 40px 90px -20px rgba(0, 0, 0, 0.85);
     overflow: clip;
 }
+
+/* ------------------------------------------------------------------ */
+/* PROPUESTA DE PORTADA (30/09/2026, elección de Christian en el       */
+/* probador de fondos): la placa antigua en vez del cielo, con un velo */
+/* mucho más fino (0,12), y la banda de claqueta en oro.               */
+/* El texto suelto sobre la placa lleva una sombra blanda propia para  */
+/* leerse aunque el velo sea tan fino (.pel--placa .pel-sobre-placa).  */
+/* ------------------------------------------------------------------ */
+.pel.pel--placa {
+    background-image:
+        linear-gradient(rgba(8, 9, 10, 0.12), rgba(8, 9, 10, 0.12)),
+        url('/texturas/placa-antigua.webp');
+}
+.pel--placa .pel-sobre-placa {
+    position: relative;
+    isolation: isolate;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 22px rgba(0, 0, 0, 0.75);
+}
+/* Una penumbra sólo detrás del bloque de texto: la placa es clara en el
+   centro y con el velo al 0,12 el texto pequeño no llegaba al contraste
+   mínimo (medido con scripts/contraste-sobre-fondo.mjs). Así el resto del
+   fondo se queda como lo eligió Christian. */
+.pel--placa .pel-sobre-placa::before {
+    content: '';
+    position: absolute;
+    inset: -30% -18%;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(8, 9, 10, 0.86) 0%, rgba(8, 9, 10, 0.78) 55%, rgba(8, 9, 10, 0) 100%);
+}
+
+/* La claqueta en oro: las barras blancas del menú pasan a oro y las de los
+   lados, a un oro apagado. La letra, negra de leader (9,9:1 sobre el oro). */
+.pel-claqueta-menu--oro .pel-claqueta-menu__tramo--blanco { background-color: #6D5A2A; }
+.pel-claqueta-menu--oro .pel-claqueta-menu__boton.pel-claqueta-menu__tramo--blanco { background-color: var(--pel-oro); }
+.pel-claqueta-menu--oro .pel-claqueta-menu__boton.pel-claqueta-menu__tramo--blanco:hover,
+.pel-claqueta-menu--oro .pel-claqueta-menu__boton.pel-claqueta-menu__tramo--blanco:focus-visible {
+    background-color: #F3DC98;
+    box-shadow: 0 0 22px rgba(228, 196, 108, 0.5);
+}

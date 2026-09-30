@@ -48,8 +48,8 @@ export function HeroScrollAnimation({ primera, segunda, className, claseSegunda 
     if (quieto) {
         return (
             <div className={className}>
-                <section className="min-h-screen">{primera}</section>
-                <section className={cn('min-h-screen rounded-[28px]', claseSegunda)}>{segunda}</section>
+                <section className="h-screen overflow-hidden">{primera}</section>
+                <section className={cn('min-h-screen overflow-hidden rounded-[28px]', claseSegunda)}>{segunda}</section>
             </div>
         );
     }

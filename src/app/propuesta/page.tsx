@@ -27,13 +27,14 @@ const OPCIONES = [
 
 export default async function Propuesta({ searchParams }: { searchParams: Promise<{ book?: string }> }) {
     const { book } = await searchParams;
-    const opcion = (['1', '2', '3'].includes(book ?? '') ? Number(book) : 1) as 1 | 2 | 3;
+    // Por defecto, el Relevo: la opción que eligió Christian (30/09/2026).
+    const opcion = (['1', '2', '3'].includes(book ?? '') ? Number(book) : 3) as 1 | 2 | 3;
 
     return (
-        <div className="pel min-h-screen">
+        <div className="pel pel--placa min-h-screen">
             <header className="relative z-30">
                 <Presentacion />
-                <ClaquetaMenu />
+                <ClaquetaMenu variante="oro" />
             </header>
 
             <InicioGaleria final={<MarcoBook opcion={opcion} />} />

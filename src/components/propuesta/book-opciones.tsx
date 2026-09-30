@@ -147,7 +147,7 @@ function OpcionRelevo() {
                     <div className="relative grid h-full place-items-center">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={ruta('5')} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(14, 15, 16, 0.72)' }} />
+                        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(14, 15, 16, 0.84)' }} />
                         <div className="relative flex flex-col items-center gap-4 px-6 text-center">
                             <TituloOro>El book</TituloOro>
                             <p className="pel-cuerpo max-w-[44ch] text-[var(--pel-emulsion)]">Fotografía pensada para una dirección de casting, no para un perfil. Sales tú, y sale el personaje que de verdad puedes defender.</p>

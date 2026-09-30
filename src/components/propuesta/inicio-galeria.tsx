@@ -56,7 +56,7 @@ function Caja({ codigo, children, alta = false }: { codigo: string; children: Re
 }
 
 const intro = (
-    <div className="flex flex-col items-center gap-4 px-6 text-center">
+    <div className="pel-sobre-placa flex flex-col items-center gap-4 px-6 text-center">
         <AnimatedText
             as="h1"
             text={
