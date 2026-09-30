@@ -934,3 +934,21 @@
         );
     }
 }
+
+/* ------------------------------------------------------------------ */
+/* EL MARCO DE LA PROPUESTA (propuesta/book-opciones.tsx): un hueco    */
+/* encuadrado, esquinas redondeadas y relieve: filo ámbar arriba,      */
+/* canto oscuro por debajo y una sombra larga. `overflow: clip` (y no  */
+/* hidden) recorta a las esquinas SIN romper lo que va fijo dentro     */
+/* (position: sticky necesita que no haya un contenedor con scroll).   */
+/* ------------------------------------------------------------------ */
+.pel-marco {
+    background-color: #111315;
+    border: 1px solid rgba(228, 196, 108, 0.28);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 -1px 0 rgba(228, 196, 108, 0.35),
+        0 14px 0 -4px #07080a,
+        0 40px 90px -20px rgba(0, 0, 0, 0.85);
+    overflow: clip;
+}
