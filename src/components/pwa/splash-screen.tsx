@@ -41,7 +41,9 @@ export function SplashScreen() {
         <div
             className={`fixed inset-0 z-[99999] bg-[#000000] flex flex-col items-center justify-center gap-8 transition-opacity duration-700 ease-in-out ${isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
-            <div className="w-80 h-80 md:w-[500px] md:h-[500px] overflow-hidden relative animate-in zoom-in-95 duration-1000 fade-in-0">
+            {/* 288 px como mucho: el maestro del icono mide 600, y a más tamaño se
+                pixelaba en pantallas Retina (necesitan el doble de píxeles). */}
+            <div className="w-64 h-64 md:w-72 md:h-72 overflow-hidden relative animate-in zoom-in-95 duration-1000 fade-in-0">
                 {/* El logo de la marca. Antes habia aqui un <video> con
                     /videos/logo-animation.mp4 y un <img> de respaldo con
                     /logo-animation.gif: ninguno de los dos archivos existe, asi

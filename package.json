@@ -9,6 +9,7 @@
         "build": "next build",
         "start": "next start",
         "publicar": "bash scripts/publicar.sh",
+        "videos-hd": "node scripts/videos-hd.mjs",
         "lint": "eslint src",
         "typecheck": "tsc --noEmit",
         "test": "vitest run",

@@ -31,6 +31,25 @@ git pull --ff-only origin main
 echo "   estás en $(git rev-parse --short HEAD) — $(git log -1 --pretty=%s)"
 
 echo
+echo "▸ Vídeos en HD desde los originales (si están en este Mac)…"
+# Los cortes de la web se pixelaban: venían de copias de 960x540. Si este Mac
+# tiene video_originals_backup/, scripts/videos-hd.mjs los rehace en HD desde
+# los originales (el mismo momento, sólo más calidad). Los que ya están en HD
+# los deja. Lo nuevo se guarda en GitHub para que no haya que repetirlo.
+if [ -d video_originals_backup ]; then
+    [ -x node_modules/.bin/vitest ] || npm install --no-audit --no-fund
+    node scripts/videos-hd.mjs video_originals_backup
+    if [ -n "$(git status --porcelain -- public/videos)" ]; then
+        git add public/videos
+        git commit -q -m "Vídeos de la web en HD desde los originales (scripts/videos-hd.mjs)"
+        git push -q origin main || echo "   (no se ha podido subir a GitHub; se publica igual)"
+        echo "   ✓ vídeos en HD guardados"
+    fi
+else
+    echo "   (no hay video_originals_backup en esta carpeta: se publican los que hay)"
+fi
+
+echo
 echo "▸ 2/4  Comprobando antes de publicar (las pruebas)…"
 # Si algo está roto, NO se publica. Entre las pruebas está la que vigila que
 # el vídeo de la cabecera se vea en Safari y en Chrome

@@ -10,8 +10,8 @@
  * columnas no se muevan a la par. Se para al pasar el ratón (para mirar una
  * cara) y con «reducir movimiento» está quieto.
  *
- * Las imágenes son miniaturas de 300 px (scripts/miniaturas-muro.mjs, 238 kB
- * las 28) y se piden con loading="lazy": nada se descarga hasta acercarse.
+ * Las imágenes son miniaturas de 1000 px (scripts/miniaturas-muro.mjs, 2,2 MB
+ * las 28; a 300 se pixelaban las columnas de delante) y se piden con loading="lazy": nada se descarga hasta acercarse.
  */
 
 import type { CSSProperties } from 'react';
@@ -39,7 +39,7 @@ export function MuroBook({ className = '', style }: { className?: string; style?
                     <div key={c} className="pel-muro__columna" data-ritmo={c % 2 ? 'lento' : 'rapido'}>
                         {fotos.map((f) => (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img key={f} src={'/trabajos/muro/' + f + '.webp'} alt="" loading="lazy" decoding="async" width={300} height={450} />
+                            <img key={f} src={'/trabajos/muro/' + f + '.webp'} alt="" loading="lazy" decoding="async" width={1000} height={1500} />
                         ))}
                     </div>
                 ))}
