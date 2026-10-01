@@ -507,3 +507,15 @@ completa, porque la cabecera y el menú de claqueta ya cumplen ese papel; los
 paneles de letras que giran, porque la página ya tiene su efecto de texto (el
 oro); testimonios, logos y cifras, porque sólo valen con contenido real.
 
+## La portada nueva (01/10/2026)
+
+La propuesta probada en /propuesta pasó a ser la portada (/propuesta ahora
+redirige a /). Orden: cabecera con el vídeo del nombre y la claqueta en oro →
+el principio en galería con la columna central fija (`propuesta/inicio-galeria.tsx`
+sobre `ui/sticky-scroll.tsx`) → EL BOOK en su marco con el Relevo
+(`propuesta/book-opciones.tsx`, ancla #metodo) → LA ESCENA y EL SELF‑TAPE
+(`Metodo sinBook`) → Estudios → Laboratorio → Preguntas → cierre. Fondo: la
+placa antigua bajo un velo de 0,12 (`.pel--placa`), con penumbra propia
+detrás del bloque del titular. Medido con scripts/contraste-sobre-fondo.mjs:
+249 textos, todos pasan.
+

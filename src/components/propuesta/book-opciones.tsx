@@ -184,7 +184,7 @@ export function MarcoBook({ opcion }: { opcion: 1 | 2 | 3 }) {
     const y = useTransform(scrollYProgress, [0, 1], [60, 0]);
 
     return (
-        <div className="relative z-10 px-2 pb-2 md:px-4 md:pb-4">
+        <div id="metodo" className="relative z-10 scroll-mt-4 px-2 pb-2 md:px-4 md:pb-4">
             <motion.section
                 ref={ref}
                 id="book"

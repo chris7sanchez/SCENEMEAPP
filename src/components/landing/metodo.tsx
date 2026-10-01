@@ -74,11 +74,18 @@ const TOMAS = [
     },
 ];
 
-export function Metodo() {
-    const { activo, registrar } = useVentanilla(TOMAS.length);
+/**
+ * `sinBook`: en la portada, EL BOOK va antes, en su marco (MarcoBook), así que
+ * aquí sólo quedan LA ESCENA y EL SELF-TAPE. Entonces la sección no lleva el
+ * id «metodo»: el ancla del menú apunta al principio del Método, que es el
+ * marco del book.
+ */
+export function Metodo({ sinBook = false }: { sinBook?: boolean } = {}) {
+    const tomas = sinBook ? TOMAS.filter((t) => t.id !== 'book') : TOMAS;
+    const { activo, registrar } = useVentanilla(tomas.length);
 
     return (
-        <section id="metodo" className="relative">
+        <section id={sinBook ? undefined : 'metodo'} className="relative">
             <div className="pel-grano" />
 
             <div className="relative z-10 flex">
@@ -104,7 +111,7 @@ export function Metodo() {
                         medio, teñida de ese ámbar, para que las tres se lean
                         como tres cosas (.pel-toma-banda en pelicula.css). */}
                     <div className="-mx-6 flex flex-col sm:-mx-10 lg:-mx-14">
-                        {TOMAS.map((toma, i) => (
+                        {tomas.map((toma, i) => (
                             <article
                                 key={toma.id}
                                 id={toma.id}

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 
 import '@/components/landing/pelicula.css';
-import { Hero } from '@/components/landing/hero';
 import { Presentacion } from '@/components/landing/presentacion';
 import { ClaquetaMenu } from '@/components/landing/claqueta-menu';
 import { Metodo } from '@/components/landing/metodo';
@@ -9,6 +8,8 @@ import { Estudios } from '@/components/landing/estudios';
 import { Laboratorio } from '@/components/landing/laboratorio';
 import { Preguntas } from '@/components/landing/preguntas';
 import { Cierre } from '@/components/landing/cierre';
+import { InicioGaleria } from '@/components/propuesta/inicio-galeria';
+import { MarcoBook } from '@/components/propuesta/book-opciones';
 
 export const metadata: Metadata = {
     title: 'SCENE ME — Un studio para el actor',
@@ -29,11 +30,17 @@ export const metadata: Metadata = {
  * está prohibido inventar— está en PRODUCT.md. Léelos antes de tocar esto.
  *
  * El landing anterior está entero en _PARKING/landing-anterior-2026-09-26/.
+ *
+ * 01/10/2026: la propuesta que se probó en /propuesta pasa a ser la portada
+ * (Christian): fondo de placa antigua (.pel--placa), claqueta en oro, el
+ * principio en galería con la columna central fija (InicioGaleria) y EL BOOK
+ * en su marco, con el Relevo. Detrás, el resto del Método (la escena y el
+ * self-tape), los Estudios, el Laboratorio, las Preguntas y el cierre.
  */
 
 export default function Portada() {
     return (
-        <div className="pel min-h-screen">
+        <div className="pel pel--placa min-h-screen">
 
             <script
                 type="application/ld+json"
@@ -66,11 +73,11 @@ export default function Portada() {
             */}
             <header className="relative z-30">
                 <Presentacion />
-                <ClaquetaMenu />
+                <ClaquetaMenu variante="oro" />
             </header>
 
-            <Hero />
-            <Metodo />
+            <InicioGaleria final={<MarcoBook opcion={3} />} />
+            <Metodo sinBook />
             <Estudios />
             <Laboratorio />
             <Preguntas />
