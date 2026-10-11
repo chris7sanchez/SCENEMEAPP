@@ -23,7 +23,8 @@ export function rutaDeAudio(proveedor: string, clave: string): string {
 }
 
 export interface AlmacenAudio {
-    leer(ruta: string): Promise<Uint8Array | null>;
+    /** `<ArrayBuffer>` porque Response no acepta bytes sobre memoria compartida (TS 5.9). */
+    leer(ruta: string): Promise<Uint8Array<ArrayBuffer> | null>;
     guardar(ruta: string, audio: Uint8Array): Promise<void>;
 }
 
