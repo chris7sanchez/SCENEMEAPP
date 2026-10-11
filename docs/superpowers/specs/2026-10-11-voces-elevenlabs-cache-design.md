@@ -150,7 +150,10 @@ voces_disenadas/<voiceId>    { uid, descripcion, genero: 'f'|'m', creada: Timest
 6. El personaje queda con esa voz. En otros ensayos aparece en "Mis voces".
 
 Si la voz de un personaje ya no existe (fue liberada), el reproductor le asigna
-una del catálogo del mismo género con `repartirVoces` y muestra un aviso.
+una del catálogo del mismo género con `repartirVoces` (comportamiento actual del
+reparto: solo valen voces que existen en el motor elegido). Sin aviso: el
+reparto guarda voces de todos los motores y no se puede distinguir una voz
+liberada de una de otro motor sin falsos avisos.
 
 ## 7. Errores
 
