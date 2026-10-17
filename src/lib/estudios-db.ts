@@ -51,6 +51,10 @@ export interface Guion {
     autor?: string;
     enlace?: string;
     texto?: string;
+    /** Qué escena del guion es este fragmento ("12. INT. COCINA - NOCHE"). */
+    escena?: string;
+    /** De qué hemeroteca salió (bloguionistas, aprendercine…). */
+    fuente?: string;
     creado: number;
 }
 

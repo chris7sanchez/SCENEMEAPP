@@ -6,11 +6,14 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import NavEstudios from '@/components/NavEstudios';
+import BuscadorGuiones from '@/components/estudios/BuscadorGuiones';
+import { prepararEnsayo } from '@/lib/ensayar';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search, Star, Users, Clapperboard, FileText, Plus, Trash2,
-    Play, ExternalLink, X, Loader2, ArrowLeft,
+    Play, ExternalLink, X, Loader2, ArrowLeft, Mic,
 } from 'lucide-react';
 import {
     listar, guardar, nuevoId, buscarPeliculas, SinClaveError,
@@ -64,6 +67,7 @@ const PESTANAS: { id: Coleccion; label: string; icono: React.ElementType }[] = [
 ];
 
 export default function EstudiosPage() {
+    const router = useRouter();
     const [uid, setUid] = useState<string | null>(null);
     const [pestana, setPestana] = useState<Coleccion>('favoritas');
     const [favoritas, setFavoritas] = useState<Pelicula[]>([]);
@@ -104,6 +108,13 @@ export default function EstudiosPage() {
     }, [uid]);
 
     const total = favoritas.length + personajes.length + escenas.length + guiones.length;
+
+    /** Una ficha de guion con texto se convierte en ensayo y se abre en el Plató. */
+    const ensayarGuion = async (g: Guion) => {
+        if (!g.texto) return;
+        const ruta = await prepararEnsayo(uid, `${g.titulo}${g.escena ? ' · ' + g.escena : ''}`, g.texto);
+        router.push(ruta);
+    };
 
     return (
         <main className="cinemateca min-h-screen bg-[var(--cin-bg)] text-[var(--cin-body)]">
@@ -195,27 +206,43 @@ export default function EstudiosPage() {
                                     )} />
                             )}
                             {pestana === 'guiones' && (
-                                <Fichas<Guion> uid={uid} coleccion="guiones" items={guiones} setItems={setGuiones}
-                                    vacio="Ningún guion guardado todavía."
-                                    campos={[
-                                        { k: 'titulo', label: 'Título', requerido: true },
-                                        { k: 'autor', label: 'Autor' },
-                                        { k: 'enlace', label: 'Enlace al PDF o web' },
-                                        { k: 'texto', label: 'Fragmento o notas', largo: true },
-                                    ]}
-                                    render={(g) => (
-                                        <>
-                                            <h3 className="cin-display text-lg text-[var(--cin-ink)]">{g.titulo}</h3>
-                                            {g.autor && <p className="text-sm text-[var(--cin-accent)]">{g.autor}</p>}
-                                            {g.texto && <p className="mt-2 line-clamp-6 whitespace-pre-line text-sm leading-relaxed text-[var(--cin-dim)]">{g.texto}</p>}
-                                            {g.enlace && (
-                                                <a href={g.enlace} target="_blank" rel="noopener noreferrer"
-                                                    className="mt-3 inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[var(--cin-accent)] hover:text-[var(--cin-accent-dark)]">
-                                                    <ExternalLink className="h-3.5 w-3.5" /> Abrir guion
-                                                </a>
-                                            )}
-                                        </>
-                                    )} />
+                                <>
+                                    <BuscadorGuiones uid={uid} onGuardado={async (g) => {
+                                        const nuevos = [g, ...guiones];
+                                        setGuiones(nuevos);
+                                        await guardar(uid, 'guiones', nuevos);
+                                    }} />
+                                    <Fichas<Guion> uid={uid} coleccion="guiones" items={guiones} setItems={setGuiones}
+                                        vacio="Ningún guion guardado todavía. Busca uno arriba o añade el tuyo."
+                                        campos={[
+                                            { k: 'titulo', label: 'Título', requerido: true },
+                                            { k: 'autor', label: 'Autor' },
+                                            { k: 'enlace', label: 'Enlace al PDF o web' },
+                                            { k: 'texto', label: 'Fragmento o notas', largo: true },
+                                        ]}
+                                        render={(g) => (
+                                            <>
+                                                <h3 className="cin-display text-lg text-[var(--cin-ink)]">{g.titulo}</h3>
+                                                {g.autor && <p className="text-sm text-[var(--cin-accent)]">{g.autor}</p>}
+                                                {g.escena && <p className="mt-1 font-mono text-[11px] uppercase tracking-wider text-[var(--cin-dim)]">{g.escena}</p>}
+                                                {g.texto && <p className="mt-2 line-clamp-6 whitespace-pre-line font-mono text-[13px] leading-relaxed text-[var(--cin-body)]">{g.texto}</p>}
+                                                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+                                                    {g.texto && (
+                                                        <button type="button" onClick={() => ensayarGuion(g)}
+                                                            className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[var(--cin-accent)] hover:text-[var(--cin-accent-dark)]">
+                                                            <Mic className="h-3.5 w-3.5" /> Ensayar en el Plató
+                                                        </button>
+                                                    )}
+                                                    {g.enlace && (
+                                                        <a href={g.enlace} target="_blank" rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[var(--cin-dim)] hover:text-[var(--cin-ink)]">
+                                                            <ExternalLink className="h-3.5 w-3.5" /> Original
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )} />
+                                </>
                             )}
                         </motion.div>
                     </AnimatePresence>

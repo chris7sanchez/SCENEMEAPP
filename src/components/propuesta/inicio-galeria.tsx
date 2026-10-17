@@ -56,7 +56,7 @@ function Caja({ codigo, children, alta = false }: { codigo: string; children: Re
 }
 
 const intro = (
-    <div className="pel-sobre-placa flex flex-col items-center gap-4 px-6 text-center">
+    <div className="pel-sobre-placa flex flex-col items-center gap-2 px-6 text-center">
         <AnimatedText
             as="h1"
             text={
@@ -73,13 +73,12 @@ const intro = (
         <p className="pel-titulo-seccion whitespace-nowrap text-[clamp(0.9375rem,1.7vw,1.5rem)] text-[var(--pel-emulsion)]">
             Tu book, tu escena y tu self‑tape
         </p>
-        <p className="pel-cuerpo max-w-[46ch] text-balance text-[1.0625rem] lg:text-[1.1875rem]">
+        {/* 17/10/2026 (Christian): la cabecera ocupa SOLO el titular, el
+            subtítulo y esta frase, en letra pequeña. Fuera el «Baja y míralo». */}
+        {/* !: .pel-cuerpo fija 1.0625rem en pelicula.css y pisaba la utilidad. */}
+        <p className="pel-cuerpo max-w-[52ch] text-balance !text-[0.875rem] !leading-snug text-[var(--pel-margen)] lg:!text-[0.9375rem]">
             La forma más cómoda, rápida y profesional para rodar{' '}
             <strong className="font-semibold uppercase tracking-[0.02em] text-[var(--pel-emulsion)]">tu mejor</strong> material.
-        </p>
-        <p className="mt-6 flex flex-col items-center gap-2 text-[0.75rem] uppercase tracking-[0.24em] text-[var(--pel-margen)]">
-            Baja y míralo
-            <span aria-hidden="true" className="block h-10 w-px bg-gradient-to-b from-[var(--pel-margen)] to-transparent" />
         </p>
     </div>
 );

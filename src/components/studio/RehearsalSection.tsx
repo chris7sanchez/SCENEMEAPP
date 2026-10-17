@@ -10,6 +10,7 @@ import {
     type GuionEnsayo,
 } from '@/lib/rehearsal-db';
 import { parsePdfAction } from '@/ai/parse-pdf';
+import { PARAM_ENSAYO } from '@/lib/ensayar';
 
 /** Resumen barato de un guion para la lista: escenas y reparto. */
 function resumen(texto: string): { escenas: number; personajes: string[] } {
@@ -42,7 +43,17 @@ export default function RehearsalSection({ dateKey }: { dateKey: string }) {
         (async () => {
             try {
                 const items = await listarGuiones(uid);
-                if (!cancelado) setGuiones(items);
+                if (cancelado) return;
+                setGuiones(items);
+                // Si se viene de la Sala de producción con una escena recién
+                // guardada (/studio?ensayo=<id>), se abre directamente en el
+                // reproductor y se limpia la URL para que recargar no lo reabra.
+                const pedido = new URLSearchParams(window.location.search).get(PARAM_ENSAYO);
+                if (pedido) {
+                    const g = items.find(x => x.id === pedido);
+                    if (g) setEnEnsayo(g);
+                    window.history.replaceState(null, '', window.location.pathname);
+                }
             } finally {
                 if (!cancelado) setCargando(false);
             }
