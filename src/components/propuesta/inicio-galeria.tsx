@@ -29,7 +29,10 @@ function Foto({ n, alt = 'Retrato de book actoral realizado en SCENE ME', alta =
     return (
         <figure className={`pel-fotograma w-full ${alta ? 'h-full min-h-64' : alto}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={'/trabajos/web/' + n + '.webp'} alt={alt} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+            {/* Las fotos son retratos 2:3 en cajas casi cuadradas: recortadas
+                por el centro perdían media cabeza. Ancladas arriba, el recorte
+                se lo lleva el cuerpo, nunca la cara. */}
+            <img src={'/trabajos/web/' + n + '.webp'} alt={alt} loading="lazy" decoding="async" className="h-full w-full object-cover object-top" />
         </figure>
     );
 }
@@ -37,7 +40,7 @@ function Foto({ n, alt = 'Retrato de book actoral realizado en SCENE ME', alta =
 function Video({ nombre, alta = false }: { nombre: string; alta?: boolean }) {
     return (
         <figure className={`pel-fotograma w-full ${alta ? 'h-full min-h-64' : alto}`} aria-hidden="true">
-            <LazyVideo src={'/videos/' + nombre + '-loop.mp4'} poster={'/videos/' + nombre + '-loop-poster.jpg'} className="h-full w-full object-cover" />
+            <LazyVideo src={'/videos/' + nombre + '-loop.mp4'} poster={'/videos/' + nombre + '-loop-poster.jpg'} className="h-full w-full object-cover object-top" />
         </figure>
     );
 }
