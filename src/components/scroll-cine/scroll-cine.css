@@ -1,0 +1,285 @@
+/* EL SCROLL CINEMATOGRÁFICO: ver ScrollCine.tsx para el recorrido.
+   Paleta de la marca: oro del logo #E4C46C, tinta #F2EFE8, emulsión #BFB8AB,
+   fondo cálido casi negro. Archivo 800 para rótulos, como en el resto de la landing. */
+
+.sc-seccion {
+    --sc-oro: #E4C46C;
+    --sc-tinta: #F2EFE8;
+    --sc-emulsion: #BFB8AB;
+    --sc-leader: #0E0A04;
+    position: relative;
+    height: 560vh;
+    background: var(--sc-leader);
+    color: var(--sc-emulsion);
+}
+.sc-seccion.sc-quieto { height: auto; }
+
+.sc-escenario {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    width: 100%;
+    overflow: hidden;
+    background: var(--sc-leader);
+    isolation: isolate;
+}
+.sc-quieto .sc-escenario { position: relative; min-height: 100svh; }
+
+.sc-lienzo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity .6s;
+    will-change: transform;
+    transform-origin: 50% 55%;
+}
+.sc-lienzo.sc-listo { opacity: 1; }
+
+/* un velo fijo en los bordes: asienta el vídeo en el fondo y da donde apoyar el texto */
+.sc-velo {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background:
+        radial-gradient(120% 90% at 50% 45%, transparent 45%, rgba(14, 10, 4, .70) 100%),
+        linear-gradient(180deg, rgba(14, 10, 4, .55), transparent 22%, transparent 70%, rgba(14, 10, 4, .88));
+}
+.sc-oscuro {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    background: radial-gradient(90% 80% at 50% 45%, rgba(14, 10, 4, .55), rgba(14, 10, 4, .95));
+    opacity: 0;
+}
+
+/* perforaciones de película en los lados: avanzan con el scroll */
+.sc-perfo {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 22px;
+    z-index: 6;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, transparent 0 14px, rgba(14, 10, 4, .95) 14px 30px, transparent 30px 44px);
+    background-color: rgba(228, 196, 108, .08);
+    border-inline: 1px solid rgba(228, 196, 108, .16);
+}
+.sc-perfo-izq { left: max(0px, env(safe-area-inset-left, 0px)); }
+.sc-perfo-der { right: max(0px, env(safe-area-inset-right, 0px)); }
+@media (max-width: 700px) { .sc-perfo { width: 12px; } }
+
+/* texto */
+.sc-texto {
+    position: absolute;
+    z-index: 8;
+    opacity: 0;
+    will-change: opacity, transform;
+}
+.sc-quieto .sc-texto { position: relative; opacity: 1; }
+
+.sc-def {
+    margin: 0;
+    left: max(40px, calc(env(safe-area-inset-left, 0px) + 40px));
+    bottom: 11%;
+    max-width: min(34ch, 80vw);
+    font: 500 clamp(18px, 2.2vw, 30px)/1.3 'Archivo', system-ui, sans-serif;
+    text-shadow: 0 2px 18px rgba(14, 10, 4, .9);
+}
+.sc-def1 { color: #B3AB9C; }
+.sc-def2 { color: var(--sc-tinta); font-weight: 600; }
+
+.sc-titulo {
+    left: max(40px, calc(env(safe-area-inset-left, 0px) + 40px));
+    top: 9%;
+    max-width: min(560px, 86vw);
+}
+.sc-titulo h2 {
+    margin: 0;
+    font: 800 clamp(40px, 6.4vw, 96px)/.92 'Archivo', system-ui, sans-serif;
+    font-variation-settings: 'wdth' 65, 'wght' 800;
+    text-transform: uppercase;
+    color: var(--sc-tinta);
+    text-shadow: 0 4px 30px rgba(14, 10, 4, .85);
+}
+.sc-titulo h2 em {
+    display: inline-block;
+    margin-top: .12em;
+    font-style: normal;
+    text-transform: none;
+    font-size: .62em;
+    font-variation-settings: 'wdth' 72, 'wght' 800;
+}
+.sc-oro { color: var(--sc-oro); }
+.sc-titulo p {
+    margin: 14px 0 0;
+    font: 800 clamp(15px, 1.7vw, 22px)/1 'Archivo', system-ui, sans-serif;
+    font-variation-settings: 'wdth' 65, 'wght' 800;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: var(--sc-emulsion);
+    text-shadow: 0 2px 14px rgba(14, 10, 4, .9);
+}
+
+/* fotos: tres columnas inclinadas en 3D */
+.sc-fotos {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    opacity: 0;
+    pointer-events: none;
+    perspective: 1300px;
+    /* las fotos se apagan en el tercio de abajo: ahí viven los rótulos de las
+       tomas y el texto no puede ir sobre una foto */
+    -webkit-mask-image: linear-gradient(#000 0 62%, transparent 76%);
+    mask-image: linear-gradient(#000 0 62%, transparent 76%);
+}
+.sc-fotos-3d {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(8deg);
+}
+.sc-col {
+    position: absolute;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    will-change: transform;
+    transform: translate3d(0, 110vh, 0);
+}
+.sc-col-0 { left: 6%; width: 24%; }
+.sc-col-1 { left: 36%; width: 28%; }
+.sc-col-2 { right: 6%; width: 24%; }
+.sc-col figure {
+    margin: 0;
+    aspect-ratio: 3 / 4;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(228, 196, 108, .22);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, .6);
+    background: #141008;
+}
+.sc-col figure.sc-ap { aspect-ratio: 16 / 10; }
+.sc-col img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    object-position: top;     /* nunca cortar la cabeza */
+}
+@media (max-width: 760px) {
+    .sc-col-0 { left: 5%; width: 42%; }
+    .sc-col-1 { left: auto; right: 5%; width: 42%; }
+    .sc-col-2 { display: none; }
+}
+
+/* rótulos de las tomas: abajo, sobre un degradado */
+.sc-tomas { position: absolute; inset: auto 0 0 0; height: 34%; z-index: 7; pointer-events: none; background: linear-gradient(transparent, rgba(14, 10, 4, .94) 55%); }
+.sc-quieto .sc-tomas { position: relative; height: auto; background: none; }
+.sc-toma {
+    left: max(40px, calc(env(safe-area-inset-left, 0px) + 40px));
+    bottom: 9%;
+    max-width: min(46ch, 86vw);
+}
+.sc-codigo {
+    display: block;
+    margin-bottom: 8px;
+    font: 600 11px/1 'Archivo', system-ui, sans-serif;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--sc-oro);
+}
+.sc-toma p {
+    margin: 0;
+    font: 400 clamp(15px, 1.5vw, 19px)/1.55 'Archivo', system-ui, sans-serif;
+    color: var(--sc-tinta);
+    text-shadow: 0 2px 14px rgba(14, 10, 4, .9);
+}
+
+/* cierre */
+.sc-cierre {
+    position: absolute;
+    inset: 0;
+    z-index: 9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 0 20px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    background: radial-gradient(70% 60% at 50% 50%, rgba(14, 10, 4, .82), rgba(14, 10, 4, .25) 80%, transparent);
+}
+.sc-quieto .sc-cierre { position: relative; opacity: 1; pointer-events: auto; padding-block: 56px; }
+.sc-cierre h2 {
+    margin: 0;
+    font: 800 clamp(34px, 5vw, 72px)/.95 'Archivo', system-ui, sans-serif;
+    font-variation-settings: 'wdth' 65, 'wght' 800;
+    text-transform: uppercase;
+    color: var(--sc-tinta);
+    text-shadow: 0 4px 30px rgba(14, 10, 4, .9);
+}
+.sc-botones { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.sc-boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 28px;
+    border-radius: 6px;
+    text-decoration: none;
+    font: 800 14px/1 'Archivo', system-ui, sans-serif;
+    font-variation-settings: 'wdth' 72, 'wght' 800;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    border: 1px solid transparent;
+    transition: transform .2s, background .2s, color .2s, border-color .2s;
+}
+.sc-boton:active { transform: translateY(1px) scale(.98); }
+.sc-boton:focus-visible { outline: 2px solid var(--sc-oro); outline-offset: 3px; }
+.sc-primario { background: var(--sc-oro); color: #141413; border-color: var(--sc-oro); }
+.sc-primario:hover { background: #F0D27E; border-color: #F0D27E; }
+.sc-secundario { background: rgba(14, 10, 4, .55); color: var(--sc-tinta); border-color: #8A7A52; }
+.sc-secundario:hover { color: var(--sc-oro); border-color: var(--sc-oro); }
+
+/* reloj y pista */
+.sc-reloj {
+    position: absolute;
+    right: max(44px, calc(env(safe-area-inset-right, 0px) + 44px));
+    bottom: 22px;
+    z-index: 8;
+    font: 500 12px/1 ui-monospace, Menlo, monospace;
+    letter-spacing: .14em;
+    color: #BFB8AB;
+    font-variant-numeric: tabular-nums;
+}
+@media (max-width: 700px) { .sc-reloj { display: none; } }
+.sc-pista {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    z-index: 8;
+    translate: -50% 0;
+}
+.sc-pista span { display: block; width: 1px; height: 44px; background: linear-gradient(var(--sc-oro), transparent); animation: sc-pista 1.8s ease-in-out infinite; }
+@keyframes sc-pista { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .sc-pista span { animation: none; }
+}
+
+/* móvil: los textos suben un poco para dejar sitio a la barra del navegador */
+@media (max-width: 700px) {
+    .sc-def { left: 28px; bottom: 14%; }
+    .sc-titulo { left: 28px; top: 7%; }
+    .sc-toma { left: 28px; bottom: 12%; }
+}
