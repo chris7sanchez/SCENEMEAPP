@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { frenar, errorPublico } from '@/lib/seguridad';
 
 // Genera voz por IA. provider 'openai' (gpt-4o-mini-tts) o 'elevenlabs'
 // (eleven_multilingual_v2). Devuelve audio MP3. Si falta la clave del proveedor,
@@ -23,7 +24,16 @@ function cartesiaEmotion(instr: string): string | undefined {
     return undefined;
 }
 
+// SEGURIDAD (18/10/2026): cada llamada cuesta dinero en OpenAI, ElevenLabs o
+// Cartesia. Un ensayo pide una frase cada pocos segundos; 40 por minuto deja
+// ensayar sin cortes y frena a quien la use como servicio gratis de voces.
+// El id de voz va dentro de la URL del proveedor: se acepta sólo si es un id.
+const ID_DE_VOZ = /^[A-Za-z0-9_-]{1,64}$/;
+
 export async function POST(req: NextRequest) {
+    const frenado = frenar(req, 'tts', 40);
+    if (frenado) return frenado;
+
     let body: any;
     try {
         body = await req.json();
@@ -45,7 +55,7 @@ export async function POST(req: NextRequest) {
             const key = process.env.CARTESIA_API_KEY;
             if (!key) return Response.json({ error: 'no_key', message: 'Falta CARTESIA_API_KEY' }, { status: 503 });
             const voiceId: string = (body?.voice || '').toString();
-            if (!voiceId) return Response.json({ error: 'no_voice', message: 'Falta voz de Cartesia' }, { status: 400 });
+            if (!ID_DE_VOZ.test(voiceId)) return Response.json({ error: 'no_voice', message: 'Falta voz de Cartesia' }, { status: 400 });
             const emotion = cartesiaEmotion(instructions);
             const r = await fetch('https://api.cartesia.ai/tts/bytes', {
                 method: 'POST',
@@ -60,8 +70,8 @@ export async function POST(req: NextRequest) {
                 }),
             });
             if (!r.ok) {
-                const detail = await r.text();
-                return Response.json({ error: 'cartesia_error', status: r.status, detail: detail.slice(0, 300) }, { status: 502 });
+                console.error('[tts] cartesia', r.status, (await r.text()).slice(0, 300));
+                return Response.json({ error: 'cartesia_error', status: r.status }, { status: 502 });
             }
             const audio = await r.arrayBuffer();
             return new Response(audio, { status: 200, headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=86400' } });
@@ -70,7 +80,8 @@ export async function POST(req: NextRequest) {
         if (provider === 'elevenlabs') {
             const key = process.env.ELEVENLABS_API_KEY;
             if (!key) return Response.json({ error: 'no_key', message: 'Falta ELEVENLABS_API_KEY' }, { status: 503 });
-            const voiceId: string = (body?.voice || 'EXAVITQu4vr4xnSDxMaL').toString();
+            const pedida = (body?.voice || '').toString();
+            const voiceId: string = ID_DE_VOZ.test(pedida) ? pedida : 'EXAVITQu4vr4xnSDxMaL';
             const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
                 method: 'POST',
                 headers: { 'xi-api-key': key, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
@@ -81,8 +92,8 @@ export async function POST(req: NextRequest) {
                 }),
             });
             if (!r.ok) {
-                const detail = await r.text();
-                return Response.json({ error: 'elevenlabs_error', status: r.status, detail: detail.slice(0, 300) }, { status: 502 });
+                console.error('[tts] elevenlabs', r.status, (await r.text()).slice(0, 300));
+                return Response.json({ error: 'elevenlabs_error', status: r.status }, { status: 502 });
             }
             const audio = await r.arrayBuffer();
             return new Response(audio, { status: 200, headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=86400' } });
@@ -98,12 +109,12 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify({ model: 'gpt-4o-mini-tts', voice, input: text, instructions: fullInstructions, response_format: 'mp3' }),
         });
         if (!r.ok) {
-            const detail = await r.text();
-            return Response.json({ error: 'openai_error', status: r.status, detail: detail.slice(0, 300) }, { status: 502 });
+            console.error('[tts] openai', r.status, (await r.text()).slice(0, 300));
+            return Response.json({ error: 'openai_error', status: r.status }, { status: 502 });
         }
         const audio = await r.arrayBuffer();
         return new Response(audio, { status: 200, headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=86400' } });
-    } catch (e: any) {
-        return Response.json({ error: 'fetch_failed', message: e?.message || String(e) }, { status: 502 });
+    } catch (e) {
+        return errorPublico('tts', e, 502, 'fetch_failed');
     }
 }

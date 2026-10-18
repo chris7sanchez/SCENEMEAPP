@@ -1,8 +1,10 @@
 'use server';
 
 import { PDFParse } from 'pdf-parse';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 export async function extractTextFromPdf(formData: FormData): Promise<string> {
+    await frenarAccionIA();
     const file = formData.get('file') as File;
     if (!file) throw new Error('No file provided');
 

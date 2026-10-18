@@ -8,6 +8,7 @@
 // notas con Gemini vía Genkit, como el resto de flujos de la app.
 
 import { getAI, withRetry } from '@/ai/genkit';
+import { frenar } from '@/lib/seguridad';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -15,6 +16,15 @@ export const maxDuration = 60;
 interface Nota { momento: string; observacion: string; sugerencia: string }
 
 export async function POST(req: Request) {
+    // Cada análisis paga Whisper + Gemini. Seis por minuto da para repetir
+    // tomas seguidas y frena a quien la use en bucle.
+    const frenado = frenar(req, 'analyze-take', 6);
+    if (frenado) return frenado;
+    // El tope de tamaño se mira ANTES de leer el formulario entero.
+    if (Number(req.headers.get('content-length') || 0) > 26 * 1024 * 1024) {
+        return Response.json({ error: 'muy_grande', message: 'La toma supera los 25 MB. Graba un fragmento más corto.' }, { status: 413 });
+    }
+
     let form: FormData;
     try {
         form = await req.formData();
@@ -23,11 +33,14 @@ export async function POST(req: Request) {
     }
 
     const media = form.get('media');
-    const guion = String(form.get('guion') ?? '').trim();
-    const personaje = String(form.get('personaje') ?? '').trim();
+    const guion = String(form.get('guion') ?? '').trim().slice(0, 20_000);
+    const personaje = String(form.get('personaje') ?? '').trim().slice(0, 100);
 
     if (!(media instanceof File) || media.size === 0) {
         return Response.json({ error: 'sin_toma', message: 'No llegó ningún archivo de vídeo o audio.' }, { status: 400 });
+    }
+    if (media.type && !/^(audio|video)\//.test(media.type)) {
+        return Response.json({ error: 'tipo', message: 'El archivo tiene que ser de vídeo o de audio.' }, { status: 415 });
     }
     if (media.size > 25 * 1024 * 1024) {
         return Response.json({ error: 'muy_grande', message: 'La toma supera los 25 MB. Graba un fragmento más corto.' }, { status: 413 });

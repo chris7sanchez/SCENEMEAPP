@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { frenar } from '@/lib/seguridad';
 import { construirPrompt, type Carta3DInput } from '@/lib/carta3d/prompt-builder';
 import { generarImagenControl } from '@/lib/carta3d/control-image';
 
@@ -14,9 +15,13 @@ const POLL_MS = 2000;
 /** Consulta el estado de un render lanzado (respuesta 202 del POST). */
 export async function GET(req: NextRequest) {
     const id = req.nextUrl.searchParams.get('id');
-    if (!id) {
+    // El id va dentro de la URL de Replicate con nuestro token: sólo un id de
+    // verdad (letras y números), nunca `../` ni otra ruta de su API.
+    if (!id || !/^[a-z0-9]{10,64}$/i.test(id)) {
         return NextResponse.json({ error: 'Falta ?id=' }, { status: 400 });
     }
+    const frenado = frenar(req, 'carta-3d-estado', 60);
+    if (frenado) return frenado;
     if (!process.env.REPLICATE_API_TOKEN) {
         return NextResponse.json({ error: 'Falta REPLICATE_API_TOKEN' }, { status: 503 });
     }
@@ -38,10 +43,14 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+    // Cada render se paga en Replicate: 3 por cada 10 minutos y persona.
+    const frenado = frenar(req, 'carta-3d', 3, 10 * 60_000);
+    if (frenado) return frenado;
     try {
         const carta = (await req.json()) as Carta3DInput;
 
-        if (!carta?.planets?.length || typeof carta.ascendant !== 'number') {
+        if (!Array.isArray(carta?.planets) || !carta.planets.length || carta.planets.length > 20
+            || typeof carta.ascendant !== 'number') {
             return NextResponse.json(
                 { error: 'Faltan planets[] o ascendant en el cuerpo de la petición' },
                 { status: 400 },
@@ -133,7 +142,7 @@ export async function POST(req: NextRequest) {
     } catch (e) {
         console.error('API carta-3d:', e);
         return NextResponse.json(
-            { status: 'error', error: e instanceof Error ? e.message : 'Error interno' },
+            { status: 'error', error: 'Error interno' },
             { status: 500 },
         );
     }

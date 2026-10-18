@@ -1,28 +1,30 @@
 import { NextResponse } from 'next/server';
-import * as admin from 'firebase-admin';
+import { createHash, timingSafeEqual } from 'node:crypto';
+import { admin, ensureAdmin, tieneCredenciales } from '@/lib/firebase-admin';
+import { frenar, errorPublico } from '@/lib/seguridad';
 
-// firebase-admin se inicializa de forma perezosa dentro del handler
-// (evita romper el build cuando no hay service account configurado).
-function ensureAdmin(): boolean {
-    if (admin.apps.length) return true;
-    const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
-    const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-    if (!privateKey || !clientEmail || !projectId) return false;
-    admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId,
-            clientEmail,
-            privateKey: privateKey.replace(/\\n/g, '\n'),
-        }),
-    });
-    return true;
+// La contraseña maestra del panel de administración.
+//
+// SEGURIDAD (18/10/2026):
+// - Tope de 8 intentos cada 15 minutos por persona: antes se podían probar
+//   contraseñas sin fin, y acertar da acceso de administrador a toda la base.
+// - Comparación en tiempo constante (timingSafeEqual sobre el hash), para que
+//   el tiempo de respuesta no dé pistas de cuántas letras se han acertado.
+// - Los errores ya no devuelven el detalle interno.
+
+function igualesEnTiempoConstante(a: string, b: string): boolean {
+    const ha = createHash('sha256').update(a).digest();
+    const hb = createHash('sha256').update(b).digest();
+    return timingSafeEqual(ha, hb);
 }
 
 export async function POST(req: Request) {
+    const frenado = frenar(req, 'admin-password', 8, 15 * 60_000);
+    if (frenado) return frenado;
+
     try {
         const body = await req.json();
-        const { password } = body;
+        const password = typeof body?.password === 'string' ? body.password.slice(0, 256) : '';
 
         const masterPassword = process.env.ADMIN_PASSWORD;
 
@@ -30,18 +32,16 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Admin password not configured' }, { status: 500 });
         }
 
-        if (password === masterPassword) {
-            if (!ensureAdmin()) {
+        if (password && igualesEnTiempoConstante(password, masterPassword)) {
+            if (!tieneCredenciales() || !ensureAdmin()) {
                 return NextResponse.json({ error: 'Firebase admin no configurado' }, { status: 500 });
             }
             // Token personalizado para que el cliente se autentique en Firestore con permisos
             const customToken = await admin.auth().createCustomToken('admin-dashboard');
             return NextResponse.json({ success: true, token: customToken });
-        } else {
-            return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
         }
-    } catch (error: any) {
-        console.error("Auth error:", error);
-        return NextResponse.json({ error: 'Internal server error: ' + error.message }, { status: 500 });
+        return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
+    } catch (error) {
+        return errorPublico('admin/verify-password', error);
     }
 }

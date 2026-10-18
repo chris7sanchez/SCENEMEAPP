@@ -3,6 +3,7 @@
 import { AnalyzeCharacterInput, AnalyzeCharacterOutput } from './schemas';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
 import { CHARACTER_RUBRIC, STYLE_CUES, OUTPUT_RULES, formatCustomKnowledge } from './character-rubric';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 // ============================================
 // CHARACTER ANALYZER v3.13.0 — ULTRA RESILIENT
@@ -11,6 +12,7 @@ import { CHARACTER_RUBRIC, STYLE_CUES, OUTPUT_RULES, formatCustomKnowledge } fro
 const PRIMARY_MODEL = 'gemini-flash-lite-latest'; // El mas estable para tu cuenta
 
 export async function analyzeCharacter(input: AnalyzeCharacterInput): Promise<AnalyzeCharacterOutput> {
+    await frenarAccionIA();
     const { scriptSegment, characterName, otherCharacters } = input;
     const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.GENAI_API_KEY || process.env.GOOGLE_API_KEY;
 

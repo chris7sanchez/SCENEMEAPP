@@ -6,6 +6,7 @@ import os from "os";
 import { promisify } from "util";
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegStatic from 'ffmpeg-static';
+import { soloEnDesarrollo } from '@/lib/seguridad';
 
 // Set FFmpeg path globally for fluent-ffmpeg
 ffmpeg.setFfmpegPath(ffmpegStatic!);
@@ -19,6 +20,11 @@ if (!fs.existsSync(TEMP_DIR)) {
 }
 
 export async function POST(req: NextRequest) {
+    // Herramienta de mantenimiento: escribe archivos en el servidor. Sólo en el
+    // ordenador de desarrollo; en la web publicada responde 404.
+    const fuera = soloEnDesarrollo();
+    if (fuera) return fuera as any;
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;

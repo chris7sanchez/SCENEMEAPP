@@ -6,6 +6,7 @@ import { z } from 'genkit';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
 import { ANTIGRAVITY_SYSTEM_PROMPT } from './system-prompt';
 import { INTENTION_TO_ASTRO_MAP } from './intention-mapping';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 // ============================================
 // CHARACTER REFINEMENT v2.0
@@ -20,6 +21,7 @@ type RefineCharacterOutput = z.infer<typeof RefineCharacterOutputSchema>;
  * Re-evaluates Sun, Moon, and Ascendant based on subtext and emotional patterns.
  */
 export async function refineCharacter(input: RefineCharacterInput): Promise<RefineCharacterOutput> {
+    await frenarAccionIA();
     const { name, currentProfile, deepAnalysis } = input;
 
     // Serialize Context

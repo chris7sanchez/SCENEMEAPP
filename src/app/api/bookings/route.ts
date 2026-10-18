@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createPendingBooking, getBusyDates } from '@/lib/google-calendar';
 import { slotToDate } from '@/lib/booking-slots';
 import { signBookingAction } from '@/lib/booking-token';
+import { esEmail, frenar, textoLimpio } from '@/lib/seguridad';
 import { sendBookingEmail, adminNewBookingEmail, clientReceivedEmail, type BookingSummary } from '@/lib/booking-emails';
 
 const SERVICES: Record<string, string> = {
@@ -22,11 +23,20 @@ function labels(startISO: string, durationMin: number, time: string) {
 
 export async function POST(req: Request): Promise<NextResponse> {
     try {
+        // Una persona de verdad pide una reserva, quizá dos. Cada petición crea un
+        // evento en el calendario y manda dos emails: sin tope, un script podía
+        // llenar el calendario y usar la web para mandar correos a cualquiera.
+        const frenado = frenar(req, 'bookings', 5, 10 * 60_000);
+        if (frenado) return frenado as NextResponse;
+
         const body = await req.json();
-        const { name, email, phone, service, date, time, duration } = body || {};
+        const { service, date, time, duration } = body || {};
+        const name = textoLimpio(body?.name, 100);
+        const email = textoLimpio(body?.email, 254);
+        const phone = textoLimpio(body?.phone, 30);
 
         const durationMin = Number(duration);
-        if (!name?.trim() || !email?.includes('@') || !phone?.trim()) {
+        if (!name || !esEmail(email) || !phone) {
             return NextResponse.json({ success: false, error: 'Faltan datos de contacto' }, { status: 400 });
         }
         if (!SERVICES[service] || ![60, 120].includes(durationMin) ||
@@ -49,14 +59,14 @@ export async function POST(req: Request): Promise<NextResponse> {
         }
 
         const event = await createPendingBooking({
-            name: name.trim(), email: email.trim(), phone: phone.trim(),
+            name, email, phone,
             service: SERVICES[service],
             startISO: start.toISOString(), endISO: end.toISOString(),
         });
         if (!event.id) throw new Error('El calendario no devolvió id de evento');
 
         const summary: BookingSummary = {
-            name: name.trim(), email: email.trim(), phone: phone.trim(),
+            name, email, phone,
             service: SERVICES[service], ...labels(start.toISOString(), durationMin, time),
         };
 

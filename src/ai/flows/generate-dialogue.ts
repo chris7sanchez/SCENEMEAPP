@@ -3,10 +3,12 @@
 import { GenerateDialogueInputSchema, GenerateDialogueOutputSchema } from './dialogue-schema';
 import { z } from 'genkit';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 type GenerateDialogueInput = z.infer<typeof GenerateDialogueInputSchema>;
 
 export async function generateDialogue(input: GenerateDialogueInput) {
+    await frenarAccionIA();
     const { ai } = await import('@/ai/genkit');
     const { characterName, astrologicalProfile, psychologicalState, userPrompt, chatHistory } = input;
 

@@ -7,6 +7,7 @@ import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
 
 import fs from 'fs';
 import path from 'path';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 /**
  * Retrieves relevant knowledge snippets from the master grimoire.
@@ -61,6 +62,7 @@ function getGrimoireContext(subject: string, sign?: string, planets: string[] = 
  * Generates a deep, archetypal meditation for Alchimestry view.
  */
 export async function generateDeepAlchimestry(input: AlchimestryDeepAnalysisInput): Promise<AlchimestryDeepAnalysisOutput> {
+    await frenarAccionIA();
     const { userName, subject, sign, planets, context } = input;
 
     const grimoireContext = getGrimoireContext(subject, sign, planets);

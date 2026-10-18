@@ -179,7 +179,9 @@ export default function AdminPage() {
             return;
         }
 
-        const success = await auth.login(email, password);
+        // auth.login devuelve { success }, no un booleano: antes el `if` daba
+        // siempre verdadero y sólo la comprobación del email salvaba el acceso.
+        const { success } = await auth.login(email, password);
         if (success) {
             const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
             if (adminEmail && email.toLowerCase() === adminEmail.toLowerCase()) {
@@ -287,9 +289,11 @@ export default function AdminPage() {
                 lengthString = `${durationMin} to ${durationMax} minutes`;
             }
 
+            // La ruta comprueba en el servidor que quien pide el guion es el admin.
+            const idToken = await firebaseAuth?.currentUser?.getIdToken();
             const response = await fetch('/api/generate-script', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}) },
                 body: JSON.stringify({
                     genre,
                     secondaryGenre: secondaryGenre === "-" ? undefined : secondaryGenre,
@@ -308,7 +312,7 @@ export default function AdminPage() {
 
             if (result.error) {
                 console.error("Server Error:", result.error);
-                setErrorMessages(prev => { const n = [...prev]; n[index] = result.error || "Error desconocido"; return n; });
+                setErrorMessages(prev => { const n = [...prev]; n[index] = result.message || result.error || "Error desconocido"; return n; });
                 return;
             }
 

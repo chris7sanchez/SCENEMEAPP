@@ -1,0 +1,53 @@
+rules_version = '2';
+
+// REGLAS DE LOS ARCHIVOS (Firebase Storage) — 18/10/2026
+//
+// Hasta ahora estas reglas no estaban en el proyecto: vivían sólo en la consola
+// de Firebase y nadie las revisaba. Recogen exactamente lo que sube la app:
+//
+//   submissions/{uid}/{fecha}/{ts}_{nombre}   tomas del Studio (studio-db.ts)
+//   users/{uid}/avatar.{ext}                  foto de perfil (storage.ts)
+//   users/{uid}/photos/{nombre}               fotos del perfil (profile-form.tsx)
+//   users/{uid}/videos/{nombre}               vídeo del perfil (profile-form.tsx)
+//   users/{uid}/scenes/{escena}/{archivo}     material de escena (storage.ts)
+//
+// Cada uno sólo escribe en SU carpeta, sólo imágenes, vídeo, audio o PDF, y con
+// tope de tamaño. Leer pide sesión. (Los vídeos de la Sala de visionado se ven
+// con su enlace de descarga, que lleva su propio permiso: no dependen de esto.)
+// Todo lo demás, cerrado.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function esDueno(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // octet-stream: algunos navegadores no saben el tipo de un .mov o .mkv y lo
+    // suben así; cerrarlo rompería subidas legítimas.
+    function tipoPermitido() {
+      return request.resource.contentType.matches('(image|video|audio)/.*')
+        || request.resource.contentType == 'application/pdf'
+        || request.resource.contentType == 'application/octet-stream';
+    }
+
+    // 1 GB: una toma larga grabada con el móvil en 4K puede pesar mucho.
+    function tamanoPermitido() {
+      return request.resource.size < 1024 * 1024 * 1024;
+    }
+
+    match /submissions/{uid}/{resto=**} {
+      allow read: if request.auth != null;
+      allow create, update: if esDueno(uid) && tamanoPermitido()
+        && (request.resource.contentType.matches('(video|audio)/.*')
+          || request.resource.contentType == 'application/octet-stream');
+      allow delete: if esDueno(uid);
+    }
+
+    match /users/{uid}/{resto=**} {
+      allow read: if request.auth != null;
+      allow create, update: if esDueno(uid) && tamanoPermitido() && tipoPermitido();
+      allow delete: if esDueno(uid);
+    }
+  }
+}

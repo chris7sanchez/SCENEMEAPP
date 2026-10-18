@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { soloEnDesarrollo } from '@/lib/seguridad';
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'custom-knowledge.json');
 
@@ -17,6 +18,11 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+    // Herramienta de mantenimiento: escribe archivos en el servidor. Sólo en el
+    // ordenador de desarrollo; en la web publicada responde 404.
+    const fuera = soloEnDesarrollo();
+    if (fuera) return fuera as any;
+
     try {
         const body = await req.json();
 

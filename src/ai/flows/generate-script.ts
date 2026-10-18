@@ -1,6 +1,7 @@
 'use server';
 
 import { getAI } from '@/ai/genkit';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 export interface ScriptInput {
     language?: string;
@@ -22,6 +23,7 @@ export interface ScriptInput {
  * Optimizado para usar Vertex AI si está configurado (evita errores 429).
  */
 export async function generateScript(input: ScriptInput): Promise<{ script?: string, error?: string }> {
+    await frenarAccionIA();
     try {
         console.log("[AI Flow] Iniciando generación de guion con Engine centralizado...");
         

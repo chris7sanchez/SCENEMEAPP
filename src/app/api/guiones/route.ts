@@ -30,7 +30,7 @@ export async function GET(req: Request) {
     const id = searchParams.get('id');
 
     if (q !== null) {
-        return NextResponse.json({ resultados: buscarGuiones(q, LISTA) });
+        return NextResponse.json({ resultados: buscarGuiones(q.slice(0, 200), LISTA) });
     }
 
     if (!id) return NextResponse.json({ error: 'Falta q o id' }, { status: 400 });
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
     } catch (e) {
         const msg = e instanceof Error ? e.message : 'error desconocido';
         console.error('[guiones] no se pudo leer', g.url, msg);
-        return NextResponse.json({ error: `No se pudo descargar el guion (${msg})` }, { status: 502 });
+        return NextResponse.json({ error: 'No se pudo descargar el guion. Prueba otra vez en un momento.' }, { status: 502 });
     }
 }
 

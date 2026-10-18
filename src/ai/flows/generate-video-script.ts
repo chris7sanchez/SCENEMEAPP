@@ -1,6 +1,7 @@
 'use server';
 
 import { getAI } from '@/ai/genkit';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 export interface ScriptInput {
     language?: string;
@@ -21,6 +22,7 @@ export interface ScriptInput {
  * Restaurado con diagnósticos avanzados para producción.
  */
 export async function generateVideoScript(input: ScriptInput): Promise<{ script?: string, error?: string }> {
+    await frenarAccionIA();
     try {
         console.log("[AI Flow] Iniciando generación con Genkit Engine...");
 

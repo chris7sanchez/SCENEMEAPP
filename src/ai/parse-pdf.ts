@@ -2,6 +2,7 @@
 
 import PDFParser from 'pdf2json';
 import { reconstruirPagina, pareceDeletreado, type TrozoPdf } from '@/lib/pdf-texto';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 // Sacar el texto de un PDF, con DOS motores y en este orden:
 //
@@ -94,6 +95,7 @@ export async function parsePdfBuffer(buffer: Buffer): Promise<string> {
 }
 
 export async function parsePdfAction(formData: FormData): Promise<{ text: string; error?: string }> {
+    await frenarAccionIA();
     try {
         const file = formData.get('file') as File | null;
         if (!file) throw new Error('No se recibió ningún archivo');

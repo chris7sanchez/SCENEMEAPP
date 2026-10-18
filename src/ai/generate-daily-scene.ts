@@ -2,6 +2,7 @@
 
 import type { DailyScene } from '@/lib/daily-scene';
 import { isValidScene } from '@/lib/daily-scene';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 // ============================================
 // GENERADOR DE LA ESCENA DEL DÍA (REST directo a Gemini)
@@ -32,6 +33,7 @@ function vibeForKey(dateKey: string): string {
 }
 
 export async function generateDailyScene(dateKey: string): Promise<DailyScene> {
+    await frenarAccionIA();
     const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.GENAI_API_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) return fallbackScene('Falta API Key');
 

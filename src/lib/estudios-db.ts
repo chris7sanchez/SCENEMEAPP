@@ -133,11 +133,9 @@ export async function buscarPeliculas(termino: string): Promise<Pelicula[]> {
     const q = termino.trim();
     if (!q) return [];
 
-    const clave = process.env.NEXT_PUBLIC_TMDB_KEY;
-    if (!clave) throw new SinClaveError();
-
-    const base = 'https://api.themoviedb.org/3';
-    const res = await fetch(`${base}/search/movie?api_key=${clave}&language=es-ES&include_adult=false&query=${encodeURIComponent(q)}`);
+    // La clave de TMDB vive en el servidor (/api/peliculas): ya no viaja al navegador.
+    const res = await fetch(`/api/peliculas?q=${encodeURIComponent(q)}`);
+    if (res.status === 503) throw new SinClaveError();
     if (!res.ok) throw new Error('La búsqueda no respondió (' + res.status + ')');
     const data = await res.json();
 
@@ -155,13 +153,10 @@ export async function buscarPeliculas(termino: string): Promise<Pelicula[]> {
 
 /** Busca el tráiler de YouTube de una película ya guardada (bajo demanda). */
 export async function buscarTrailer(tmdbId: string): Promise<string | undefined> {
-    const clave = process.env.NEXT_PUBLIC_TMDB_KEY;
-    if (!clave) return undefined;
     try {
-        const res = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}/videos?api_key=${clave}&language=es-ES`);
+        const res = await fetch(`/api/peliculas?trailer=${encodeURIComponent(tmdbId)}`);
         if (!res.ok) return undefined;
         const data = await res.json();
-        const v = (data.results ?? []).find((x: any) => x.site === 'YouTube' && x.type === 'Trailer') ?? (data.results ?? [])[0];
-        return v ? `https://www.youtube.com/watch?v=${v.key}` : undefined;
+        return data?.url || undefined;
     } catch { return undefined; }
 }
