@@ -4,6 +4,7 @@ import { uidDeLaPeticion } from '@/lib/tts-auth';
 import { almacenFirebase, cacheSegura, claveDeAudio, rutaDeAudio } from '@/lib/tts-cache';
 import { consumirCaracteres, limiteDiario, registroFirestore } from '@/lib/tts-limite';
 import { servirTts } from '@/lib/tts-servicio';
+import { frenar, errorPublico } from '@/lib/seguridad';
 
 // Genera voz por IA: 'openai' (gpt-4o-mini-tts), 'elevenlabs'
 // (eleven_multilingual_v2) o 'cartesia' (sonic-3.5). Devuelve audio MP3.
@@ -17,6 +18,12 @@ const OPENAI_VOICES = ['alloy', 'ash', 'ballad', 'coral', 'echo', 'fable', 'onyx
 
 const MODELO = { openai: 'gpt-4o-mini-tts', elevenlabs: 'eleven_multilingual_v2', cartesia: 'sonic-3.5' } as const;
 type Proveedor = keyof typeof MODELO;
+
+// SEGURIDAD (18/10/2026): cada llamada cuesta dinero en OpenAI, ElevenLabs o
+// Cartesia. Un ensayo pide una frase cada pocos segundos; 40 por minuto deja
+// ensayar sin cortes y frena a quien la use como servicio gratis de voces.
+// El id de voz va dentro de la URL del proveedor: se acepta sólo si es un id.
+const ID_DE_VOZ = /^[A-Za-z0-9_-]{1,64}$/;
 
 // Mapea una instrucción libre ("con rabia", "triste"...) a una emoción de Cartesia.
 function cartesiaEmotion(instr: string): string | undefined {
@@ -38,7 +45,7 @@ const AUDIO = { 'Content-Type': 'audio/mpeg' };
 /** Sin NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, bucket() lanza: se sigue sin caché. */
 function bucketSeguro(fb: NonNullable<ReturnType<typeof obtenerAdmin>>) {
     try {
-        return fb.storage().bucket();
+        return fb.storage().bucket(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
     } catch (e) {
         console.warn('[tts] sin bucket de Storage, se sigue sin caché:', e);
         return null;
@@ -66,8 +73,8 @@ async function llamarProveedor(
                 }),
             });
             if (!r.ok) {
-                const detail = await r.text();
-                return Response.json({ error: 'cartesia_error', status: r.status, detail: detail.slice(0, 300) }, { status: 502 });
+                console.error('[tts] cartesia', r.status, (await r.text()).slice(0, 300));
+                return Response.json({ error: 'cartesia_error', status: r.status }, { status: 502 });
             }
             return new Response(await r.arrayBuffer(), { status: 200, headers: AUDIO });
         }
@@ -85,8 +92,8 @@ async function llamarProveedor(
                 }),
             });
             if (!r.ok) {
-                const detail = await r.text();
-                return Response.json({ error: 'elevenlabs_error', status: r.status, detail: detail.slice(0, 300) }, { status: 502 });
+                console.error('[tts] elevenlabs', r.status, (await r.text()).slice(0, 300));
+                return Response.json({ error: 'elevenlabs_error', status: r.status }, { status: 502 });
             }
             return new Response(await r.arrayBuffer(), { status: 200, headers: AUDIO });
         }
@@ -100,16 +107,19 @@ async function llamarProveedor(
             body: JSON.stringify({ model: MODELO.openai, voice: voz, input: text, instructions: fullInstructions, response_format: 'mp3' }),
         });
         if (!r.ok) {
-            const detail = await r.text();
-            return Response.json({ error: 'openai_error', status: r.status, detail: detail.slice(0, 300) }, { status: 502 });
+            console.error('[tts] openai', r.status, (await r.text()).slice(0, 300));
+            return Response.json({ error: 'openai_error', status: r.status }, { status: 502 });
         }
         return new Response(await r.arrayBuffer(), { status: 200, headers: AUDIO });
-    } catch (e: any) {
-        return Response.json({ error: 'fetch_failed', message: e?.message || String(e) }, { status: 502 });
+    } catch (e) {
+        return errorPublico('tts', e, 502, 'fetch_failed');
     }
 }
 
 export async function POST(req: NextRequest) {
+    const frenado = frenar(req, 'tts', 40);
+    if (frenado) return frenado;
+
     let body: any;
     try {
         body = await req.json();
@@ -129,9 +139,10 @@ export async function POST(req: NextRequest) {
     let voz: string;
     if (provider === 'cartesia') {
         voz = (body?.voice || '').toString();
-        if (!voz) return Response.json({ error: 'no_voice', message: 'Falta voz de Cartesia' }, { status: 400 });
+        if (!ID_DE_VOZ.test(voz)) return Response.json({ error: 'no_voice', message: 'Falta voz de Cartesia' }, { status: 400 });
     } else if (provider === 'elevenlabs') {
-        voz = (body?.voice || 'EXAVITQu4vr4xnSDxMaL').toString();
+        const pedida = (body?.voice || '').toString();
+        voz = ID_DE_VOZ.test(pedida) ? pedida : 'EXAVITQu4vr4xnSDxMaL';
     } else {
         voz = OPENAI_VOICES.includes(body?.voice) ? body.voice : 'alloy';
     }

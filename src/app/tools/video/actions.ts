@@ -35,7 +35,17 @@ export async function processVideoAction(
   tags: string[],
   targetFolder: string = 'processed'
 ) {
-  const inputPath = path.join(process.cwd(), 'public', inputFileName);
+  // Herramienta de mantenimiento: procesa y escribe archivos en el disco. Sólo
+  // en el ordenador de desarrollo, y sólo dentro de public/ (antes un nombre con
+  // `../` podía leer o escribir en cualquier carpeta del servidor).
+  if (process.env.NODE_ENV !== 'development' || process.env.VERCEL) {
+    throw new Error('Herramienta disponible sólo en desarrollo');
+  }
+  const publico = path.join(process.cwd(), 'public') + path.sep;
+  const inputPath = path.resolve(publico, inputFileName);
+  if (!inputPath.startsWith(publico) || !/^[\w.-]+$/.test(targetFolder) || !/^[\w-]*$/.test(suffix)) {
+    throw new Error('Ruta no permitida');
+  }
   
   if (!fs.existsSync(inputPath)) {
     throw new Error(`Archivo no encontrado: ${inputFileName}`);

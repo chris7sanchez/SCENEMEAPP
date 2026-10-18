@@ -2,6 +2,7 @@
 
 import { AnalyzeCharacterInput, AnalyzeCharacterOutput, AnalyzeCharacterOutputSchema } from '@/ai/schemas';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 // --- MOCK GENERATOR FOR FALLBACK ---
 function generateMockProfile(name: string, error?: string): AnalyzeCharacterOutput {
@@ -32,6 +33,7 @@ function generateMockProfile(name: string, error?: string): AnalyzeCharacterOutp
 }
 
 export async function analyzeCharacter(input: AnalyzeCharacterInput): Promise<AnalyzeCharacterOutput> {
+    await frenarAccionIA();
     const { scriptSegment, characterName, customKnowledge } = input;
 
     try {

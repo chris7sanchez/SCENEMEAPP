@@ -6,11 +6,14 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category'); // COSMOS, CUERPO, ESPIRITU
 
-    if (!category) {
+    // Sólo las tres carpetas que existen: el nombre va a una ruta del disco y
+    // con `..` se podía listar lo que hubiera en otras carpetas del servidor.
+    const carpeta = (category || '').toUpperCase();
+    if (!['COSMOS', 'CUERPO', 'ESPIRITU'].includes(carpeta)) {
         return NextResponse.json({ error: 'Category required' }, { status: 400 });
     }
 
-    const dirPath = path.join(process.cwd(), 'public', 'assets', 'backgrounds', category.toUpperCase());
+    const dirPath = path.join(process.cwd(), 'public', 'assets', 'backgrounds', carpeta);
 
     if (!fs.existsSync(dirPath)) {
         return NextResponse.json({ images: [] });
@@ -29,7 +32,7 @@ export async function GET(request: Request) {
             }
         });
 
-        const imagePaths = files.map(file => `/assets/backgrounds/${category.toUpperCase()}/${file}`);
+        const imagePaths = files.map(file => `/assets/backgrounds/${carpeta}/${file}`);
 
         return NextResponse.json({ images: imagePaths });
     } catch (e) {

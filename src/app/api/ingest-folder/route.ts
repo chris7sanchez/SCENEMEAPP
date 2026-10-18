@@ -3,11 +3,17 @@ import fs from 'fs';
 import path from 'path';
 import { parsePdfBuffer } from '@/ai/parse-pdf';
 import { assimilateKnowledge } from '@/ai/assimilate-knowledge';
+import { soloEnDesarrollo } from '@/lib/seguridad';
 
 const KNOWLEDGE_DIR = path.join(process.cwd(), 'knowledge-base');
 const DATA_FILE = path.join(process.cwd(), 'data', 'custom-knowledge.json');
 
 export async function POST() {
+    // Herramienta de mantenimiento: escribe archivos en el servidor. Sólo en el
+    // ordenador de desarrollo; en la web publicada responde 404.
+    const fuera = soloEnDesarrollo();
+    if (fuera) return fuera as any;
+
     try {
         if (!fs.existsSync(KNOWLEDGE_DIR)) {
             fs.mkdirSync(KNOWLEDGE_DIR, { recursive: true });

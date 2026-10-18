@@ -12,6 +12,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 const ImproveAISceneInputSchema = z.object({
     initialScene: z.string().describe('The initial AI-generated script.'),
@@ -25,6 +26,7 @@ const ImproveAISceneOutputSchema = z.object({
 export type ImproveAISceneOutput = z.infer<typeof ImproveAISceneOutputSchema>;
 
 export async function improveAIScene(input: ImproveAISceneInput): Promise<ImproveAISceneOutput> {
+    await frenarAccionIA();
     return improveAISceneFlow(input);
 }
 

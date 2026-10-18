@@ -3,10 +3,12 @@
 import { RefineCharacterInputSchema, RefineCharacterOutputSchema } from './refine-schema';
 import { z } from 'genkit';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 type RefineCharacterInput = z.infer<typeof RefineCharacterInputSchema>;
 
 export async function refineCharacter(input: RefineCharacterInput) {
+    await frenarAccionIA();
     const { ai } = await import('@/ai/genkit');
     const { name, currentProfile, deepAnalysis } = input;
 

@@ -4,6 +4,7 @@ import { ai, safeGenerate } from './genkit';
 import { DailyReadingInput, DailyReadingOutput, DailyReadingOutputSchema } from './schemas';
 import { ANTIGRAVITY_SYSTEM_PROMPT } from './system-prompt';
 import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 // ============================================
 // DAILY READING GENERATOR v3.0 — Multi-Effluvio
@@ -14,6 +15,7 @@ import { ZODIAC_ARCHETYPES } from '@/utils/archetypes';
  * Returns a primary reading + an array of 2-4 distinct efluvios (one per transit).
  */
 export async function generateDailyReading(input: DailyReadingInput): Promise<DailyReadingOutput> {
+    await frenarAccionIA();
     const { birthData, aspects, userName } = input;
 
     const systemPrompt = `

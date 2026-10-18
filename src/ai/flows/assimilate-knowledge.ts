@@ -3,10 +3,12 @@
 import { ai } from '@/ai/genkit';
 import { AssimilateKnowledgeInputSchema, AssimilateKnowledgeOutputSchema } from './knowledge-schema';
 import { z } from 'genkit';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 type AssimilateKnowledgeInput = z.infer<typeof AssimilateKnowledgeInputSchema>;
 
 export async function assimilateKnowledge(input: AssimilateKnowledgeInput) {
+    await frenarAccionIA();
     const { content } = input;
 
     const systemPrompt = `

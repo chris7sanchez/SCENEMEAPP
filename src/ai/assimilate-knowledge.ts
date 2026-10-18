@@ -3,6 +3,7 @@
 import { ai, safeGenerate } from './genkit';
 import { AssimilateKnowledgeInputSchema, AssimilateKnowledgeOutputSchema } from './schemas';
 import { z } from 'genkit';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 // ============================================
 // KNOWLEDGE ASSIMILATION v2.0
@@ -17,6 +18,7 @@ type AssimilateKnowledgeOutput = z.infer<typeof AssimilateKnowledgeOutputSchema>
  * Uses AI for intelligent extraction with deterministic fallback.
  */
 export async function assimilateKnowledge(input: AssimilateKnowledgeInput): Promise<AssimilateKnowledgeOutput> {
+    await frenarAccionIA();
     const { content } = input;
 
     const systemPrompt = `

@@ -38,7 +38,10 @@ function Contenido({ intro, izquierda, centro, derecha, final, filasCentro, clas
     return (
         <main className={cn('relative', className)} ref={ref}>
             <div className="wrapper">
-                <section className="sticky top-0 grid h-screen w-full place-content-center overflow-hidden">
+                {/* Antes era h-screen con el texto centrado: en un monitor alto
+                    dejaba más de 500 px vacíos entre «Baja y míralo» y la galería.
+                    Ahora la altura la pone el contenido, con un respiro fijo. */}
+                <section className="relative grid w-full place-content-center overflow-hidden py-8 md:py-10">
                     {/* La rejilla de fondo, que se desvanece hacia abajo. */}
                     <div
                         aria-hidden="true"

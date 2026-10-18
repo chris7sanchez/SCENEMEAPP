@@ -2,12 +2,14 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 const IdentifyCharactersSchema = z.object({
     characters: z.array(z.string()).describe('List of character names found in the script.'),
 });
 
 export async function identifyCharacters(scriptText: string): Promise<string[]> {
+    await frenarAccionIA();
     const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.GENAI_API_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) return [];
 

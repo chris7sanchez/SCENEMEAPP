@@ -308,7 +308,8 @@ class AiSpeechProvider implements SpeechProvider {
                 signal,
             });
             if (!res.ok) {
-                const aviso = avisoDeRespuesta(res.status);
+                const cuerpo = res.status === 429 ? await res.json().catch(() => null) : null;
+                const aviso = avisoDeRespuesta(res.status, cuerpo?.error);
                 if (aviso) emitirAvisoTts(aviso);
                 throw new Error('tts_' + res.status);
             }

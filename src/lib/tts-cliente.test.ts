@@ -4,14 +4,20 @@ import { alAvisoTts, avisoDeRespuesta, cabecerasTts, emitirAvisoTts, TEXTO_AVISO
 describe('avisoDeRespuesta', () => {
     it('401 → login, 429 → límite, el resto nada', () => {
         expect(avisoDeRespuesta(401)).toBe('login_requerido');
-        expect(avisoDeRespuesta(429)).toBe('limite_diario');
+        expect(avisoDeRespuesta(429, 'limite_diario')).toBe('limite_diario');
         expect(avisoDeRespuesta(503)).toBeNull();
         expect(avisoDeRespuesta(200)).toBeNull();
+    });
+
+    it('429 por ir demasiado rápido no es el límite del día', () => {
+        expect(avisoDeRespuesta(429, 'demasiadas_peticiones')).toBe('demasiadas_peticiones');
+        expect(avisoDeRespuesta(429)).toBe('demasiadas_peticiones');
     });
 
     it('cada aviso tiene texto', () => {
         expect(TEXTO_AVISO.login_requerido).toMatch(/sesión/);
         expect(TEXTO_AVISO.limite_diario).toMatch(/límite/);
+        expect(TEXTO_AVISO.demasiadas_peticiones).toMatch(/minuto/);
     });
 });
 

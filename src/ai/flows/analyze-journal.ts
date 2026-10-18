@@ -2,10 +2,12 @@
 
 import { AnalyzeJournalInputSchema, AnalyzeJournalOutputSchema } from './journal-schema';
 import { z } from 'genkit';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 type AnalyzeJournalInput = z.infer<typeof AnalyzeJournalInputSchema>;
 
 export async function analyzeJournalEntry(input: AnalyzeJournalInput) {
+    await frenarAccionIA();
     const { ai } = await import('@/ai/genkit');
     const { entry, transits, userProfile } = input;
 

@@ -4,8 +4,10 @@ import { ai, safeGenerate } from './genkit';
 import { AnalyzeSynastryInput, AnalyzeSynastryOutput, AnalyzeSynastryOutputSchema } from './schemas';
 import { getSignFromLongitude, calculateRealPlanets } from '@/utils/astronomy';
 import { QUANTUM_SYNASTRY_PROMPT } from './system-prompt';
+import { frenarAccionIA } from '@/lib/seguridad-acciones';
 
 export async function analyzeSynastry(input: AnalyzeSynastryInput): Promise<AnalyzeSynastryOutput> {
+    await frenarAccionIA();
     const { sourceBirthDate, sourceName, targetBirthDate, targetName } = input;
 
     // 1. GENERATE RICH ASTRONOMICAL DATA

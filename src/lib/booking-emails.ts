@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { escaparHtml as e } from '@/lib/seguridad';
 
 export interface BookingSummary {
     name: string;
@@ -36,12 +37,12 @@ const box = (inner: string) =>
 
 const summaryTable = (b: BookingSummary) => `
     <table style="width:100%;border-collapse:collapse;margin:16px 0">
-        <tr><td style="padding:6px 0;color:#888">Servicio</td><td style="padding:6px 0"><strong>${b.service}</strong></td></tr>
-        <tr><td style="padding:6px 0;color:#888">Fecha</td><td style="padding:6px 0"><strong>${b.dateLabel}</strong></td></tr>
-        <tr><td style="padding:6px 0;color:#888">Hora</td><td style="padding:6px 0"><strong>${b.timeLabel}</strong></td></tr>
-        <tr><td style="padding:6px 0;color:#888">Nombre</td><td style="padding:6px 0">${b.name}</td></tr>
-        <tr><td style="padding:6px 0;color:#888">Email</td><td style="padding:6px 0">${b.email}</td></tr>
-        <tr><td style="padding:6px 0;color:#888">Teléfono</td><td style="padding:6px 0">${b.phone}</td></tr>
+        <tr><td style="padding:6px 0;color:#888">Servicio</td><td style="padding:6px 0"><strong>${e(b.service)}</strong></td></tr>
+        <tr><td style="padding:6px 0;color:#888">Fecha</td><td style="padding:6px 0"><strong>${e(b.dateLabel)}</strong></td></tr>
+        <tr><td style="padding:6px 0;color:#888">Hora</td><td style="padding:6px 0"><strong>${e(b.timeLabel)}</strong></td></tr>
+        <tr><td style="padding:6px 0;color:#888">Nombre</td><td style="padding:6px 0">${e(b.name)}</td></tr>
+        <tr><td style="padding:6px 0;color:#888">Email</td><td style="padding:6px 0">${e(b.email)}</td></tr>
+        <tr><td style="padding:6px 0;color:#888">Teléfono</td><td style="padding:6px 0">${e(b.phone)}</td></tr>
     </table>`;
 
 export function adminNewBookingEmail(b: BookingSummary, acceptUrl: string, rejectUrl: string) {
@@ -52,8 +53,8 @@ export function adminNewBookingEmail(b: BookingSummary, acceptUrl: string, rejec
             <p>Ha llegado una solicitud desde Scene Me. Ya aparece como <strong>⏳ PENDIENTE</strong> en tu calendario (no bloquea la fecha).</p>
             ${summaryTable(b)}
             <div style="margin:24px 0;text-align:center">
-                <a href="${acceptUrl}" style="background:#16a34a;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;margin-right:12px">✅ ACEPTAR</a>
-                <a href="${rejectUrl}" style="background:#dc2626;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold">✖ RECHAZAR</a>
+                <a href="${e(acceptUrl)}" style="background:#16a34a;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;margin-right:12px">✅ ACEPTAR</a>
+                <a href="${e(rejectUrl)}" style="background:#dc2626;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold">✖ RECHAZAR</a>
             </div>
             <p style="color:#888;font-size:12px">Al aceptar, la fecha queda bloqueada en tu calendario y el cliente recibe la confirmación.</p>
         `),
@@ -64,7 +65,7 @@ export function clientReceivedEmail(b: BookingSummary) {
     return {
         subject: '🎬 Hemos recibido tu solicitud de reserva — Scene Me',
         html: box(`
-            <h2 style="margin-top:0">¡Solicitud recibida, ${b.name}!</h2>
+            <h2 style="margin-top:0">¡Solicitud recibida, ${e(b.name)}!</h2>
             <p>Tu petición está <strong>pendiente de confirmación</strong>. Te avisaremos en cuanto quede confirmada.</p>
             ${summaryTable(b)}
         `),
@@ -75,7 +76,7 @@ export function clientConfirmedEmail(b: BookingSummary) {
     return {
         subject: '✅ Reserva confirmada — Scene Me',
         html: box(`
-            <h2 style="margin-top:0">¡Reserva confirmada, ${b.name}!</h2>
+            <h2 style="margin-top:0">¡Reserva confirmada, ${e(b.name)}!</h2>
             <p>Tu sesión queda reservada. ¡Nos vemos!</p>
             ${summaryTable(b)}
         `),
@@ -86,7 +87,7 @@ export function clientRejectedEmail(b: BookingSummary) {
     return {
         subject: 'Sobre tu solicitud de reserva — Scene Me',
         html: box(`
-            <h2 style="margin-top:0">Hola, ${b.name}</h2>
+            <h2 style="margin-top:0">Hola, ${e(b.name)}</h2>
             <p>No podemos atender tu reserva en esa fecha y hora. Elige otro hueco en la web cuando quieras; disculpa las molestias.</p>
             ${summaryTable(b)}
         `),

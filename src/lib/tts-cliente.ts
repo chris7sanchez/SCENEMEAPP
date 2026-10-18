@@ -2,16 +2,19 @@
 // dice "sin sesión" o "límite", avisa al reproductor (que ya cae solo a la voz
 // del navegador; esto es para que el actor sepa POR QUÉ suena distinto).
 
-export type AvisoTts = 'login_requerido' | 'limite_diario';
+export type AvisoTts = 'login_requerido' | 'limite_diario' | 'demasiadas_peticiones';
 
 export const TEXTO_AVISO: Record<AvisoTts, string> = {
     login_requerido: 'Inicia sesión para usar voces IA. Mientras, suena la voz del navegador.',
     limite_diario: 'Has llegado al límite de voz IA de hoy. Sigue la voz del navegador hasta mañana.',
+    demasiadas_peticiones: 'Demasiadas réplicas seguidas: en un minuto vuelve la voz IA. Mientras, suena la del navegador.',
 };
 
-export function avisoDeRespuesta(status: number): AvisoTts | null {
+/** `error` es el código que manda el servidor: un 429 puede ser el tope del día
+ *  o el freno por minuto de seguridad, y el aviso tiene que decir cuál. */
+export function avisoDeRespuesta(status: number, error?: string): AvisoTts | null {
     if (status === 401) return 'login_requerido';
-    if (status === 429) return 'limite_diario';
+    if (status === 429) return error === 'limite_diario' ? 'limite_diario' : 'demasiadas_peticiones';
     return null;
 }
 

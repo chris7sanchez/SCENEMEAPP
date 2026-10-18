@@ -112,7 +112,7 @@ function Pagina({ par, i, total }: { par: [string, string]; i: number; total: nu
                     {par.map((n) => (
                         <figure key={n} className="pel-fotograma aspect-[4/5] max-h-[70vh] w-full">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={ruta(n)} alt={ALT} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                            <img src={ruta(n)} alt={ALT} loading="lazy" decoding="async" className="h-full w-full object-cover object-top" />
                         </figure>
                     ))}
                 </div>
@@ -159,7 +159,7 @@ function OpcionRelevo() {
                         {TODAS.slice(0, 8).map((n) => (
                             <figure key={n} className="pel-fotograma aspect-[4/5] w-full">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={ruta(n)} alt={ALT} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                                <img src={ruta(n)} alt={ALT} loading="lazy" decoding="async" className="h-full w-full object-cover object-top" />
                             </figure>
                         ))}
                     </div>

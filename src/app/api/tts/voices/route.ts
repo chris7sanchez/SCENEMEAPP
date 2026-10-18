@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
                 headers: { 'Authorization': `Bearer ${key}`, 'Cartesia-Version': '2026-03-01' },
             });
             if (!r.ok) {
-                const detail = await r.text();
-                return Response.json({ error: 'cartesia_error', detail: detail.slice(0, 200), voices: [] }, { status: 502 });
+                console.error('[tts/voices] cartesia', r.status, (await r.text()).slice(0, 200));
+                return Response.json({ error: 'cartesia_error', voices: [] }, { status: 502 });
             }
             const data = await r.json();
             const raw: any[] = Array.isArray(data) ? data : (data?.data || []);
@@ -31,9 +31,11 @@ export async function GET(req: NextRequest) {
                 });
             // España primero; luego el resto (Latinoamérica).
             list.sort((a: any, b: any) => (a.country === 'ES' ? -1 : 0) - (b.country === 'ES' ? -1 : 0));
-            return Response.json({ voices: list.slice(0, 60) });
-        } catch (e: any) {
-            return Response.json({ error: 'fetch_failed', message: e?.message || String(e), voices: [] }, { status: 502 });
+            // La lista cambia poco: una hora de caché evita una llamada a Cartesia por visita.
+            return Response.json({ voices: list.slice(0, 60) }, { headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' } });
+        } catch (e) {
+            console.error('[tts/voices]', e);
+            return Response.json({ error: 'fetch_failed', voices: [] }, { status: 502 });
         }
     }
 

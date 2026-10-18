@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { usuarioDe, esAdmin } from '@/lib/firebase-admin';
+import { frenar, errorPublico } from '@/lib/seguridad';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
+// SEGURIDAD (18/10/2026): sólo la llama el panel de administración, así que
+// sólo la puede usar el admin (antes cualquiera gastaba la cuota de Gemini).
+
+const corto = (v: unknown, max = 500) => (v == null ? v : String(v).slice(0, max));
+
 export async function POST(req: NextRequest) {
+    const frenado = frenar(req, 'generate-script', 10);
+    if (frenado) return frenado;
+    if (!esAdmin(await usuarioDe(req))) {
+        return NextResponse.json({ error: 'Sólo el administrador puede generar guiones aquí. Vuelve a entrar en el panel.' }, { status: 401 });
+    }
     try {
         const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
 
@@ -14,7 +26,16 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const input = await req.json();
+        const bruto = await req.json();
+        const input = {
+            ...bruto,
+            genre: corto(bruto?.genre, 80), secondaryGenre: corto(bruto?.secondaryGenre, 80),
+            numActors: corto(bruto?.numActors, 10), genderActors: corto(bruto?.genderActors, 300),
+            tones: Array.isArray(bruto?.tones) ? bruto.tones.slice(0, 10).map((t: unknown) => corto(t, 60)) : corto(bruto?.tones, 300),
+            locationPreference: corto(bruto?.locationPreference, 200), length: corto(bruto?.length, 80),
+            logline: corto(bruto?.logline, 3000), props: corto(bruto?.props, 500),
+            endingType: corto(bruto?.endingType, 200), language: corto(bruto?.language, 40),
+        };
         const {
             genre, secondaryGenre, numActors, genderActors,
             tones, locationPreference, length, logline,
@@ -80,7 +101,7 @@ Generate the complete script now.`;
             }
 
             return NextResponse.json(
-                { error: `Error de la API de Gemini: ${response.status}. ${errBody}` },
+                { error: `Error de la API de Gemini (${response.status}). Inténtalo de nuevo en un momento.` },
                 { status: 500 }
             );
         }
@@ -97,11 +118,7 @@ Generate the complete script now.`;
 
         return NextResponse.json({ script });
 
-    } catch (e: any) {
-        console.error('[generate-script] Error crítico:', e);
-        return NextResponse.json(
-            { error: `Error interno del servidor: ${e.message}` },
-            { status: 500 }
-        );
+    } catch (e) {
+        return errorPublico('generate-script', e);
     }
 }

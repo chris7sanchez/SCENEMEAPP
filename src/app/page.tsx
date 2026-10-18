@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
 
 import '@/components/landing/pelicula.css';
-import { Presentacion } from '@/components/landing/presentacion';
+import ScrollCine from '@/components/scroll-cine/ScrollCine';
+import { Puertas } from '@/components/landing/puertas';
 import { ClaquetaMenu } from '@/components/landing/claqueta-menu';
 import { Metodo } from '@/components/landing/metodo';
 import { Estudios } from '@/components/landing/estudios';
 import { Laboratorio } from '@/components/landing/laboratorio';
 import { Preguntas } from '@/components/landing/preguntas';
 import { Cierre } from '@/components/landing/cierre';
-import { InicioGaleria } from '@/components/propuesta/inicio-galeria';
 import { MarcoBook } from '@/components/propuesta/book-opciones';
 
 export const metadata: Metadata = {
@@ -64,19 +64,23 @@ export default function Portada() {
             />
 
             {/*
-                La cabecera: el nombre se rueda delante de ti (vídeo de
-                presentación, components/landing/presentacion.tsx), y justo
-                debajo la banda de la claqueta, que ahora es el menú: cada
-                sección en un tramo blanco (components/landing/claqueta-menu.tsx).
-                El icono ya no va aquí: el vídeo es el nombre, y el icono bajó a
-                la portada como puerta a /login.
-            */}
-            <header className="relative z-30">
-                <Presentacion />
-                <ClaquetaMenu variante="oro" />
-            </header>
+                18/10/2026 (Christian): la portada pasa a ser el scroll
+                cinematográfico. El vídeo de presentación deja de rodarse solo:
+                lo gobierna el scroll (components/scroll-cine), y en su recorrido
+                entran el titular, las fotos reales y los dos botones. Por eso ya
+                no se pintan la cabecera en bucle (landing/presentacion.tsx) ni
+                la galería de tres columnas (propuesta/inicio-galeria.tsx): los
+                ficheros siguen en el repositorio, aparcados.
 
-            <InicioGaleria final={<MarcoBook opcion={3} />} />
+                Al terminar el recorrido queda el menú de la claqueta, pegado
+                arriba mientras se baja por el resto, y las dos puertas.
+            */}
+            <ScrollCine />
+            <div className="sticky top-0 z-30">
+                <ClaquetaMenu variante="oro" />
+            </div>
+            <Puertas />
+            <MarcoBook opcion={3} />
             <Metodo sinBook />
             <Estudios />
             <Laboratorio />

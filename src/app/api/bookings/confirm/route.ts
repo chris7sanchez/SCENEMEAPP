@@ -1,16 +1,24 @@
+import { escaparHtml } from '@/lib/seguridad';
 import { verifyBookingAction } from '@/lib/booking-token';
 import { confirmBooking, rejectBooking } from '@/lib/google-calendar';
 import { sendBookingEmail, clientConfirmedEmail, clientRejectedEmail, type BookingSummary } from '@/lib/booking-emails';
 
 function page(title: string, msg: string, ok: boolean) {
     return new Response(`<!doctype html><html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>${escaparHtml(title)}</title></head>
 <body style="font-family:Arial,sans-serif;background:#09090b;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0">
 <div style="text-align:center;padding:32px;max-width:420px">
 <div style="font-size:56px;margin-bottom:16px">${ok ? '✅' : '✖️'}</div>
-<h1 style="margin:0 0 12px;font-size:24px">${title}</h1>
-<p style="color:#a1a1aa;line-height:1.5">${msg}</p>
-</div></body></html>`, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+<h1 style="margin:0 0 12px;font-size:24px">${escaparHtml(title)}</h1>
+<p style="color:#a1a1aa;line-height:1.5">${escaparHtml(msg)}</p>
+</div></body></html>`, {
+    headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        // Página sin scripts: aunque se colara algo, el navegador no lo ejecuta.
+        'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'",
+        'Cache-Control': 'no-store',
+    },
+});
 }
 
 function summaryFromEvent(event: any): BookingSummary {
