@@ -20,6 +20,7 @@
 //    -> se comprueba que el tiempo avance; si no, se cae a la voz del navegador.
 
 import { estimateReadingMs } from './speech-plan';
+import { avisoDeRespuesta, cabecerasTts, emitirAvisoTts, obtenerTokenSesion } from './tts-cliente';
 
 export interface SpeechVoice {
     id: string;
@@ -302,11 +303,16 @@ class AiSpeechProvider implements SpeechProvider {
         const p = (async () => {
             const res = await fetch('/api/tts', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await cabecerasTts(obtenerTokenSesion),
                 body: JSON.stringify(body),
                 signal,
             });
-            if (!res.ok) throw new Error('tts_' + res.status);
+            if (!res.ok) {
+                const cuerpo = res.status === 429 ? await res.json().catch(() => null) : null;
+                const aviso = avisoDeRespuesta(res.status, cuerpo?.error);
+                if (aviso) emitirAvisoTts(aviso);
+                throw new Error('tts_' + res.status);
+            }
             const blob = await res.blob();
             if (!blob.size) throw new Error('tts_empty');
             const url = URL.createObjectURL(blob);
