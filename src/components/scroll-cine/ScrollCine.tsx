@@ -215,7 +215,7 @@ export default function ScrollCine() {
 
                 {/* Titular */}
                 <div data-f="titulo" className="sc-texto sc-titulo">
-                    <h2><span className="sc-oro">De actor a estrella</span><br /><em>en 3 pasos</em></h2>
+                    <h1><span className="sc-oro">De actor a estrella</span><br /><em>en 3 pasos</em></h1>
                     <p>Tu book, tu escena y tu self‑tape</p>
                 </div>
 

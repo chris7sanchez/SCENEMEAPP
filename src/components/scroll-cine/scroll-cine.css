@@ -98,7 +98,7 @@
     top: 9%;
     max-width: min(560px, 86vw);
 }
-.sc-titulo h2 {
+.sc-titulo h1 {
     margin: 0;
     font: 800 clamp(40px, 6.4vw, 96px)/.92 'Archivo', system-ui, sans-serif;
     font-variation-settings: 'wdth' 65, 'wght' 800;
@@ -106,7 +106,7 @@
     color: var(--sc-tinta);
     text-shadow: 0 4px 30px rgba(14, 10, 4, .85);
 }
-.sc-titulo h2 em {
+.sc-titulo h1 em {
     display: inline-block;
     margin-top: .12em;
     font-style: normal;
