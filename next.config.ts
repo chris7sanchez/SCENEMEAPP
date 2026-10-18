@@ -26,10 +26,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // La antigua ruta /antigravity ahora se llama /actorlogia.
-      // Solo la ruta EXACTA se redirige; los assets en /public/antigravity/*
-      // (imágenes de fondo) se siguen sirviendo sin tocar.
-      { source: '/antigravity', destination: '/actorlogia', permanent: true },
+      // /antigravity (antiguo nombre de Actorlogía) ya no redirige: Actorlogía
+      // no vive en SCENE ME. Los assets de /public/antigravity/* siguen ahí.
     ];
   },
 };

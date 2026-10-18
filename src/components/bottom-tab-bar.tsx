@@ -2,19 +2,18 @@
 
 import { Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Home, Clapperboard, Users, User, Sparkles } from 'lucide-react';
+import { Home, Clapperboard, Users, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TABS = [
     { id: 'home', label: 'Inicio', icon: Home, path: '/creator' },
     { id: 'services', label: 'Servicios', icon: Clapperboard, path: '/creator?tab=services' },
-    { id: 'workshop', label: 'Actorlogía', icon: Sparkles, path: '/actorlogia' },
     { id: 'talents', label: 'Talentos', icon: Users, path: '/talents' },
     { id: 'profile', label: 'Perfil', icon: User, path: '/creator?tab=profile' },
 ] as const;
 
 // Rutas donde NO mostrar la barra
-const HIDDEN_ROUTES = ['/admin', '/exquisit', '/hub', '/login', '/astro-lab', '/astrologia', '/alquimia', '/xalvaje', '/hero-3d', '/propuesta', '/scroll'];
+const HIDDEN_ROUTES = ['/actorlogia', '/admin', '/exquisit', '/hub', '/login', '/astro-lab', '/astrologia', '/alquimia', '/xalvaje', '/hero-3d', '/propuesta', '/scroll'];
 
 function TabBarInner() {
     const pathname = usePathname();
@@ -30,7 +29,6 @@ function TabBarInner() {
     // nunca se iluminaban (todo /creator contaba como "Inicio").
     const getActiveTab = () => {
         if (pathname === '/talents') return 'talents';
-        if (pathname.startsWith('/actorlogia')) return 'workshop';
         if (pathname.startsWith('/creator')) {
             const tab = searchParams.get('tab');
             if (tab === 'profile') return 'profile';
