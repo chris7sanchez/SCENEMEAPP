@@ -48,5 +48,10 @@ de Firestore y 2 de Storage. Con las reglas antiguas, 7 de los abusos pasaban.
 - **`firebase` 11 → 12**: arregla el aviso de `@grpc/grpc-js`, que sólo afecta
   si se usa Firestore cliente desde el servidor. Es un cambio de versión
   grande: con pruebas aparte.
-- **La clave de TMDB**: como estuvo a la vista, conviene generar una nueva y
-  guardarla en Vercel como `TMDB_KEY` (sin `NEXT_PUBLIC_`).
+- **La clave de TMDB**: no está configurada en Vercel (nunca llegó a filtrarse).
+  Cuando se quiera la búsqueda de películas, se guarda como `TMDB_KEY`, sin
+  `NEXT_PUBLIC_`.
+- **Vercel → variables «Sensitive»**: `ADMIN_PASSWORD`, `RESEND_API_KEY`,
+  `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` y las claves de Gemini están guardadas
+  como legibles desde el panel. Marcarlas como *Sensitive* hace que nadie
+  (ni con acceso al panel) pueda volver a leerlas.
