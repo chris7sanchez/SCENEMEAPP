@@ -1,129 +1,200 @@
 'use client';
 
-// FOTOGRAMAS — biblioteca de planos de cine para buscar referencias, guardarlas
-// en decks y compartirlas. Gratis: búsqueda por título/género y 1 deck de 12
-// planos. Pro: todos los filtros, decks ilimitados, compartir y descarga original.
+// FOTOGRAMAS — referencias de cine para el actor.
+//  1. Pides lo que buscas y la IA propone películas y escenas.
+//  2. Ves el clip incrustado de YouTube o abres Google Imágenes con la búsqueda hecha.
+//  3. Haces captura y la pegas (o arrastras, o subes) en tu deck privado.
+//  4. Con Pro, la IA etiqueta cada captura: plano, ángulo, luz, color, emoción.
+// La app no trae imágenes de nadie: ver la explicación en src/lib/fotogramas.ts.
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Search, Loader2, Lock, Plus, Trash2, Share2, Download, X, Check, Crown } from 'lucide-react';
 import {
-    GENEROS, IDIOMAS, LIMITES, urlImagen, motivoParaNoAnadir, puedeCrearDeck,
-    type Filtros, type Plan, type Plano, type Deck,
+    ArrowLeft, Sparkles, Loader2, Lock, Plus, Trash2, Share2, X, Crown, Play,
+    ImagePlus, Search, ExternalLink, Clipboard,
+} from 'lucide-react';
+import {
+    LIMITES, motivoParaNoAnadir, puedeCrearDeck, coincide, urlGoogleImagenes, urlBusquedaYoutube, urlEmbedYoutube,
+    type Plan, type Plano, type Deck, type Idea, type Etiquetas,
 } from '@/lib/fotogramas';
-import { listarDecks, guardarDecks, leerPlan, conSesion } from '@/lib/fotogramas-db';
+import {
+    listarDecks, guardarDecks, leerPlan, conSesion, comprimir, aDataUrl, subirCaptura, borrarCaptura, etiquetar,
+} from '@/lib/fotogramas-db';
 
-interface Resultado { id: string; titulo: string; anio?: string; poster: string | null; fondo: string | null }
-interface Sugerencia { id: number; nombre: string; detalle?: string }
-
-const ORDENES: { v: NonNullable<Filtros['orden']>; t: string }[] = [
-    { v: 'populares', t: 'Más populares' }, { v: 'recientes', t: 'Más recientes' }, { v: 'mejor_valoradas', t: 'Mejor valoradas' },
-];
+interface Video { id: string; titulo: string; canal: string; miniatura: string | null }
+interface Captura { blob: Blob; vista: string; pelicula: string; anio: string; nota: string; fuente: string }
 
 const nuevoId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const deckNuevo = (nombre: string): Deck => ({ id: nuevoId(), nombre, planos: [], creado: Date.now() });
 
 const entrada = 'rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-white/60 focus:border-amber-400 focus:outline-none';
+const botonOro = 'inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-amber-400 px-5 text-xs font-bold uppercase tracking-[0.14em] text-[#140F06] hover:bg-amber-300 disabled:opacity-60';
+const botonLinea = 'inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-white/25 px-4 text-xs font-semibold uppercase tracking-wider text-[#F6EFE0] hover:border-amber-400';
+
+const ETIQUETAS: [keyof Etiquetas, string][] = [
+    ['plano', 'Plano'], ['angulo', 'Ángulo'], ['luz', 'Luz'], ['color', 'Color'], ['emocion', 'Emoción'], ['composicion', 'Composición'],
+];
 
 export default function FotogramasPage() {
     const [uid, setUid] = useState<string | null>(null);
+    const [sesionLista, setSesionLista] = useState(false);
     const [plan, setPlan] = useState<Plan>('gratis');
     const [cobroListo, setCobroListo] = useState(false);
-    const [f, setF] = useState<Filtros>({});
-    const [persona, setPersona] = useState('');
-    const [palabra, setPalabra] = useState('');
-    const [sugs, setSugs] = useState<{ tipo: 'persona' | 'palabra'; items: Sugerencia[] } | null>(null);
-    const [resultados, setResultados] = useState<Resultado[]>([]);
-    const [pagina, setPagina] = useState(1);
-    const [paginas, setPaginas] = useState(1);
-    const [buscando, setBuscando] = useState(false);
     const [aviso, setAviso] = useState<string | null>(null);
-    const [pelicula, setPelicula] = useState<Resultado | null>(null);
-    const [planos, setPlanos] = useState<{ ruta: string; ancho?: number; alto?: number }[] | null>(null);
-    const [grande, setGrande] = useState<Plano | null>(null);
+
+    const [peticion, setPeticion] = useState('');
+    const [ideas, setIdeas] = useState<Idea[]>([]);
+    const [pensando, setPensando] = useState(false);
+    const [clips, setClips] = useState<Record<string, Video[] | 'sin_clave' | 'cargando'>>({});
+    const [video, setVideo] = useState<string | null>(null);
+
+    const [captura, setCaptura] = useState<Captura | null>(null);
+    const [subiendo, setSubiendo] = useState(false);
+    const [arrastrando, setArrastrando] = useState(false);
+    const archivoRef = useRef<HTMLInputElement>(null);
+
     const [decks, setDecks] = useState<Deck[]>([]);
     const [activo, setActivo] = useState<string | null>(null);
+    const [filtro, setFiltro] = useState('');
+    const [grande, setGrande] = useState<Plano | null>(null);
 
     const esPro = plan === 'pro';
     const deckActivo = decks.find(d => d.id === activo) ?? null;
 
-    // Sesión + plan + decks
     useEffect(() => {
         (async () => {
             try {
                 const { auth } = await import('@/lib/auth');
                 setUid((await auth.getCurrentUser())?.uid ?? null);
             } catch { setUid(null); }
+            setSesionLista(true);
         })();
     }, []);
     useEffect(() => {
         leerPlan().then(p => { setPlan(p.plan); setCobroListo(p.cobroListo); });
         let vivo = true;
-        listarDecks(uid).then(d => { if (vivo) { setDecks(d); setActivo(a => a ?? d[0]?.id ?? null); } });
+        listarDecks(uid).then(d => {
+            if (!vivo) return;
+            // Los decks de la primera versión (con planos de TMDB) no tienen imagen propia: fuera.
+            const limpios = d.map(x => ({ ...x, planos: (x.planos ?? []).filter(p => p.imagen) }));
+            setDecks(limpios); setActivo(a => a ?? limpios[0]?.id ?? null);
+        });
         return () => { vivo = false; };
     }, [uid]);
 
     const persistir = useCallback((nuevos: Deck[]) => { setDecks(nuevos); guardarDecks(uid, nuevos); }, [uid]);
 
-    const buscar = useCallback(async (filtros: Filtros, pag = 1) => {
-        setBuscando(true); setAviso(null);
-        const p = new URLSearchParams();
-        Object.entries(filtros).forEach(([k, v]) => { if (v !== undefined && v !== '') p.set(k, String(v)); });
-        p.set('pagina', String(pag));
+    // ---------- 1. Ideas de la IA ----------
+    const pedirIdeas = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (peticion.trim().length < 3) return;
+        if (!uid) { setAviso('Inicia sesión para pedir ideas a la IA.'); return; }
+        setPensando(true); setAviso(null);
         try {
-            const res = await fetch(`/api/fotogramas?${p}`, await conSesion());
-            if (res.status === 402) { setAviso('Esos filtros son del plan Pro.'); setResultados([]); return; }
-            if (res.status === 503) { setAviso('El buscador necesita la clave de TMDB en el servidor (variable TMDB_KEY).'); return; }
-            if (!res.ok) throw new Error(String(res.status));
+            const res = await fetch('/api/fotogramas/ideas', await conSesion({
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ peticion }),
+            }));
             const d = await res.json();
-            setResultados(d.resultados); setPagina(d.pagina); setPaginas(d.paginas);
-            if (d.resultados.length === 0) setAviso('Sin resultados con esos filtros.');
-        } catch { setAviso('No se pudo buscar ahora mismo. Inténtalo de nuevo.'); }
-        finally { setBuscando(false); }
+            if (!res.ok) throw new Error(d?.message || 'No se pudo');
+            setIdeas(d.ideas);
+            if (d.ideas.length === 0) setAviso('La IA no ha encontrado escenas para eso. Prueba a describirlo de otra forma.');
+        } catch (err: any) {
+            setAviso(err?.message && err.message !== 'No se pudo' ? err.message : 'La IA no ha respondido. Inténtalo de nuevo.');
+        } finally { setPensando(false); }
+    };
+
+    const verClips = async (busqueda: string) => {
+        if (clips[busqueda]) return;
+        setClips(c => ({ ...c, [busqueda]: 'cargando' }));
+        try {
+            const d = await (await fetch(`/api/fotogramas/youtube?q=${encodeURIComponent(busqueda)}`)).json();
+            setClips(c => ({ ...c, [busqueda]: d.sinClave ? 'sin_clave' : d.videos }));
+        } catch { setClips(c => ({ ...c, [busqueda]: 'sin_clave' })); }
+    };
+
+    // ---------- 2. Captura: pegar, arrastrar o subir ----------
+    const recibir = useCallback((archivo: Blob | null | undefined, datos?: Partial<Captura>) => {
+        if (!archivo || !archivo.type.startsWith('image/')) return;
+        setCaptura(prev => {
+            if (prev) URL.revokeObjectURL(prev.vista);
+            return { blob: archivo, vista: URL.createObjectURL(archivo), pelicula: prev?.pelicula ?? '', anio: prev?.anio ?? '', nota: '', fuente: '', ...datos };
+        });
     }, []);
 
-    // Al entrar, un escaparate: lo más popular.
-    useEffect(() => { const t = setTimeout(() => buscar({}), 0); return () => clearTimeout(t); }, [buscar]);
+    useEffect(() => {
+        const alPegar = (e: ClipboardEvent) => {
+            const item = Array.from(e.clipboardData?.items ?? []).find(i => i.type.startsWith('image/'));
+            if (item) { e.preventDefault(); recibir(item.getAsFile()); }
+        };
+        window.addEventListener('paste', alPegar);
+        return () => window.removeEventListener('paste', alPegar);
+    }, [recibir]);
 
-    const sugerir = async (tipo: 'persona' | 'palabra', texto: string) => {
-        tipo === 'persona' ? setPersona(texto) : setPalabra(texto);
-        if (texto.trim().length < 3 || !esPro) { setSugs(null); return; }
+    const pegarDelPortapapeles = async () => {
         try {
-            const res = await fetch(`/api/fotogramas?sugerir=${encodeURIComponent(texto)}&tipo=${tipo}`, await conSesion());
-            if (res.ok) setSugs({ tipo, items: (await res.json()).sugerencias });
-        } catch { /* sin sugerencias */ }
+            for (const item of await navigator.clipboard.read()) {
+                const tipo = item.types.find(t => t.startsWith('image/'));
+                if (tipo) { recibir(await item.getType(tipo)); return; }
+            }
+            setAviso('No hay ninguna imagen copiada. Haz una captura de pantalla primero.');
+        } catch { setAviso('Tu navegador no deja leer el portapapeles desde aquí. Pulsa Ctrl+V (o Cmd+V) o sube el archivo.'); }
     };
 
-    const abrirPelicula = async (r: Resultado) => {
-        setPelicula(r); setPlanos(null);
-        try {
-            const res = await fetch(`/api/fotogramas?pelicula=${r.id}`);
-            setPlanos(res.ok ? (await res.json()).planos : []);
-        } catch { setPlanos([]); }
+    const prepararDesdeIdea = (i: Idea) => {
+        setCaptura(prev => prev ? { ...prev, pelicula: i.titulo, anio: i.anio ?? '' } : prev);
+        setAviso(`Haz la captura de «${i.titulo}» y pégala aquí con Ctrl+V (o Cmd+V), o súbela.`);
+        document.getElementById('zona-captura')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
-    const planoDe = (r: Resultado, ruta: string, ancho?: number, alto?: number): Plano =>
-        ({ ruta, peliculaId: r.id, titulo: r.titulo, anio: r.anio, ancho, alto });
-
-    const anadir = (pl: Plano) => {
-        let d = deckActivo;
+    const guardarCaptura = async () => {
+        if (!captura) return;
+        if (!uid) { setAviso('Inicia sesión para guardar capturas en tus decks.'); return; }
         let lista = decks;
+        let d = deckActivo;
         if (!d) {
             if (!puedeCrearDeck(plan, decks.length)) { setAviso('El plan gratis incluye 1 deck. Hazte Pro para crear más.'); return; }
             d = deckNuevo('Mi primer deck');
-            lista = [...decks, d]; setActivo(d.id);
+            lista = [...decks, d];
         }
-        const motivo = motivoParaNoAnadir(plan, d, pl);
-        if (motivo === 'duplicado') { setAviso('Ese plano ya está en el deck.'); return; }
-        if (motivo === 'limite_planos') { setAviso(`El plan gratis admite ${LIMITES.gratis.planosPorDeck} planos por deck. Con Pro no hay tope.`); return; }
-        persistir(lista.map(x => x.id === d!.id ? { ...x, planos: [...x.planos, pl] } : x));
-        setAviso(null);
+        const id = nuevoId();
+        if (motivoParaNoAnadir(plan, d, { id }) === 'limite_planos') {
+            setAviso(`El plan gratis admite ${LIMITES.gratis.planosPorDeck} capturas por deck. Con Pro no hay tope.`); return;
+        }
+        setSubiendo(true); setAviso(null);
+        try {
+            const grandeJpg = await comprimir(captura.blob, 1920);
+            const { imagen, ruta } = await subirCaptura(uid, id, grandeJpg);
+            const nuevo: Plano = {
+                id, imagen, ruta, creado: Date.now(),
+                pelicula: captura.pelicula.trim().slice(0, 120) || undefined,
+                anio: /^\d{4}$/.test(captura.anio) ? captura.anio : undefined,
+                nota: captura.nota.trim().slice(0, 500) || undefined,
+                fuente: captura.fuente.trim().slice(0, 500) || undefined,
+            };
+            if (esPro) {
+                try { nuevo.etiquetas = await etiquetar(await aDataUrl(await comprimir(captura.blob, 1024, 0.8))); }
+                catch { setAviso('Captura guardada, pero la IA no ha podido etiquetarla ahora.'); }
+            }
+            const destino = d.id;
+            persistir(lista.map(x => x.id === destino ? { ...x, planos: [nuevo, ...x.planos] } : x));
+            setActivo(destino);
+            URL.revokeObjectURL(captura.vista);
+            setCaptura(null);
+        } catch (err) {
+            console.warn('[fotogramas] subida:', err);
+            setAviso('No se pudo guardar la captura. Comprueba la conexión e inténtalo de nuevo.');
+        } finally { setSubiendo(false); }
     };
 
-    const quitar = (pl: Plano) => deckActivo &&
-        persistir(decks.map(x => x.id === deckActivo.id ? { ...x, planos: x.planos.filter(p => !(p.ruta === pl.ruta && p.peliculaId === pl.peliculaId)) } : x));
+    // ---------- 3. Decks ----------
+    const quitar = (p: Plano) => {
+        if (!deckActivo) return;
+        persistir(decks.map(x => x.id === deckActivo.id ? { ...x, planos: x.planos.filter(q => q.id !== p.id) } : x));
+        borrarCaptura(p.ruta);
+        setGrande(null);
+    };
 
-    const nuevoDeck = () => {
+    const crearDeck = () => {
         if (!puedeCrearDeck(plan, decks.length)) { setAviso('El plan gratis incluye 1 deck. Hazte Pro para crear más.'); return; }
         const nombre = window.prompt('Nombre del deck');
         if (!nombre?.trim()) return;
@@ -132,7 +203,8 @@ export default function FotogramasPage() {
     };
 
     const borrarDeck = () => {
-        if (!deckActivo || !window.confirm(`¿Borrar el deck «${deckActivo.nombre}»?`)) return;
+        if (!deckActivo || !window.confirm(`¿Borrar el deck «${deckActivo.nombre}» y sus ${deckActivo.planos.length} capturas?`)) return;
+        deckActivo.planos.forEach(p => borrarCaptura(p.ruta));
         const resto = decks.filter(d => d.id !== deckActivo.id);
         persistir(resto); setActivo(resto[0]?.id ?? null);
     };
@@ -140,11 +212,13 @@ export default function FotogramasPage() {
     const compartir = async () => {
         if (!deckActivo) return;
         if (!esPro) { setAviso('Compartir decks es del plan Pro.'); return; }
+        if (deckActivo.planos.length === 0) { setAviso('El deck está vacío.'); return; }
         try {
             const res = await fetch('/api/fotogramas/deck', await conSesion({
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: deckActivo.compartido, nombre: deckActivo.nombre, planos: deckActivo.planos }),
             }));
+            if (res.status === 403) { setAviso('Este enlace se retiró por una denuncia y está en revisión.'); return; }
             if (!res.ok) throw new Error(String(res.status));
             const { id } = await res.json();
             persistir(decks.map(d => d.id === deckActivo.id ? { ...d, compartido: id } : d));
@@ -163,16 +237,12 @@ export default function FotogramasPage() {
         } catch { setAviso('No se pudo abrir el pago. Inténtalo de nuevo.'); }
     };
 
-    const aplicar = (e: React.FormEvent) => { e.preventDefault(); setSugs(null); buscar(f, 1); };
-    const ponerFiltro = (cambio: Partial<Filtros>) => setF(prev => ({ ...prev, ...cambio }));
-    const bloqueado = !esPro;
-
-    const enDeck = new Set(deckActivo?.planos.map(p => p.peliculaId + p.ruta));
+    const visibles = deckActivo?.planos.filter(p => coincide(p, filtro)) ?? [];
 
     return (
         <main className="min-h-screen bg-[#100E0B] text-[#F6EFE0]">
             <div className="mx-auto max-w-7xl px-4 pb-28 pt-8 sm:px-6">
-                <Link href="/estudios" className="mb-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#D9CFBD] hover:text-amber-400">
+                <Link href="/estudios" className="mb-6 inline-flex min-h-11 items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#D9CFBD] hover:text-amber-400">
                     <ArrowLeft className="h-3.5 w-3.5" /> Volver a Mis Estudios
                 </Link>
 
@@ -180,126 +250,134 @@ export default function FotogramasPage() {
                     <div>
                         <p className="text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-amber-400">Referencias de cine</p>
                         <h1 className="mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">Fotogramas</h1>
-                        <p className="mt-2 max-w-xl text-[#D9CFBD]">Busca planos de miles de películas, guárdalos en decks y enséñaselos a tu director o a tu representante.</p>
+                        <p className="mt-2 max-w-xl text-[#D9CFBD]">Dile a la IA qué buscas, mira la escena y guarda tus capturas en decks para tu director o tu representante.</p>
                     </div>
                     {esPro ? (
                         <div className="flex items-center gap-3">
                             <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-400"><Crown className="h-3.5 w-3.5" /> Pro</span>
-                            <button type="button" onClick={() => hacerPro(true)} className="text-xs uppercase tracking-wider text-[#D9CFBD] underline hover:text-white">Gestionar suscripción</button>
+                            <button type="button" onClick={() => hacerPro(true)} className="min-h-11 text-xs uppercase tracking-wider text-[#D9CFBD] underline hover:text-white">Gestionar suscripción</button>
                         </div>
                     ) : cobroListo ? (
-                        <button type="button" onClick={() => hacerPro()} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-400 px-6 text-xs font-bold uppercase tracking-[0.16em] text-[#140F06] hover:bg-amber-300">
-                            <Crown className="h-4 w-4" /> Hazte Pro
-                        </button>
+                        <button type="button" onClick={() => hacerPro()} className={botonOro}><Crown className="h-4 w-4" /> Hazte Pro</button>
                     ) : null}
                 </header>
 
-                {aviso && (
-                    <p role="status" className="mb-4 flex items-start justify-between gap-3 rounded-lg border border-amber-400 bg-amber-400/10 px-4 py-3 text-sm text-[#F6EFE0]">
-                        <span className="break-all">{aviso}</span>
-                        <button type="button" aria-label="Cerrar aviso" onClick={() => setAviso(null)} className="min-h-6 min-w-6"><X className="h-4 w-4" /></button>
+                {sesionLista && !uid && (
+                    <p className="mb-4 rounded-lg border border-white/15 bg-white/[0.04] px-4 py-3 text-sm">
+                        Para pedir ideas a la IA y guardar capturas necesitas una cuenta. <Link href="/login" className="font-bold text-amber-400 underline">Inicia sesión</Link>
                     </p>
                 )}
 
-                <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-                    <section>
-                        <form onSubmit={aplicar} className="mb-6 space-y-3 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                            <div className="flex gap-2">
-                                <div className="relative flex-1">
-                                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" />
-                                    <input value={f.q ?? ''} onChange={e => ponerFiltro({ q: e.target.value })} placeholder="Título de la película…"
-                                        aria-label="Título" className={`${entrada} w-full py-3 pl-10`} />
-                                </div>
-                                <button type="submit" disabled={buscando} className="min-h-11 rounded-full bg-amber-400 px-6 text-xs font-bold uppercase tracking-[0.16em] text-[#140F06] hover:bg-amber-300 disabled:opacity-60">
-                                    {buscando ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Buscar'}
+                {aviso && (
+                    <p role="status" className="mb-4 flex items-start justify-between gap-3 rounded-lg border border-amber-400 bg-amber-400/10 px-4 py-3 text-sm">
+                        <span className="break-all">{aviso}</span>
+                        <button type="button" aria-label="Cerrar aviso" onClick={() => setAviso(null)} className="flex h-11 w-11 shrink-0 items-center justify-center"><X className="h-4 w-4" /></button>
+                    </p>
+                )}
+
+                <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+                    <div className="min-w-0 space-y-8">
+                        {/* 1. Ideas */}
+                        <section aria-labelledby="t-ideas">
+                            <h2 id="t-ideas" className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-amber-400">1 · ¿Qué buscas?</h2>
+                            <form onSubmit={pedirIdeas} className="flex flex-col gap-2 sm:flex-row">
+                                <input value={peticion} onChange={e => setPeticion(e.target.value)} maxLength={500}
+                                    aria-label="Qué buscas" placeholder="Rabia contenida en primer plano, luz dura de noche…"
+                                    className={`${entrada} flex-1 py-3`} />
+                                <button type="submit" disabled={pensando} className={botonOro}>
+                                    {pensando ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Sparkles className="h-4 w-4" /> Buscar escenas</>}
                                 </button>
-                            </div>
+                            </form>
 
-                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                                <select aria-label="Género" value={f.genero ?? ''} onChange={e => ponerFiltro({ genero: e.target.value ? Number(e.target.value) : undefined })} className={entrada}>
-                                    <option value="">Cualquier género</option>
-                                    {Object.entries(GENEROS).map(([id, n]) => <option key={id} value={id}>{n}</option>)}
-                                </select>
-
-                                <select aria-label="Idioma original" disabled={bloqueado} value={f.idioma ?? ''} onChange={e => ponerFiltro({ idioma: e.target.value || undefined })} className={`${entrada} disabled:opacity-60`}>
-                                    <option value="">{bloqueado ? '🔒 Idioma (Pro)' : 'Cualquier idioma'}</option>
-                                    {Object.entries(IDIOMAS).map(([c, n]) => <option key={c} value={c}>{n}</option>)}
-                                </select>
-
-                                <select aria-label="Ordenar por" disabled={bloqueado} value={f.orden ?? 'populares'} onChange={e => ponerFiltro({ orden: e.target.value as Filtros['orden'] })} className={`${entrada} disabled:opacity-60`}>
-                                    {ORDENES.map(o => <option key={o.v} value={o.v}>{bloqueado && o.v !== 'populares' ? '🔒 ' : ''}{o.t}</option>)}
-                                </select>
-
-                                <input type="number" aria-label="Desde el año" placeholder={bloqueado ? '🔒 Desde año (Pro)' : 'Desde año'} disabled={bloqueado}
-                                    min={1888} max={2100} value={f.desde ?? ''} onChange={e => ponerFiltro({ desde: e.target.value ? Number(e.target.value) : undefined })} className={`${entrada} disabled:opacity-60`} />
-                                <input type="number" aria-label="Hasta el año" placeholder={bloqueado ? '🔒 Hasta año (Pro)' : 'Hasta año'} disabled={bloqueado}
-                                    min={1888} max={2100} value={f.hasta ?? ''} onChange={e => ponerFiltro({ hasta: e.target.value ? Number(e.target.value) : undefined })} className={`${entrada} disabled:opacity-60`} />
-                            </div>
-
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                {(['persona', 'palabra'] as const).map(tipo => (
-                                    <div key={tipo} className="relative">
-                                        <input value={tipo === 'persona' ? persona : palabra} disabled={bloqueado}
-                                            onChange={e => sugerir(tipo, e.target.value)}
-                                            aria-label={tipo === 'persona' ? 'Director o actor' : 'Palabra clave'}
-                                            placeholder={bloqueado ? (tipo === 'persona' ? '🔒 Director o actor (Pro)' : '🔒 Palabra clave: neo-noir… (Pro)')
-                                                : (tipo === 'persona' ? 'Director o actor: Villeneuve…' : 'Palabra clave: neo-noir…')}
-                                            className={`${entrada} w-full disabled:opacity-60`} />
-                                        {sugs?.tipo === tipo && sugs.items.length > 0 && (
-                                            <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-white/15 bg-[#1A1713] shadow-xl">
-                                                {sugs.items.map(s => (
-                                                    <li key={s.id}>
-                                                        <button type="button" className="block min-h-11 w-full px-3 py-2 text-left text-sm text-white hover:bg-white/10"
-                                                            onClick={() => {
-                                                                ponerFiltro(tipo === 'persona' ? { persona: s.id } : { palabra: s.id });
-                                                                tipo === 'persona' ? setPersona(s.nombre) : setPalabra(s.nombre);
-                                                                setSugs(null);
-                                                            }}>
-                                                            {s.nombre}{s.detalle ? <span className="text-white/70"> · {s.detalle}</span> : null}
-                                                        </button>
-                                                    </li>
+                            {ideas.length > 0 && (
+                                <ul className="mt-5 grid gap-4 md:grid-cols-2">
+                                    {ideas.map(i => {
+                                        const c = clips[i.busqueda];
+                                        return (
+                                            <li key={i.titulo + i.escena} className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                                                <p className="text-lg font-bold">{i.titulo} {i.anio && <span className="font-normal text-[#D9CFBD]">({i.anio})</span>}</p>
+                                                {i.director && <p className="text-xs uppercase tracking-wider text-[#D9CFBD]">{i.director}</p>}
+                                                <p className="mt-2 text-sm">{i.escena}</p>
+                                                {i.porQue && <p className="mt-1 text-sm text-[#D9CFBD]"><b className="text-amber-400">Para ti:</b> {i.porQue}</p>}
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    <button type="button" onClick={() => verClips(i.busqueda)} className={botonLinea}><Play className="h-3.5 w-3.5" /> Ver clips</button>
+                                                    <a href={urlGoogleImagenes(i.busqueda)} target="_blank" rel="noreferrer" className={botonLinea}><Search className="h-3.5 w-3.5" /> Google Imágenes</a>
+                                                    <button type="button" onClick={() => prepararDesdeIdea(i)} className={botonLinea}><ImagePlus className="h-3.5 w-3.5" /> Capturar</button>
+                                                </div>
+                                                {c === 'cargando' && <Loader2 className="mt-3 h-5 w-5 animate-spin text-amber-400" />}
+                                                {c === 'sin_clave' && (
+                                                    <a href={urlBusquedaYoutube(i.busqueda)} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-sm text-amber-400 underline">
+                                                        Buscar el clip en YouTube <ExternalLink className="h-3.5 w-3.5" />
+                                                    </a>
+                                                )}
+                                                {Array.isArray(c) && (c.length === 0 ? <p className="mt-3 text-sm text-[#D9CFBD]">No hay clips para esta escena.</p> : (
+                                                    <ul className="mt-3 grid grid-cols-2 gap-2">
+                                                        {c.map(v => (
+                                                            <li key={v.id}>
+                                                                <button type="button" onClick={() => setVideo(v.id)} className="block w-full text-left" aria-label={`Ver ${v.titulo}`}>
+                                                                    {v.miniatura && <img src={v.miniatura} alt="" loading="lazy" className="aspect-video w-full rounded object-cover" />}
+                                                                    <span className="mt-1 line-clamp-2 block text-xs">{v.titulo}</span>
+                                                                </button>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
                                                 ))}
-                                            </ul>
-                                        )}
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            )}
+                        </section>
+
+                        {/* 2. Captura */}
+                        <section aria-labelledby="t-captura" id="zona-captura">
+                            <h2 id="t-captura" className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-amber-400">2 · Guarda tu captura</h2>
+                            {!captura ? (
+                                <div
+                                    onDragOver={e => { e.preventDefault(); setArrastrando(true); }}
+                                    onDragLeave={() => setArrastrando(false)}
+                                    onDrop={e => { e.preventDefault(); setArrastrando(false); recibir(e.dataTransfer.files[0]); }}
+                                    className={`rounded-xl border-2 border-dashed px-6 py-10 text-center transition ${arrastrando ? 'border-amber-400 bg-amber-400/10' : 'border-white/20'}`}>
+                                    <ImagePlus className="mx-auto h-8 w-8 text-amber-400" />
+                                    <p className="mt-3 text-sm">Haz una captura de pantalla de la escena y <b>pégala aquí</b> (Ctrl+V o Cmd+V), o arrástrala.</p>
+                                    <div className="mt-4 flex flex-wrap justify-center gap-2">
+                                        <button type="button" onClick={pegarDelPortapapeles} className={botonLinea}><Clipboard className="h-3.5 w-3.5" /> Pegar</button>
+                                        <button type="button" onClick={() => archivoRef.current?.click()} className={botonLinea}><Plus className="h-3.5 w-3.5" /> Subir archivo</button>
+                                        <input ref={archivoRef} type="file" accept="image/*" hidden onChange={e => { recibir(e.target.files?.[0]); e.target.value = ''; }} />
                                     </div>
-                                ))}
-                            </div>
-
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                                {bloqueado ? (
-                                    <p className="flex items-center gap-1.5 text-xs text-[#D9CFBD]"><Lock className="h-3.5 w-3.5" /> Época, idioma, orden, director/actor y palabras clave son del plan Pro.</p>
-                                ) : <span />}
-                                <button type="button" onClick={() => { setF({}); setPersona(''); setPalabra(''); setSugs(null); buscar({}); }} className="text-xs uppercase tracking-wider text-[#D9CFBD] underline hover:text-white">Limpiar filtros</button>
-                            </div>
-                        </form>
-
-                        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                            {resultados.map(r => (
-                                <li key={r.id}>
-                                    <button type="button" onClick={() => abrirPelicula(r)} className="group block w-full text-left">
-                                        <div className="aspect-[2/3] overflow-hidden rounded-lg bg-white/5">
-                                            {r.poster && <img src={urlImagen(r.poster, 'w780')} alt={`Póster de ${r.titulo}`} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />}
+                                    <p className="mt-4 text-xs text-[#D9CFBD]">Tus capturas son privadas. Sube sólo imágenes que puedas usar como referencia personal.</p>
+                                </div>
+                            ) : (
+                                <div className="grid gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 sm:grid-cols-[1fr_1fr]">
+                                    <img src={captura.vista} alt="Captura sin guardar" className="w-full rounded object-contain" />
+                                    <div className="space-y-3">
+                                        <div className="grid grid-cols-[1fr_90px] gap-2">
+                                            <input aria-label="Película" placeholder="Película" value={captura.pelicula} onChange={e => setCaptura({ ...captura, pelicula: e.target.value })} className={entrada} />
+                                            <input aria-label="Año" placeholder="Año" inputMode="numeric" maxLength={4} value={captura.anio} onChange={e => setCaptura({ ...captura, anio: e.target.value.replace(/\D/g, '') })} className={entrada} />
                                         </div>
-                                        <p className="mt-2 text-sm font-semibold text-white">{r.titulo}</p>
-                                        <p className="text-xs text-[#D9CFBD]">{r.anio}</p>
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
+                                        <textarea aria-label="Nota" rows={3} placeholder="¿Qué te interesa de este plano?" value={captura.nota} onChange={e => setCaptura({ ...captura, nota: e.target.value })} className={`${entrada} w-full`} />
+                                        <input aria-label="De dónde la has sacado" placeholder="De dónde la has sacado (enlace, opcional)" value={captura.fuente} onChange={e => setCaptura({ ...captura, fuente: e.target.value })} className={`${entrada} w-full`} />
+                                        <p className="text-xs text-[#D9CFBD]">
+                                            Se guarda en <b className="text-[#F6EFE0]">{deckActivo?.nombre ?? 'Mi primer deck'}</b>.
+                                            {esPro ? ' La IA la etiquetará al guardar.' : ' Etiquetado con IA: Pro.'}
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            <button type="button" onClick={guardarCaptura} disabled={subiendo} className={botonOro}>
+                                                {subiendo ? <><Loader2 className="h-4 w-4 animate-spin" /> Guardando…</> : 'Guardar en el deck'}
+                                            </button>
+                                            <button type="button" onClick={() => { URL.revokeObjectURL(captura.vista); setCaptura(null); }} className={botonLinea}>Descartar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </section>
+                    </div>
 
-                        {paginas > 1 && (
-                            <div className="mt-6 flex items-center justify-center gap-4 text-sm">
-                                <button type="button" disabled={pagina <= 1 || buscando} onClick={() => buscar(f, pagina - 1)} className="min-h-11 rounded-full border border-white/20 px-4 disabled:opacity-50">Anterior</button>
-                                <span className="text-[#D9CFBD]">{pagina} / {paginas}</span>
-                                <button type="button" disabled={pagina >= paginas || buscando} onClick={() => buscar(f, pagina + 1)} className="min-h-11 rounded-full border border-white/20 px-4 disabled:opacity-50">Siguiente</button>
-                            </div>
-                        )}
-                    </section>
-
+                    {/* 3. Decks */}
                     <aside aria-label="Mis decks" className="h-fit rounded-xl border border-white/10 bg-white/[0.03] p-4 lg:sticky lg:top-6">
                         <div className="mb-3 flex items-center justify-between">
-                            <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-amber-400">Mis decks</h2>
-                            <button type="button" onClick={nuevoDeck} className="inline-flex min-h-11 items-center gap-1 text-xs uppercase tracking-wider text-[#F6EFE0] hover:text-amber-400"><Plus className="h-3.5 w-3.5" /> Nuevo</button>
+                            <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-amber-400">3 · Mis decks</h2>
+                            <button type="button" onClick={crearDeck} className="inline-flex min-h-11 items-center gap-1 text-xs uppercase tracking-wider hover:text-amber-400"><Plus className="h-3.5 w-3.5" /> Nuevo</button>
                         </div>
 
                         {decks.length > 0 && (
@@ -310,90 +388,81 @@ export default function FotogramasPage() {
 
                         {deckActivo ? (
                             <>
-                                <p className="mb-2 text-xs text-[#D9CFBD]">
-                                    {deckActivo.planos.length}{esPro ? '' : ` / ${LIMITES.gratis.planosPorDeck}`} planos
-                                </p>
+                                {deckActivo.planos.length > 0 && (
+                                    <input aria-label="Filtrar capturas" placeholder="Filtrar: contraluz, tensión, Heat…" value={filtro} onChange={e => setFiltro(e.target.value)} className={`${entrada} mb-2 w-full`} />
+                                )}
+                                <p className="mb-2 text-xs text-[#D9CFBD]">{deckActivo.planos.length}{esPro ? '' : ` / ${LIMITES.gratis.planosPorDeck}`} capturas</p>
                                 {deckActivo.planos.length === 0 ? (
-                                    <p className="rounded-lg border border-dashed border-white/20 px-3 py-6 text-center text-sm text-[#D9CFBD]">Abre una película y pulsa «Añadir» en los planos que te sirvan.</p>
+                                    <p className="rounded-lg border border-dashed border-white/20 px-3 py-6 text-center text-sm text-[#D9CFBD]">Pega tu primera captura a la izquierda.</p>
+                                ) : visibles.length === 0 ? (
+                                    <p className="text-sm text-[#D9CFBD]">Nada coincide con «{filtro}».</p>
                                 ) : (
                                     <ul className="grid grid-cols-3 gap-2">
-                                        {deckActivo.planos.map(p => (
-                                            <li key={p.peliculaId + p.ruta} className="group relative">
-                                                <button type="button" onClick={() => setGrande(p)} aria-label={`Ver plano de ${p.titulo}`}>
-                                                    <img src={urlImagen(p.ruta, 'w780')} alt={`Plano de ${p.titulo}`} loading="lazy" className="aspect-video w-full rounded object-cover" />
+                                        {visibles.map(p => (
+                                            <li key={p.id}>
+                                                <button type="button" onClick={() => setGrande(p)} aria-label={`Ver captura${p.pelicula ? ' de ' + p.pelicula : ''}`} className="block w-full">
+                                                    <img src={p.imagen} alt="" loading="lazy" className="aspect-video w-full rounded object-cover" />
                                                 </button>
-                                                <button type="button" onClick={() => quitar(p)} aria-label="Quitar del deck" className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/80 text-white hover:bg-red-700"><X className="h-3 w-3" /></button>
                                             </li>
                                         ))}
                                     </ul>
                                 )}
                                 <div className="mt-4 flex flex-wrap gap-2">
-                                    <button type="button" onClick={compartir} className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-amber-400 px-4 text-xs font-bold uppercase tracking-wider text-[#140F06] hover:bg-amber-300">
+                                    <button type="button" onClick={compartir} className={botonOro}>
                                         {esPro ? <Share2 className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />} {deckActivo.compartido ? 'Copiar enlace' : 'Compartir'}
                                     </button>
-                                    <button type="button" onClick={borrarDeck} className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-white/20 px-4 text-xs uppercase tracking-wider text-[#F6EFE0] hover:border-red-500"><Trash2 className="h-3.5 w-3.5" /> Borrar</button>
+                                    <button type="button" onClick={borrarDeck} className={botonLinea}><Trash2 className="h-3.5 w-3.5" /> Borrar</button>
                                 </div>
                             </>
                         ) : (
-                            <p className="text-sm text-[#D9CFBD]">Aún no tienes ningún deck. Crea uno o añade un plano y se crea solo.</p>
+                            <p className="text-sm text-[#D9CFBD]">Aún no tienes decks. Se crea uno al guardar tu primera captura.</p>
                         )}
 
                         {!esPro && (
                             <p className="mt-4 border-t border-white/10 pt-3 text-xs text-[#D9CFBD]">
-                                Plan gratis: 1 deck, 12 planos, sin compartir ni descarga original.
-                                {!cobroListo && <> El plan Pro aún no está activado.</>}
+                                Gratis: 1 deck de {LIMITES.gratis.planosPorDeck} capturas. Pro: decks ilimitados, etiquetado con IA y compartir por enlace.
+                                {!cobroListo && ' El plan Pro aún no está activado.'}
                             </p>
                         )}
                     </aside>
                 </div>
-
-                <p className="mt-12 text-xs text-[#D9CFBD]">Datos e imágenes de <a className="underline" href="https://www.themoviedb.org" target="_blank" rel="noreferrer">TMDB</a>. Fotogramas no está afiliado a TMDB ni a ShotDeck.</p>
             </div>
 
-            {pelicula && (
-                <div role="dialog" aria-modal="true" aria-label={`Planos de ${pelicula.titulo}`} className="fixed inset-0 z-50 overflow-y-auto bg-black/90 p-4 sm:p-8">
-                    <div className="mx-auto max-w-5xl">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-2xl font-extrabold">{pelicula.titulo} <span className="text-base font-normal text-[#D9CFBD]">{pelicula.anio}</span></h2>
-                            <button type="button" aria-label="Cerrar" onClick={() => setPelicula(null)} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 hover:border-amber-400"><X className="h-5 w-5" /></button>
-                        </div>
-                        {planos === null ? <Loader2 className="mx-auto h-8 w-8 animate-spin text-amber-400" /> :
-                            planos.length === 0 ? <p className="text-[#D9CFBD]">TMDB no tiene planos de esta película.</p> : (
-                            <ul className="grid gap-4 sm:grid-cols-2">
-                                {planos.map(p => {
-                                    const pl = planoDe(pelicula, p.ruta, p.ancho, p.alto);
-                                    const dentro = enDeck.has(pl.peliculaId + pl.ruta);
-                                    return (
-                                        <li key={p.ruta} className="overflow-hidden rounded-lg bg-white/5">
-                                            <button type="button" onClick={() => setGrande(pl)} aria-label="Ver plano grande" className="block w-full">
-                                                <img src={urlImagen(p.ruta, 'w780')} alt={`Plano de ${pelicula.titulo}`} loading="lazy" className="aspect-video w-full object-cover" />
-                                            </button>
-                                            <div className="flex items-center justify-between px-3 py-2 text-xs text-[#D9CFBD]">
-                                                <span>{p.ancho && p.alto ? `${p.ancho}×${p.alto}` : ''}</span>
-                                                <button type="button" disabled={dentro} onClick={() => anadir(pl)} className="inline-flex min-h-11 items-center gap-1 font-bold uppercase tracking-wider text-amber-400 disabled:text-[#D9CFBD]">
-                                                    {dentro ? <><Check className="h-3.5 w-3.5" /> En el deck</> : <><Plus className="h-3.5 w-3.5" /> Añadir</>}
-                                                </button>
-                                            </div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
+            {video && urlEmbedYoutube(video) && (
+                <div role="dialog" aria-modal="true" aria-label="Clip de YouTube" className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 p-4">
+                    <button type="button" aria-label="Cerrar" onClick={() => setVideo(null)} className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/25 hover:border-amber-400"><X className="h-5 w-5" /></button>
+                    <div className="w-full max-w-4xl">
+                        <iframe src={urlEmbedYoutube(video)} title="Clip de YouTube" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen className="aspect-video w-full rounded" />
+                        <p className="mt-3 text-center text-sm text-[#D9CFBD]">Pausa en el plano que te interese, haz captura de pantalla y pégala en «Guarda tu captura».</p>
                     </div>
                 </div>
             )}
 
             {grande && (
-                <div role="dialog" aria-modal="true" aria-label="Plano ampliado" className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/95 p-4">
-                    <button type="button" aria-label="Cerrar" onClick={() => setGrande(null)} className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 hover:border-amber-400"><X className="h-5 w-5" /></button>
-                    <img src={urlImagen(grande.ruta, 'w1280')} alt={`Plano de ${grande.titulo}`} className="max-h-[80vh] max-w-full rounded" />
-                    <div className="mt-4 flex flex-wrap items-center gap-3">
-                        <p className="text-sm text-[#F6EFE0]">{grande.titulo} {grande.anio && `(${grande.anio})`}</p>
-                        {esPro ? (
-                            <a href={urlImagen(grande.ruta, 'original')} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-amber-400 px-4 text-xs font-bold uppercase tracking-wider text-[#140F06]"><Download className="h-3.5 w-3.5" /> Original</a>
-                        ) : (
-                            <span className="inline-flex min-h-11 items-center gap-1.5 text-xs text-[#D9CFBD]"><Lock className="h-3.5 w-3.5" /> Descarga original: Pro</span>
-                        )}
+                <div role="dialog" aria-modal="true" aria-label="Captura ampliada" className="fixed inset-0 z-[110] overflow-y-auto bg-black/95 p-4">
+                    <button type="button" aria-label="Cerrar" onClick={() => setGrande(null)} className="fixed right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-black hover:border-amber-400"><X className="h-5 w-5" /></button>
+                    <div className="mx-auto max-w-5xl pt-14">
+                        <img src={grande.imagen} alt={grande.pelicula ? `Captura de ${grande.pelicula}` : 'Captura'} className="max-h-[70vh] w-full rounded object-contain" />
+                        <div className="mt-4 space-y-3">
+                            {grande.pelicula && <p className="text-xl font-bold">{grande.pelicula} {grande.anio && <span className="font-normal text-[#D9CFBD]">({grande.anio})</span>}</p>}
+                            {grande.nota && <p className="text-sm">{grande.nota}</p>}
+                            {grande.etiquetas ? (
+                                <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+                                    {ETIQUETAS.map(([k, t]) => grande.etiquetas?.[k] ? (
+                                        <div key={k}><dt className="text-xs uppercase tracking-wider text-amber-400">{t}</dt><dd>{String(grande.etiquetas[k])}</dd></div>
+                                    ) : null)}
+                                </dl>
+                            ) : !esPro && <p className="flex items-center gap-1.5 text-xs text-[#D9CFBD]"><Lock className="h-3.5 w-3.5" /> Etiquetado con IA (plano, luz, color, emoción): Pro.</p>}
+                            {grande.etiquetas?.palabras && grande.etiquetas.palabras.length > 0 && (
+                                <ul className="flex flex-wrap gap-1.5">
+                                    {grande.etiquetas.palabras.map(w => <li key={w} className="rounded-full border border-white/20 px-2.5 py-1 text-xs">{w}</li>)}
+                                </ul>
+                            )}
+                            {grande.fuente && /^https?:\/\//.test(grande.fuente) && (
+                                <a href={grande.fuente} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1.5 text-sm text-amber-400 underline">Fuente <ExternalLink className="h-3.5 w-3.5" /></a>
+                            )}
+                            <div><button type="button" onClick={() => quitar(grande)} className={botonLinea}><Trash2 className="h-3.5 w-3.5" /> Borrar captura</button></div>
+                        </div>
                     </div>
                 </div>
             )}

@@ -56,11 +56,22 @@ de Firestore y 2 de Storage. Con las reglas antiguas, 7 de los abusos pasaban.
   como legibles desde el panel. Marcarlas como *Sensitive* hace que nadie
   (ni con acceso al panel) pueda volver a leerlas.
 
-## Fotogramas (biblioteca de planos con suscripción Pro)
+## Fotogramas (referencias de cine con suscripción Pro)
+
+**Por qué no trae imágenes de nadie (26/10/2026):** los fotogramas de cine actual son de los estudios. TMDB exige licencia comercial (149 USD/mes) para usarlos en una app de pago; OMDb prohíbe montar un negocio con sus datos; la API de imágenes de Google no admite clientes nuevos y se apaga el 1/1/2027. Por eso:
+
+- La IA (Gemini) sólo **recomienda** películas y escenas en texto (`/api/fotogramas/ideas`).
+- Los clips se ven **incrustados desde YouTube** (`/api/fotogramas/youtube`); si falta la clave, se enlaza a la búsqueda de YouTube.
+- Hay un **enlace a Google Imágenes** con la búsqueda escrita (un enlace normal, sin API).
+- Las capturas las **sube el propio usuario** a su carpeta `users/{uid}/fotogramas/` (storage.rules ya lo limita a su dueño). La app actúa como alojador: decks privados, enlace compartido sin indexar (`robots: noindex`) y **«Denunciar»**, que retira el enlace al momento (`/api/fotogramas/denuncia`, guarda en `denunciasFotogramas` y avisa por correo al admin). Las condiciones de uso (`/terms`, punto 7) lo explican.
+- La IA etiqueta la captura (`/api/fotogramas/etiquetar`, sólo Pro): plano, ángulo, luz, color, emoción, composición.
+
+Antes de empezar a cobrar, conviene que un abogado revise las condiciones de uso.
 
 Variables del servidor en Vercel, todas «Sensitive» y sin `NEXT_PUBLIC_`:
 
-- `TMDB_KEY`: búsqueda y planos.
+- `YOUTUBE_API_KEY` (opcional): clips incrustados. Gratis hasta 10.000 unidades al día (unas 100 búsquedas; se cachean un día).
 - `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID` (el precio se crea en Stripe, no está en el código) y `STRIPE_WEBHOOK_SECRET`.
+- Las ideas y el etiquetado usan la clave de Gemini que ya existe (`GOOGLE_GENAI_API_KEY`).
 
-La colección `suscripciones/{uid}` sólo la escribe `/api/fotogramas/webhook` (firma de Stripe comprobada, `src/lib/stripe-firma.ts`). Las reglas de Firestore no la nombran, así que el navegador no puede tocarla. Los decks compartidos viven en `decksPublicos/{id}`, también sólo por servidor. El tope de decks y planos del plan gratis se aplica en la pantalla; compartir y los filtros avanzados se comprueban en el servidor.
+La colección `suscripciones/{uid}` sólo la escribe `/api/fotogramas/webhook` (firma de Stripe comprobada, `src/lib/stripe-firma.ts`). Las reglas de Firestore no nombran `suscripciones`, `decksPublicos` ni `denunciasFotogramas`, así que el navegador no puede tocarlas. El tope de decks y capturas del plan gratis se aplica en la pantalla; compartir y el etiquetado con IA se comprueban en el servidor.

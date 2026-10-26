@@ -3,31 +3,15 @@ import { randomBytes } from 'node:crypto';
 import { frenar } from '@/lib/seguridad';
 import { admin, ensureAdmin, usuarioDe } from '@/lib/firebase-admin';
 import { planDe } from '@/lib/suscripcion';
-import type { Plano } from '@/lib/fotogramas';
+import { limpiarPlanosPublicos } from '@/lib/fotogramas';
 
 // Compartir un deck por enlace (sólo Pro).
 //   POST /api/fotogramas/deck  { nombre, planos, id? } → { id }   (crea o actualiza el enlace)
-//   GET  /api/fotogramas/deck?id=abc → { nombre, planos, autor? } (público: es el enlace que se comparte)
+//   GET  /api/fotogramas/deck?id=abc → { nombre, planos } (lo ve quien tenga el enlace; no se indexa)
+// Si alguien lo denuncia (/api/fotogramas/denuncia) queda retirado y deja de verse.
 // Se guarda una COPIA en decksPublicos/{id}; el deck original sigue siendo privado.
 
-const RUTA = /^\/[\w.-]{1,80}$/;
 const ID = /^[a-f0-9]{16}$/;
-
-function limpiarPlanos(raw: unknown): Plano[] {
-    if (!Array.isArray(raw)) return [];
-    const out: Plano[] = [];
-    for (const p of raw.slice(0, 500)) {
-        if (!p || typeof p.ruta !== 'string' || !RUTA.test(p.ruta)) continue;
-        if (typeof p.peliculaId !== 'string' || !/^\d{1,10}$/.test(p.peliculaId)) continue;
-        out.push({
-            ruta: p.ruta,
-            peliculaId: p.peliculaId,
-            titulo: String(p.titulo ?? '').slice(0, 120),
-            anio: /^\d{4}$/.test(String(p.anio ?? '')) ? String(p.anio) : undefined,
-        });
-    }
-    return out;
-}
 
 export async function POST(req: Request) {
     const frenado = frenar(req, 'fotogramas-deck', 20);
@@ -40,7 +24,7 @@ export async function POST(req: Request) {
 
     let body: any;
     try { body = await req.json(); } catch { return NextResponse.json({ error: 'cuerpo' }, { status: 400 }); }
-    const planos = limpiarPlanos(body?.planos);
+    const planos = limpiarPlanosPublicos(body?.planos);
     if (planos.length === 0) return NextResponse.json({ error: 'vacio' }, { status: 400 });
     const nombre = String(body?.nombre ?? '').trim().slice(0, 80) || 'Deck sin nombre';
 
@@ -50,10 +34,13 @@ export async function POST(req: Request) {
         // Sólo el dueño del enlace puede reescribirlo.
         const previo = await col.doc(id).get();
         if (previo.exists && previo.data()?.uid !== u.uid) id = '';
+        // Un enlace retirado por denuncia no lo reabre su dueño: lo revisa el admin.
+        else if (previo.exists && previo.data()?.retirado) return NextResponse.json({ error: 'retirado' }, { status: 403 });
     }
     if (!id) id = randomBytes(8).toString('hex');
 
-    await col.doc(id).set({ uid: u.uid, nombre, planos, actualizado: Date.now() });
+    // Firestore no admite undefined: se limpia con un viaje por JSON.
+    await col.doc(id).set({ uid: u.uid, nombre, planos: JSON.parse(JSON.stringify(planos)), actualizado: Date.now() });
     return NextResponse.json({ id });
 }
 
@@ -66,8 +53,8 @@ export async function GET(req: Request) {
     if (!ensureAdmin()) return NextResponse.json({ error: 'sin_admin' }, { status: 503 });
 
     const snap = await admin.firestore().collection('decksPublicos').doc(id).get();
-    if (!snap.exists) return NextResponse.json({ error: 'no_existe' }, { status: 404 });
-    const d = snap.data()!;
+    const d = snap.data();
+    if (!d || d.retirado) return NextResponse.json({ error: 'no_existe' }, { status: 404 });
     // El uid del dueño no sale nunca.
     return NextResponse.json({ nombre: d.nombre, planos: d.planos }, { headers: { 'Cache-Control': 'public, s-maxage=60' } });
 }

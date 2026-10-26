@@ -60,7 +60,20 @@ export default function TermsPage() {
                 </section>
 
                 <section className="space-y-4">
-                    <h2 className="text-2xl font-bold text-white">7. Contacto</h2>
+                    <h2 className="text-2xl font-bold text-white">7. Contenido que subes (Fotogramas)</h2>
+                    <p className="text-zinc-300">
+                        En Fotogramas puedes guardar capturas e imágenes en tus decks. Las subes tú y son tu responsabilidad: sólo debes subir imágenes que tengas derecho a usar o que uses como referencia personal de estudio. SCENE ME no vende esas imágenes; sólo las guarda para ti. Tus decks son privados salvo que compartas su enlace.
+                    </p>
+                    <p className="text-zinc-300">
+                        Si eres titular de derechos y crees que una imagen compartida los infringe, usa el botón «Denunciar este contenido» del deck o escríbenos. Retiraremos el enlace en cuanto lo recibamos y lo revisaremos. Podemos borrar contenido y cerrar cuentas que infrinjan derechos de forma repetida.
+                    </p>
+                    <p className="text-zinc-300">
+                        Las sugerencias de películas y escenas las genera una inteligencia artificial y pueden contener errores. Los vídeos se reproducen desde YouTube y están sujetos a sus condiciones.
+                    </p>
+                </section>
+
+                <section className="space-y-4">
+                    <h2 className="text-2xl font-bold text-white">8. Contacto</h2>
                     <p className="text-zinc-300">
                         Si tienes alguna pregunta sobre estos Términos, por favor contáctanos.
                     </p>

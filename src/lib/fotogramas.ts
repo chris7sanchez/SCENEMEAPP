@@ -1,116 +1,60 @@
-// FOTOGRAMAS — la biblioteca de planos de cine de SCENE ME (referencia: ShotDeck).
+// FOTOGRAMAS — referencias de cine para el actor (la idea de ShotDeck, sin su catálogo).
 //
-// Lo que NO se copia de ShotDeck: sus imágenes y su etiquetado a mano (objetivo,
-// luz, color, emoción...) son suyos y de sus estudios. Aquí los planos salen de
-// TMDB (fondos oficiales de cada película, uso permitido con atribución) y los
-// filtros son los que TMDB sí tiene: género, época, idioma, director/actor y
-// palabras clave. Es la misma idea, con otro catálogo y menos etiquetas.
+// Por qué funciona así (26/10/2026):
+//  - Los fotogramas de cine actual son de los estudios. TMDB cobra 149 USD/mes
+//    por usarlos en una app de pago, y la búsqueda de imágenes de Google ya no
+//    admite clientes nuevos. Así que la app NO trae imágenes de nadie.
+//  - La IA propone películas y escenas; el clip se ve incrustado desde YouTube
+//    (permitido) y hay un enlace a Google Imágenes con la búsqueda ya escrita.
+//  - Las capturas las pega o sube el propio actor a su deck PRIVADO. La app es
+//    sólo el sitio donde las guarda (como Pinterest o Milanote) y retira lo que
+//    un titular denuncie (/api/fotogramas/denuncia).
+//  - La IA etiqueta lo que el actor sube: plano, ángulo, luz, color, emoción.
 //
 // Este fichero es lógica pura (sin red ni Firebase) para poder probarla.
 
 export type Plan = 'gratis' | 'pro';
 
-export interface Filtros {
-    q?: string;
-    genero?: number;
-    desde?: number;      // año
-    hasta?: number;      // año
-    idioma?: string;     // 'es', 'en', 'fr'...
-    persona?: number;    // id TMDB de director o actor
-    palabra?: number;    // id TMDB de palabra clave ("neo-noir")
-    orden?: 'populares' | 'recientes' | 'mejor_valoradas';
-}
-
-export const GENEROS: Record<number, string> = {
-    28: 'Acción', 12: 'Aventura', 16: 'Animación', 35: 'Comedia', 80: 'Crimen',
-    99: 'Documental', 18: 'Drama', 10751: 'Familia', 14: 'Fantasía', 36: 'Historia',
-    27: 'Terror', 10402: 'Música', 9648: 'Misterio', 10749: 'Romance',
-    878: 'Ciencia ficción', 53: 'Suspense', 10752: 'Bélica', 37: 'Western',
-};
-
-export const IDIOMAS: Record<string, string> = {
-    es: 'Español', en: 'Inglés', fr: 'Francés', it: 'Italiano', de: 'Alemán',
-    ja: 'Japonés', ko: 'Coreano', pt: 'Portugués',
-};
-
 /** Lo que incluye cada plan. Pro no tiene tope (Infinity). */
 export const LIMITES = {
-    gratis: { decks: 1, planosPorDeck: 12, filtrosAvanzados: false, compartir: false, descargaOriginal: false },
-    pro: { decks: Infinity, planosPorDeck: Infinity, filtrosAvanzados: true, compartir: true, descargaOriginal: true },
+    gratis: { decks: 1, planosPorDeck: 12, etiquetadoIA: false, compartir: false },
+    pro: { decks: Infinity, planosPorDeck: Infinity, etiquetadoIA: true, compartir: true },
 } as const;
 
-const ORDEN_TMDB = {
-    populares: 'popularity.desc',
-    recientes: 'primary_release_date.desc',
-    mejor_valoradas: 'vote_average.desc',
-} as const;
-
-/** ¿Estos filtros piden algo que sólo da el plan Pro? Gratis: título y un género. */
-export function usaFiltrosAvanzados(f: Filtros): boolean {
-    return !!(f.desde || f.hasta || f.idioma || f.persona || f.palabra || (f.orden && f.orden !== 'populares'));
+/** Una película y escena que propone la IA para lo que pide el actor. */
+export interface Idea {
+    titulo: string;
+    anio?: string;
+    director?: string;
+    escena: string;
+    porQue: string;
+    /** Texto para buscar el clip o la imagen ("Heat 1995 escena cafetería De Niro Pacino"). */
+    busqueda: string;
 }
 
-/** Filtros que llegan en la URL de /api/fotogramas, saneados (nada se fía del navegador). */
-export function filtrosDe(sp: URLSearchParams): Filtros {
-    const num = (k: string, min: number, max: number) => {
-        const v = sp.get(k);
-        if (!v || !/^\d{1,9}$/.test(v)) return undefined;
-        const n = Number(v);
-        return n >= min && n <= max ? n : undefined;
-    };
-    const idioma = sp.get('idioma') || '';
-    const orden = sp.get('orden') as Filtros['orden'];
-    const genero = num('genero', 1, 99999);
-    return {
-        q: (sp.get('q') || '').trim().slice(0, 200) || undefined,
-        genero: genero && GENEROS[genero] ? genero : undefined,
-        desde: num('desde', 1888, 2100),
-        hasta: num('hasta', 1888, 2100),
-        idioma: /^[a-z]{2}$/.test(idioma) ? idioma : undefined,
-        persona: num('persona', 1, 999999999),
-        palabra: num('palabra', 1, 999999999),
-        orden: orden && orden in ORDEN_TMDB ? orden : undefined,
-    };
-}
-
-/**
- * Parámetros para TMDB. Con texto se usa /search/movie (que sólo admite año);
- * sin texto, /discover/movie con todos los filtros.
- */
-export function consultaTmdb(f: Filtros, pagina = 1): { ruta: string; params: URLSearchParams } {
-    const p = new URLSearchParams({ language: 'es-ES', include_adult: 'false', page: String(Math.min(Math.max(pagina, 1), 20)) });
-    if (f.q) {
-        p.set('query', f.q);
-        return { ruta: '/search/movie', params: p };
-    }
-    if (f.genero) p.set('with_genres', String(f.genero));
-    if (f.desde) p.set('primary_release_date.gte', `${f.desde}-01-01`);
-    if (f.hasta) p.set('primary_release_date.lte', `${f.hasta}-12-31`);
-    if (f.idioma) p.set('with_original_language', f.idioma);
-    if (f.persona) p.set('with_people', String(f.persona));
-    if (f.palabra) p.set('with_keywords', String(f.palabra));
-    const orden = f.orden ?? 'populares';
-    p.set('sort_by', ORDEN_TMDB[orden]);
-    // Sin esto, "mejor valoradas" devuelve películas con 1 voto y nota 10.
-    if (orden === 'mejor_valoradas') p.set('vote_count.gte', '300');
-    if (orden === 'recientes') p.set('vote_count.gte', '20');
-    return { ruta: '/discover/movie', params: p };
-}
-
-export type Tamano = 'w780' | 'w1280' | 'original';
-
-export function urlImagen(ruta: string | null | undefined, tam: Tamano): string | undefined {
-    return ruta && /^\/[\w.-]+$/.test(ruta) ? `https://image.tmdb.org/t/p/${tam}${ruta}` : undefined;
+export interface Etiquetas {
+    plano?: string;        // primer plano, plano medio, general...
+    angulo?: string;       // picado, contrapicado, cenital...
+    luz?: string;          // dura lateral, suave, contraluz...
+    color?: string;        // paleta dominante
+    emocion?: string;      // lo que transmite el personaje
+    composicion?: string;  // regla de tercios, simetría...
+    palabras?: string[];   // para buscar
 }
 
 export interface Plano {
-    /** Ruta TMDB del fondo, p. ej. "/abc.jpg". Sirve de id dentro de la película. */
+    id: string;
+    /** URL de descarga de Firebase Storage. */
+    imagen: string;
+    /** Ruta en Storage (users/{uid}/fotogramas/{id}.jpg), para poder borrarla. */
     ruta: string;
-    peliculaId: string;
-    titulo: string;
+    pelicula?: string;
     anio?: string;
-    ancho?: number;
-    alto?: number;
+    nota?: string;
+    /** De dónde sacó la captura el actor (por si hay que retirarla). */
+    fuente?: string;
+    etiquetas?: Etiquetas;
+    creado: number;
 }
 
 export interface Deck {
@@ -122,15 +66,102 @@ export interface Deck {
     compartido?: string;
 }
 
-export type MotivoBloqueo = 'limite_decks' | 'limite_planos' | 'duplicado';
+export type MotivoBloqueo = 'limite_planos' | 'duplicado';
 
-/** ¿Cabe este plano en este deck con este plan? null = sí, cabe. */
-export function motivoParaNoAnadir(plan: Plan, deck: Deck, plano: Plano): MotivoBloqueo | null {
-    if (deck.planos.some(p => p.ruta === plano.ruta && p.peliculaId === plano.peliculaId)) return 'duplicado';
+export function motivoParaNoAnadir(plan: Plan, deck: Deck, plano: Pick<Plano, 'id'>): MotivoBloqueo | null {
+    if (deck.planos.some(p => p.id === plano.id)) return 'duplicado';
     if (deck.planos.length >= LIMITES[plan].planosPorDeck) return 'limite_planos';
     return null;
 }
 
 export function puedeCrearDeck(plan: Plan, decksActuales: number): boolean {
     return decksActuales < LIMITES[plan].decks;
+}
+
+export function urlGoogleImagenes(busqueda: string): string {
+    return `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(busqueda)}`;
+}
+
+export function urlBusquedaYoutube(busqueda: string): string {
+    return `https://www.youtube.com/results?search_query=${encodeURIComponent(busqueda)}`;
+}
+
+/** Embed sin cookies de seguimiento hasta que el usuario le da al play. */
+export function urlEmbedYoutube(id: string): string | undefined {
+    return /^[\w-]{11}$/.test(id) ? `https://www.youtube-nocookie.com/embed/${id}` : undefined;
+}
+
+const texto = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+
+/** Lo que devuelve el modelo no se fía: se recorta y se descarta lo incompleto. */
+export function limpiarIdeas(raw: unknown): Idea[] {
+    const lista = Array.isArray(raw) ? raw : (raw as any)?.ideas;
+    if (!Array.isArray(lista)) return [];
+    const out: Idea[] = [];
+    for (const r of lista.slice(0, 8)) {
+        const titulo = texto(r?.titulo, 120);
+        const escena = texto(r?.escena, 400);
+        if (!titulo || !escena) continue;
+        const anio = texto(String(r?.anio ?? ''), 4);
+        out.push({
+            titulo,
+            anio: /^\d{4}$/.test(anio) ? anio : undefined,
+            director: texto(r?.director, 80) || undefined,
+            escena,
+            porQue: texto(r?.porQue, 400),
+            busqueda: texto(r?.busqueda, 150) || `${titulo} ${anio} escena`.trim(),
+        });
+    }
+    return out;
+}
+
+export function limpiarEtiquetas(raw: unknown): Etiquetas {
+    const r = (raw ?? {}) as Record<string, unknown>;
+    const e: Etiquetas = {};
+    for (const k of ['plano', 'angulo', 'luz', 'color', 'emocion', 'composicion'] as const) {
+        const v = texto(r[k], 80);
+        if (v) e[k] = v;
+    }
+    if (Array.isArray(r.palabras)) {
+        e.palabras = r.palabras.map(p => texto(p, 40).toLowerCase()).filter(Boolean).slice(0, 12);
+    }
+    return e;
+}
+
+const sinTildes = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+/** Filtro del deck: todas las palabras escritas tienen que aparecer en película, nota o etiquetas. */
+export function coincide(p: Plano, consulta: string): boolean {
+    const palabras = sinTildes(consulta).split(/\s+/).filter(Boolean);
+    if (palabras.length === 0) return true;
+    const e = p.etiquetas ?? {};
+    const pajar = sinTildes([
+        p.pelicula, p.anio, p.nota, e.plano, e.angulo, e.luz, e.color, e.emocion, e.composicion, ...(e.palabras ?? []),
+    ].filter(Boolean).join(' '));
+    return palabras.every(w => pajar.includes(w));
+}
+
+/** Sólo se aceptan imágenes guardadas en el Storage del proyecto. */
+export function esImagenPropia(url: unknown): url is string {
+    return typeof url === 'string' && url.length < 1000
+        && /^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/[\w.-]+\/o\/users%2F[\w-]+%2Ffotogramas%2F[\w.-]+\?/.test(url);
+}
+
+/** Planos que llegan del navegador para un deck compartido: se valida cada campo. */
+export function limpiarPlanosPublicos(raw: unknown): Omit<Plano, 'ruta' | 'fuente'>[] {
+    if (!Array.isArray(raw)) return [];
+    const out: Omit<Plano, 'ruta' | 'fuente'>[] = [];
+    for (const p of raw.slice(0, 500)) {
+        if (!esImagenPropia(p?.imagen) || typeof p?.id !== 'string' || !/^[\w-]{1,40}$/.test(p.id)) continue;
+        out.push({
+            id: p.id,
+            imagen: p.imagen,
+            pelicula: texto(p.pelicula, 120) || undefined,
+            anio: /^\d{4}$/.test(String(p.anio ?? '')) ? String(p.anio) : undefined,
+            nota: texto(p.nota, 500) || undefined,
+            etiquetas: p.etiquetas ? limpiarEtiquetas(p.etiquetas) : undefined,
+            creado: Number(p.creado) || 0,
+        });
+    }
+    return out;
 }

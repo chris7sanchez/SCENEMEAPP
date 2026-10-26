@@ -1,67 +1,73 @@
 import { describe, it, expect } from 'vitest';
 import { createHmac } from 'node:crypto';
 import {
-    filtrosDe, consultaTmdb, usaFiltrosAvanzados, urlImagen, motivoParaNoAnadir, puedeCrearDeck,
+    motivoParaNoAnadir, puedeCrearDeck, limpiarIdeas, limpiarEtiquetas, coincide, esImagenPropia,
+    limpiarPlanosPublicos, urlEmbedYoutube, urlGoogleImagenes,
     type Deck, type Plano,
 } from './fotogramas';
 import { firmaStripeValida } from './stripe-firma';
 
-const plano = (ruta: string): Plano => ({ ruta, peliculaId: '1', titulo: 'X' });
-const deck = (n: number): Deck => ({ id: 'd', nombre: 'D', creado: 0, planos: Array.from({ length: n }, (_, i) => plano(`/p${i}.jpg`)) });
-
-describe('filtrosDe', () => {
-    it('sanea lo que llega del navegador', () => {
-        const f = filtrosDe(new URLSearchParams('q=%20heat%20&genero=28&desde=1995&hasta=abc&idioma=EN&orden=hackeado&persona=-3'));
-        expect(f).toEqual({ q: 'heat', genero: 28, desde: 1995, hasta: undefined, idioma: undefined, persona: undefined, palabra: undefined, orden: undefined });
-    });
-    it('descarta géneros que no existen', () => {
-        expect(filtrosDe(new URLSearchParams('genero=424242')).genero).toBeUndefined();
-    });
-});
+const IMG = 'https://firebasestorage.googleapis.com/v0/b/xperimental-hub.appspot.com/o/users%2Fabc123%2Ffotogramas%2Fp1.jpg?alt=media&token=t';
+const plano = (id: string, extra: Partial<Plano> = {}): Plano => ({ id, imagen: IMG, ruta: `users/abc123/fotogramas/${id}.jpg`, creado: 0, ...extra });
+const deck = (n: number): Deck => ({ id: 'd', nombre: 'D', creado: 0, planos: Array.from({ length: n }, (_, i) => plano(`p${i}`)) });
 
 describe('plan', () => {
-    it('gratis: título y un género; el resto es Pro', () => {
-        expect(usaFiltrosAvanzados({ q: 'heat', genero: 28 })).toBe(false);
-        expect(usaFiltrosAvanzados({ orden: 'populares' })).toBe(false);
-        expect(usaFiltrosAvanzados({ desde: 1990 })).toBe(true);
-        expect(usaFiltrosAvanzados({ persona: 5 })).toBe(true);
-        expect(usaFiltrosAvanzados({ orden: 'recientes' })).toBe(true);
-    });
     it('límites de decks y planos', () => {
         expect(puedeCrearDeck('gratis', 0)).toBe(true);
         expect(puedeCrearDeck('gratis', 1)).toBe(false);
         expect(puedeCrearDeck('pro', 500)).toBe(true);
-        expect(motivoParaNoAnadir('gratis', deck(12), plano('/nuevo.jpg'))).toBe('limite_planos');
-        expect(motivoParaNoAnadir('pro', deck(12), plano('/nuevo.jpg'))).toBeNull();
-        expect(motivoParaNoAnadir('pro', deck(3), plano('/p1.jpg'))).toBe('duplicado');
+        expect(motivoParaNoAnadir('gratis', deck(12), plano('nuevo'))).toBe('limite_planos');
+        expect(motivoParaNoAnadir('pro', deck(12), plano('nuevo'))).toBeNull();
+        expect(motivoParaNoAnadir('pro', deck(3), plano('p1'))).toBe('duplicado');
     });
 });
 
-describe('consultaTmdb', () => {
-    it('con texto usa búsqueda', () => {
-        const { ruta, params } = consultaTmdb({ q: 'heat' });
-        expect(ruta).toBe('/search/movie');
-        expect(params.get('query')).toBe('heat');
-    });
-    it('sin texto usa discover con todos los filtros', () => {
-        const { ruta, params } = consultaTmdb({ genero: 80, desde: 1990, hasta: 1999, idioma: 'en', persona: 7, palabra: 9, orden: 'mejor_valoradas' }, 2);
-        expect(ruta).toBe('/discover/movie');
-        expect(params.get('with_genres')).toBe('80');
-        expect(params.get('primary_release_date.gte')).toBe('1990-01-01');
-        expect(params.get('primary_release_date.lte')).toBe('1999-12-31');
-        expect(params.get('with_people')).toBe('7');
-        expect(params.get('sort_by')).toBe('vote_average.desc');
-        expect(params.get('vote_count.gte')).toBe('300');
-        expect(params.get('page')).toBe('2');
+describe('limpiarIdeas', () => {
+    it('acepta {ideas:[...]} o una lista, recorta y descarta lo incompleto', () => {
+        const ideas = limpiarIdeas({ ideas: [
+            { titulo: 'Heat', anio: 1995, director: 'Michael Mann', escena: 'La cafetería', porQue: 'Contención', busqueda: 'Heat cafeteria scene' },
+            { titulo: '', escena: 'x' },
+            { titulo: 'Sin escena' },
+            { titulo: 'Mal año', anio: 'hace mucho', escena: 'y' },
+        ] });
+        expect(ideas).toHaveLength(2);
+        expect(ideas[0]).toMatchObject({ titulo: 'Heat', anio: '1995', busqueda: 'Heat cafeteria scene' });
+        expect(ideas[1].anio).toBeUndefined();
+        expect(ideas[1].busqueda).toContain('Mal año');
+        expect(limpiarIdeas('basura')).toEqual([]);
     });
 });
 
-describe('urlImagen', () => {
-    it('sólo acepta rutas de TMDB bien formadas', () => {
-        expect(urlImagen('/abc.jpg', 'w780')).toBe('https://image.tmdb.org/t/p/w780/abc.jpg');
-        expect(urlImagen('/../../x', 'w780')).toBeUndefined();
-        expect(urlImagen('https://malo.com/x.jpg', 'w780')).toBeUndefined();
-        expect(urlImagen(null, 'w780')).toBeUndefined();
+describe('etiquetas y filtro', () => {
+    it('limpia las etiquetas del modelo', () => {
+        expect(limpiarEtiquetas({ plano: ' Primer plano ', luz: 42, palabras: ['Noche', '', 'LLUVIA'] }))
+            .toEqual({ plano: 'Primer plano', palabras: ['noche', 'lluvia'] });
+    });
+    it('busca en película, nota y etiquetas sin importar tildes', () => {
+        const p = plano('a', { pelicula: 'Heat', nota: 'mirada fija', etiquetas: { luz: 'contraluz', emocion: 'tensión' } });
+        expect(coincide(p, 'tension heat')).toBe(true);
+        expect(coincide(p, 'CONTRALUZ')).toBe(true);
+        expect(coincide(p, 'comedia')).toBe(false);
+        expect(coincide(p, '  ')).toBe(true);
+    });
+});
+
+describe('imágenes y enlaces', () => {
+    it('sólo acepta imágenes de fotogramas en el Storage propio', () => {
+        expect(esImagenPropia(IMG)).toBe(true);
+        expect(esImagenPropia('https://evil.com/x.jpg')).toBe(false);
+        expect(esImagenPropia(IMG.replace('fotogramas', 'avatar'))).toBe(false);
+    });
+    it('limpia los planos públicos y quita la fuente y la ruta', () => {
+        const [p] = limpiarPlanosPublicos([{ ...plano('a'), fuente: 'https://x', nota: 'n' }, { id: 'b', imagen: 'https://evil.com/x.jpg' }]);
+        expect(p).toMatchObject({ id: 'a', imagen: IMG, nota: 'n' });
+        expect(p).not.toHaveProperty('ruta');
+        expect(p).not.toHaveProperty('fuente');
+    });
+    it('embed de YouTube sólo con ids válidos', () => {
+        expect(urlEmbedYoutube('dQw4w9WgXcQ')).toBe('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+        expect(urlEmbedYoutube('"><script>')).toBeUndefined();
+        expect(urlGoogleImagenes('Heat 1995')).toBe('https://www.google.com/search?tbm=isch&q=Heat%201995');
     });
 });
 
