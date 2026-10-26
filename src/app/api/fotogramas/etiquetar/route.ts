@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { getAI, withRetry } from '@/ai/genkit';
+import { generarJson, parteImagen } from '@/ai/gemini-json';
 import { frenar, limitar } from '@/lib/seguridad';
 import { usuarioDe } from '@/lib/firebase-admin';
 import { planDe } from '@/lib/suscripcion';
@@ -12,14 +11,18 @@ import { limpiarEtiquetas } from '@/lib/fotogramas';
 // no se guarda.
 
 export const runtime = 'nodejs';
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const MAX = 1_500_000; // caracteres del dataURL (~1,1 MB de imagen)
 
-const Salida = z.object({
-    plano: z.string(), angulo: z.string(), luz: z.string(), color: z.string(),
-    emocion: z.string(), composicion: z.string(), palabras: z.array(z.string()),
-});
+const ESQUEMA = {
+    type: 'OBJECT',
+    properties: {
+        plano: { type: 'STRING' }, angulo: { type: 'STRING' }, luz: { type: 'STRING' }, color: { type: 'STRING' }, emocion: { type: 'STRING' }, composicion: { type: 'STRING' },
+        palabras: { type: 'ARRAY', items: { type: 'STRING' } },
+    },
+    required: ['plano', 'angulo', 'luz', 'color', 'emocion', 'composicion', 'palabras'],
+};
 
 export async function POST(req: Request) {
     const frenado = frenar(req, 'fotogramas-etiquetar', 20);
@@ -48,11 +51,8 @@ palabras (de 5 a 10 palabras clave en minúscula para buscar: lugar, hora del d�
 No digas de qué película es ni quién sale.`;
 
     try {
-        const { output } = await withRetry<any>(() => getAI().generate({
-            prompt: [{ media: { url: imagen, contentType: imagen.slice(5, imagen.indexOf(';')) } }, { text: texto }],
-            output: { schema: Salida },
-        }));
-        return NextResponse.json({ etiquetas: limpiarEtiquetas(output) });
+        const salida = await generarJson([parteImagen(imagen), { text: texto }], ESQUEMA, { temperatura: 0.3 });
+        return NextResponse.json({ etiquetas: limpiarEtiquetas(salida) });
     } catch (e) {
         console.error('[fotogramas-etiquetar]', e);
         return NextResponse.json({ error: 'ia' }, { status: 502 });

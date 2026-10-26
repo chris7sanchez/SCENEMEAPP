@@ -89,3 +89,19 @@ describe('firmaStripeValida', () => {
         expect(firmaStripeValida(cuerpo, `t=${t},v1=${firma}`, secreto, ahora + 10 * 60_000)).toBe(false);
     });
 });
+
+describe('extraerJson (respuesta de Gemini)', async () => {
+    const { extraerJson, parteImagen } = await import('../ai/gemini-json');
+    const resp = (text: string) => ({ candidates: [{ content: { parts: [{ text }] } }] });
+    it('lee JSON limpio y envuelto en ```json', () => {
+        expect(extraerJson(resp('{"ideas":[]}'))).toEqual({ ideas: [] });
+        expect(extraerJson(resp('```json\n{"a":1}\n```'))).toEqual({ a: 1 });
+    });
+    it('falla con un motivo claro si no hay texto o no es JSON', () => {
+        expect(() => extraerJson({ candidates: [{ finishReason: 'SAFETY' }] })).toThrow(/SAFETY/);
+        expect(() => extraerJson(resp('hola'))).toThrow(/no es JSON/);
+    });
+    it('convierte un dataURL en parte de imagen', () => {
+        expect(parteImagen('data:image/jpeg;base64,QUJD')).toEqual({ inlineData: { mimeType: 'image/jpeg', data: 'QUJD' } });
+    });
+});

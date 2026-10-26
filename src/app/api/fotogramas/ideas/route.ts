@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { getAI, withRetry } from '@/ai/genkit';
+import { generarJson, ErrorGemini } from '@/ai/gemini-json';
 import { frenar, limitar } from '@/lib/seguridad';
 import { usuarioDe } from '@/lib/firebase-admin';
 import { limpiarIdeas } from '@/lib/fotogramas';
@@ -11,18 +10,22 @@ import { limpiarIdeas } from '@/lib/fotogramas';
 // Pide sesión: cada llamada cuesta dinero.
 
 export const runtime = 'nodejs';
-export const maxDuration = 30;
+export const maxDuration = 60;
 
-const Salida = z.object({
-    ideas: z.array(z.object({
-        titulo: z.string(),
-        anio: z.string().optional(),
-        director: z.string().optional(),
-        escena: z.string(),
-        porQue: z.string(),
-        busqueda: z.string(),
-    })),
-});
+const ESQUEMA = {
+    type: 'OBJECT',
+    properties: {
+        ideas: {
+            type: 'ARRAY',
+            items: {
+                type: 'OBJECT',
+                properties: { titulo: { type: 'STRING' }, anio: { type: 'STRING' }, director: { type: 'STRING' }, escena: { type: 'STRING' }, porQue: { type: 'STRING' }, busqueda: { type: 'STRING' } },
+                required: ['titulo', 'escena', 'porQue', 'busqueda'],
+            },
+        },
+    },
+    required: ['ideas'],
+};
 
 export async function POST(req: Request) {
     const frenado = frenar(req, 'fotogramas-ideas', 10);
@@ -56,13 +59,16 @@ Para cada una:
 No inventes películas ni escenas. Si dudas de una, no la pongas. Responde en castellano.`;
 
     try {
-        const { output } = await withRetry<any>(() => getAI().generate({ prompt, output: { schema: Salida } }));
-        const ideas = limpiarIdeas(output);
+        const ideas = limpiarIdeas(await generarJson([{ text: prompt }], ESQUEMA));
         // Vercel guarda una hora de registros: sirve para ver qué búsquedas se quedan sin nada.
         console.log('[fotogramas-ideas]', ideas.length, 'ideas para', JSON.stringify(peticion.slice(0, 80)));
         return NextResponse.json({ ideas });
     } catch (e) {
         console.error('[fotogramas-ideas]', e);
-        return NextResponse.json({ error: 'ia', message: 'La IA no ha respondido. Inténtalo de nuevo.' }, { status: 502 });
+        const tiempo = e instanceof ErrorGemini && e.codigo === 'tiempo';
+        return NextResponse.json({
+            error: 'ia',
+            message: tiempo ? 'La IA está tardando demasiado. Inténtalo de nuevo en un momento.' : 'La IA no ha respondido. Inténtalo de nuevo.',
+        }, { status: 502 });
     }
 }

@@ -96,8 +96,9 @@ export default function FotogramasPage() {
             const res = await fetch('/api/fotogramas/ideas', await conSesion({
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ peticion }),
             }));
-            const d = await res.json();
-            if (!res.ok) throw new Error(d?.message || 'No se pudo');
+            // Si el servidor corta, llega texto y no JSON: no se enseña el error crudo del navegador.
+            const d = await res.json().catch(() => ({ message: 'La IA está tardando demasiado. Inténtalo de nuevo en un momento.' }));
+            if (!res.ok || !Array.isArray(d?.ideas)) throw new Error(d?.message || 'No se pudo');
             setIdeas(d.ideas);
             if (d.ideas.length === 0) setAviso('La IA no ha encontrado escenas para eso. Prueba con el título, el director o describiéndolo de otra forma, o búscalo directamente en YouTube o Google Imágenes.');
         } catch (err: any) {
