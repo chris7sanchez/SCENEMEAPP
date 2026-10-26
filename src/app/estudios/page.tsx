@@ -124,6 +124,10 @@ export default function EstudiosPage() {
                     <ArrowLeft className="h-3.5 w-3.5" /> Volver al backlot
                 </Link>
 
+                <Link href="/fotogramas" className="mb-6 ml-4 inline-flex items-center gap-2 rounded-full border border-[var(--cin-accent)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--cin-accent)] transition hover:bg-[var(--cin-accent-soft)]">
+                    <Clapperboard className="h-3.5 w-3.5" /> Fotogramas: buscar planos de cine
+                </Link>
+
                 <header className="mb-8">
                     <p className="text-[0.7rem] font-semibold uppercase tracking-[0.4em] text-[var(--cin-accent)]">Stage 5 · Edad de oro</p>
                     <h1 className="mt-2 cin-display text-4xl tracking-tight sm:text-5xl">Mis Estudios</h1>

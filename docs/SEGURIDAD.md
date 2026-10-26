@@ -55,3 +55,12 @@ de Firestore y 2 de Storage. Con las reglas antiguas, 7 de los abusos pasaban.
   `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` y las claves de Gemini están guardadas
   como legibles desde el panel. Marcarlas como *Sensitive* hace que nadie
   (ni con acceso al panel) pueda volver a leerlas.
+
+## Fotogramas (biblioteca de planos con suscripción Pro)
+
+Variables del servidor en Vercel, todas «Sensitive» y sin `NEXT_PUBLIC_`:
+
+- `TMDB_KEY`: búsqueda y planos.
+- `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID` (el precio se crea en Stripe, no está en el código) y `STRIPE_WEBHOOK_SECRET`.
+
+La colección `suscripciones/{uid}` sólo la escribe `/api/fotogramas/webhook` (firma de Stripe comprobada, `src/lib/stripe-firma.ts`). Las reglas de Firestore no la nombran, así que el navegador no puede tocarla. Los decks compartidos viven en `decksPublicos/{id}`, también sólo por servidor. El tope de decks y planos del plan gratis se aplica en la pantalla; compartir y los filtros avanzados se comprueban en el servidor.
