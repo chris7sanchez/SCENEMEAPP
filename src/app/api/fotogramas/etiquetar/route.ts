@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getAI, withRetry } from '@/ai/genkit';
-import { frenar } from '@/lib/seguridad';
+import { frenar, limitar } from '@/lib/seguridad';
 import { usuarioDe } from '@/lib/firebase-admin';
 import { planDe } from '@/lib/suscripcion';
 import { limpiarEtiquetas } from '@/lib/fotogramas';
@@ -28,6 +28,10 @@ export async function POST(req: Request) {
     const u = await usuarioDe(req);
     if (!u) return NextResponse.json({ error: 'sesion' }, { status: 401 });
     if ((await planDe(u)) !== 'pro') return NextResponse.json({ error: 'pro' }, { status: 402 });
+    // Mientras todo es gratis, cada etiqueta la paga SCENE ME: tope por persona.
+    if (!limitar(`fotogramas-etiquetar-uid:${u.uid}`, 60, 60 * 60_000)) {
+        return NextResponse.json({ error: 'demasiadas_peticiones' }, { status: 429 });
+    }
 
     if (Number(req.headers.get('content-length') || 0) > MAX + 1000) return NextResponse.json({ error: 'muy_grande' }, { status: 413 });
     let imagen = '';

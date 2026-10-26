@@ -14,7 +14,7 @@ import {
     ImagePlus, Search, ExternalLink, Clipboard,
 } from 'lucide-react';
 import {
-    LIMITES, motivoParaNoAnadir, puedeCrearDeck, coincide, urlGoogleImagenes, urlBusquedaYoutube, urlEmbedYoutube,
+    LIMITES, TODO_GRATIS, motivoParaNoAnadir, puedeCrearDeck, coincide, urlGoogleImagenes, urlBusquedaYoutube, urlEmbedYoutube,
     type Plan, type Plano, type Deck, type Idea, type Etiquetas,
 } from '@/lib/fotogramas';
 import {
@@ -252,7 +252,7 @@ export default function FotogramasPage() {
                         <h1 className="mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">Fotogramas</h1>
                         <p className="mt-2 max-w-xl text-[#D9CFBD]">Dile a la IA qué buscas, mira la escena y guarda tus capturas en decks para tu director o tu representante.</p>
                     </div>
-                    {esPro ? (
+                    {TODO_GRATIS ? null : esPro ? (
                         <div className="flex items-center gap-3">
                             <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-400"><Crown className="h-3.5 w-3.5" /> Pro</span>
                             <button type="button" onClick={() => hacerPro(true)} className="min-h-11 text-xs uppercase tracking-wider text-[#D9CFBD] underline hover:text-white">Gestionar suscripción</button>
@@ -359,7 +359,7 @@ export default function FotogramasPage() {
                                         <input aria-label="De dónde la has sacado" placeholder="De dónde la has sacado (enlace, opcional)" value={captura.fuente} onChange={e => setCaptura({ ...captura, fuente: e.target.value })} className={`${entrada} w-full`} />
                                         <p className="text-xs text-[#D9CFBD]">
                                             Se guarda en <b className="text-[#F6EFE0]">{deckActivo?.nombre ?? 'Mi primer deck'}</b>.
-                                            {esPro ? ' La IA la etiquetará al guardar.' : ' Etiquetado con IA: Pro.'}
+                                            {esPro ? ' La IA la etiquetará al guardar.' : uid ? ' Etiquetado con IA: Pro.' : ''}
                                         </p>
                                         <div className="flex flex-wrap gap-2">
                                             <button type="button" onClick={guardarCaptura} disabled={subiendo} className={botonOro}>
@@ -418,7 +418,11 @@ export default function FotogramasPage() {
                             <p className="text-sm text-[#D9CFBD]">Aún no tienes decks. Se crea uno al guardar tu primera captura.</p>
                         )}
 
-                        {!esPro && (
+                        {TODO_GRATIS ? (
+                            <p className="mt-4 border-t border-white/10 pt-3 text-xs text-[#D9CFBD]">
+                                Ahora mismo todo es gratis: decks sin límite, etiquetado con IA y compartir por enlace.
+                            </p>
+                        ) : !esPro && (
                             <p className="mt-4 border-t border-white/10 pt-3 text-xs text-[#D9CFBD]">
                                 Gratis: 1 deck de {LIMITES.gratis.planosPorDeck} capturas. Pro: decks ilimitados, etiquetado con IA y compartir por enlace.
                                 {!cobroListo && ' El plan Pro aún no está activado.'}
@@ -452,7 +456,7 @@ export default function FotogramasPage() {
                                         <div key={k}><dt className="text-xs uppercase tracking-wider text-amber-400">{t}</dt><dd>{String(grande.etiquetas[k])}</dd></div>
                                     ) : null)}
                                 </dl>
-                            ) : !esPro && <p className="flex items-center gap-1.5 text-xs text-[#D9CFBD]"><Lock className="h-3.5 w-3.5" /> Etiquetado con IA (plano, luz, color, emoción): Pro.</p>}
+                            ): !esPro && !TODO_GRATIS && <p className="flex items-center gap-1.5 text-xs text-[#D9CFBD]"><Lock className="h-3.5 w-3.5" /> Etiquetado con IA (plano, luz, color, emoción): Pro.</p>}
                             {grande.etiquetas?.palabras && grande.etiquetas.palabras.length > 0 && (
                                 <ul className="flex flex-wrap gap-1.5">
                                     {grande.etiquetas.palabras.map(w => <li key={w} className="rounded-full border border-white/20 px-2.5 py-1 text-xs">{w}</li>)}

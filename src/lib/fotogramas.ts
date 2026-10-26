@@ -15,6 +15,13 @@
 
 export type Plan = 'gratis' | 'pro';
 
+/**
+ * Periodo de prueba (26/10/2026): todo gratis para cualquiera con sesión,
+ * para valorar cuánto interesa antes de decidir si se cobra. El cobro con
+ * Stripe sigue en el código, apagado. Para volver a los dos planos: false.
+ */
+export const TODO_GRATIS = true;
+
 /** Lo que incluye cada plan. Pro no tiene tope (Infinity). */
 export const LIMITES = {
     gratis: { decks: 1, planosPorDeck: 12, etiquetadoIA: false, compartir: false },

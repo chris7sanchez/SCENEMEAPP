@@ -5,7 +5,7 @@
 // colección, así que el navegador no puede leerla ni escribirla.
 
 import { admin, ensureAdmin, esAdmin, type UsuarioVerificado } from './firebase-admin';
-import type { Plan } from './fotogramas';
+import { TODO_GRATIS, type Plan } from './fotogramas';
 
 export interface Suscripcion {
     plan: Plan;
@@ -32,9 +32,9 @@ export async function suscripcionDe(uid: string): Promise<Suscripcion | undefine
     }
 }
 
-/** El admin cuenta como Pro para poder probar sin pagar. */
+/** El admin cuenta como Pro para poder probar sin pagar; en el periodo de prueba, todos los que tienen sesión. */
 export async function planDe(u: UsuarioVerificado | null): Promise<Plan> {
     if (!u) return 'gratis';
-    if (esAdmin(u)) return 'pro';
+    if (TODO_GRATIS || esAdmin(u)) return 'pro';
     return sigueSiendoPro(await suscripcionDe(u.uid)) ? 'pro' : 'gratis';
 }
