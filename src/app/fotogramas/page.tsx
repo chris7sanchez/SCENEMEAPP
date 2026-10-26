@@ -20,6 +20,7 @@ import {
 import {
     listarDecks, guardarDecks, leerPlan, conSesion, comprimir, aDataUrl, subirCaptura, borrarCaptura, etiquetar,
 } from '@/lib/fotogramas-db';
+import { CLAVE_ESCENA, type EscenaParaReferencias } from '@/lib/guiones-ia';
 
 interface Video { id: string; titulo: string; canal: string; miniatura: string | null }
 interface Captura { blob: Blob; vista: string; pelicula: string; anio: string; nota: string; fuente: string }
@@ -86,15 +87,29 @@ export default function FotogramasPage() {
 
     const persistir = useCallback((nuevos: Deck[]) => { setDecks(nuevos); guardarDecks(uid, nuevos); }, [uid]);
 
+    // ---------- 0. Viniendo de un guion: la escena llega por sessionStorage ----------
+    const [desdeGuion, setDesdeGuion] = useState<EscenaParaReferencias | null>(null);
+    const lanzadoRef = useRef(false);
+    useEffect(() => {
+        const titulo = new URLSearchParams(location.search).get('guion');
+        if (!titulo) return;
+        let e: EscenaParaReferencias = { titulo };
+        try {
+            const guardada = JSON.parse(sessionStorage.getItem(CLAVE_ESCENA) || 'null');
+            if (guardada?.titulo === titulo) e = guardada;
+        } catch { /* sólo el título */ }
+        const t = setTimeout(() => { setDesdeGuion(e); setPeticion(e.escena ? `${e.titulo} · ${e.escena}` : e.titulo); }, 0);
+        return () => clearTimeout(t);
+    }, []);
+
     // ---------- 1. Ideas de la IA ----------
-    const pedirIdeas = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (peticion.trim().length < 3) return;
+    const buscarIdeas = useCallback(async (texto: string, escena?: string) => {
+        if (texto.trim().length < 3) return;
         if (!uid) { setAviso('Inicia sesión para pedir ideas a la IA.'); return; }
-        setPensando(true); setAviso(null); setBuscado(peticion.trim());
+        setPensando(true); setAviso(null); setBuscado(texto.trim());
         try {
             const res = await fetch('/api/fotogramas/ideas', await conSesion({
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ peticion }),
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ peticion: texto, escena }),
             }));
             // Si el servidor corta, llega texto y no JSON: no se enseña el error crudo del navegador.
             const d = await res.json().catch(() => ({ message: 'La IA está tardando demasiado. Inténtalo de nuevo en un momento.' }));
@@ -104,6 +119,32 @@ export default function FotogramasPage() {
         } catch (err: any) {
             setAviso(err?.message && err.message !== 'No se pudo' ? err.message : 'La IA no ha respondido. Inténtalo de nuevo.');
         } finally { setPensando(false); }
+    }, [uid]);
+
+    const pedirIdeas = (e: React.FormEvent) => {
+        e.preventDefault();
+        // Si se edita la búsqueda, deja de usarse el texto de la escena.
+        const deEscena = desdeGuion?.texto && peticion === (desdeGuion.escena ? `${desdeGuion.titulo} · ${desdeGuion.escena}` : desdeGuion.titulo);
+        buscarIdeas(peticion, deEscena ? desdeGuion!.texto : undefined);
+    };
+
+    // Al llegar desde un guion se busca solo, en cuanto se sabe quién es el usuario.
+    useEffect(() => {
+        if (!desdeGuion || !uid || lanzadoRef.current) return;
+        lanzadoRef.current = true;
+        const t = setTimeout(() => buscarIdeas(desdeGuion.escena ? `${desdeGuion.titulo} · ${desdeGuion.escena}` : desdeGuion.titulo, desdeGuion.texto), 0);
+        return () => clearTimeout(t);
+    }, [desdeGuion, uid, buscarIdeas]);
+
+    const deckParaGuion = () => {
+        if (!desdeGuion) return;
+        const nombre = `Papel · ${desdeGuion.titulo}`.slice(0, 80);
+        const ya = decks.find(d => d.nombre === nombre);
+        if (ya) { setActivo(ya.id); return; }
+        if (!puedeCrearDeck(plan, decks.length)) { setAviso('El plan gratis incluye 1 deck. Hazte Pro para crear más.'); return; }
+        const d = deckNuevo(nombre);
+        persistir([...decks, d]); setActivo(d.id);
+        setAviso(`Deck «${nombre}» creado: las capturas que guardes irán ahí.`);
     };
 
     const verClips = async (busqueda: string) => {
@@ -269,6 +310,13 @@ export default function FotogramasPage() {
                     <p className="mb-4 rounded-lg border border-white/15 bg-white/[0.04] px-4 py-3 text-sm">
                         Para pedir ideas a la IA y guardar capturas necesitas una cuenta. <Link href="/login" className="font-bold text-amber-400 underline">Inicia sesión</Link>
                     </p>
+                )}
+
+                {desdeGuion && (
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/15 bg-white/[0.04] px-4 py-3 text-sm">
+                        <p>Preparando <b>{desdeGuion.titulo}</b>{desdeGuion.escena && <> · <span className="font-mono text-xs">{desdeGuion.escena}</span></>}{desdeGuion.texto ? ': la IA busca escenas de cine parecidas a la tuya.' : '.'}</p>
+                        <button type="button" onClick={deckParaGuion} className={botonLinea}><Plus className="h-3.5 w-3.5" /> Deck para este papel</button>
+                    </div>
                 )}
 
                 {aviso && (

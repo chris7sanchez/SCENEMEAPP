@@ -5,6 +5,7 @@ import { usuarioDe } from '@/lib/firebase-admin';
 import { limpiarIdeas } from '@/lib/fotogramas';
 
 // POST /api/fotogramas/ideas  { peticion: "rabia contenida, plano cerrado, luz dura" }
+//                            { peticion: "Título · escena", escena: "texto de la escena" }  (desde un guion)
 //   → { ideas: [{ titulo, anio, director, escena, porQue, busqueda }] }
 // La IA sólo RECOMIENDA películas y escenas (texto). No trae ni guarda imágenes.
 // Pide sesión: cada llamada cuesta dinero.
@@ -38,10 +39,26 @@ export async function POST(req: Request) {
     }
 
     let peticion = '';
-    try { peticion = String((await req.json())?.peticion ?? '').trim().slice(0, 500); } catch { /* vacío */ }
+    let escena = '';
+    try {
+        const b = await req.json();
+        peticion = String(b?.peticion ?? '').trim().slice(0, 500);
+        escena = String(b?.escena ?? '').trim().slice(0, 4000);
+    } catch { /* vacío */ }
     if (peticion.length < 3) return NextResponse.json({ error: 'vacio' }, { status: 400 });
 
-    const prompt = `Eres un director de casting y profesor de interpretación. Un actor o actriz busca referencias de cine para preparar un trabajo.
+    const prompt = escena ? `Eres un director de casting y profesor de interpretación. Un actor o actriz prepara esta escena de «${peticion}»:
+"""${escena}"""
+
+Propón 6 escenas de películas REALES (de cualquier época y país; incluye al menos una española si encaja) cuya situación, conflicto, tono o emoción se parezcan a esta, para que le sirvan de referencia al prepararla.
+Para cada una:
+- titulo: título con el que se conoce en España
+- anio: año de estreno (4 cifras)
+- director
+- escena: qué pasa en la escena y en qué momento de la película, en una o dos frases
+- porQue: qué puede tomar el actor de esa escena para la suya (ritmo, subtexto, contención, cómo escucha...)
+- busqueda: texto corto para encontrar el clip en YouTube (título original, año y la escena, en inglés si la película es en inglés)
+No inventes películas ni escenas. Si dudas de una, no la pongas. Responde en castellano.` : `Eres un director de casting y profesor de interpretación. Un actor o actriz busca referencias de cine para preparar un trabajo.
 Lo que busca: """${peticion}"""
 
 Puede ser una descripción (una emoción, un tipo de plano, una luz) o el título de una película, un director o un actor.

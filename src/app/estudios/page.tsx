@@ -10,10 +10,11 @@ import { useRouter } from 'next/navigation';
 import NavEstudios from '@/components/NavEstudios';
 import BuscadorGuiones from '@/components/estudios/BuscadorGuiones';
 import { prepararEnsayo } from '@/lib/ensayar';
+import { rutaReferencias } from '@/lib/guiones-ia';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search, Star, Users, Clapperboard, FileText, Plus, Trash2,
-    Play, ExternalLink, X, Loader2, ArrowLeft, Mic,
+    Play, ExternalLink, X, Loader2, ArrowLeft, Mic, Film,
 } from 'lucide-react';
 import {
     listar, guardar, nuevoId, buscarPeliculas, SinClaveError,
@@ -237,6 +238,10 @@ export default function EstudiosPage() {
                                                             <Mic className="h-3.5 w-3.5" /> Ensayar en el Plató
                                                         </button>
                                                     )}
+                                                    <button type="button" onClick={() => router.push(rutaReferencias({ titulo: g.titulo, escena: g.escena, texto: g.texto }))}
+                                                        className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[var(--cin-accent)] hover:text-[var(--cin-accent-dark)]">
+                                                        <Film className="h-3.5 w-3.5" /> Referencias de cine
+                                                    </button>
                                                     {g.enlace && (
                                                         <a href={g.enlace} target="_blank" rel="noopener noreferrer"
                                                             className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[var(--cin-dim)] hover:text-[var(--cin-ink)]">
