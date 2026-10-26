@@ -171,7 +171,7 @@ export default function FotogramasPage() {
 
     return (
         <main className="min-h-screen bg-[#100E0B] text-[#F6EFE0]">
-            <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+            <div className="mx-auto max-w-7xl px-4 pb-28 pt-8 sm:px-6">
                 <Link href="/estudios" className="mb-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#D9CFBD] hover:text-amber-400">
                     <ArrowLeft className="h-3.5 w-3.5" /> Volver a Mis Estudios
                 </Link>

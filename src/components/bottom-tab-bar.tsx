@@ -2,13 +2,14 @@
 
 import { Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Home, Clapperboard, Users, User } from 'lucide-react';
+import { Home, Clapperboard, Users, User, Film } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TABS = [
     { id: 'home', label: 'Inicio', icon: Home, path: '/creator' },
     { id: 'services', label: 'Servicios', icon: Clapperboard, path: '/creator?tab=services' },
     { id: 'talents', label: 'Talentos', icon: Users, path: '/talents' },
+    { id: 'fotogramas', label: 'Fotogramas', icon: Film, path: '/fotogramas' },
     { id: 'profile', label: 'Perfil', icon: User, path: '/creator?tab=profile' },
 ] as const;
 
@@ -29,6 +30,7 @@ function TabBarInner() {
     // nunca se iluminaban (todo /creator contaba como "Inicio").
     const getActiveTab = () => {
         if (pathname === '/talents') return 'talents';
+        if (pathname.startsWith('/fotogramas')) return 'fotogramas';
         if (pathname.startsWith('/creator')) {
             const tab = searchParams.get('tab');
             if (tab === 'profile') return 'profile';
