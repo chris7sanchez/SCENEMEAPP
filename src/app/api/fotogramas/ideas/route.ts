@@ -41,7 +41,11 @@ export async function POST(req: Request) {
     const prompt = `Eres un director de casting y profesor de interpretación. Un actor o actriz busca referencias de cine para preparar un trabajo.
 Lo que busca: """${peticion}"""
 
-Propón 6 escenas concretas de películas REALES (cine de cualquier época y país; incluye al menos una española si encaja).
+Puede ser una descripción (una emoción, un tipo de plano, una luz) o el título de una película, un director o un actor.
+- Si nombra UNA película concreta (aunque esté mal escrita o sin tilde, p. ej. "moulin rouge"), propón 6 escenas de ESA película.
+- Si nombra a un director o a un actor, propón 6 escenas de sus películas.
+- Si describe algo, propón 6 escenas de películas distintas que lo muestren (de cualquier época y país; incluye al menos una española si encaja).
+Las películas tienen que ser REALES.
 Para cada una:
 - titulo: título con el que se conoce en España
 - anio: año de estreno (4 cifras)
@@ -53,7 +57,10 @@ No inventes películas ni escenas. Si dudas de una, no la pongas. Responde en ca
 
     try {
         const { output } = await withRetry<any>(() => getAI().generate({ prompt, output: { schema: Salida } }));
-        return NextResponse.json({ ideas: limpiarIdeas(output) });
+        const ideas = limpiarIdeas(output);
+        // Vercel guarda una hora de registros: sirve para ver qué búsquedas se quedan sin nada.
+        console.log('[fotogramas-ideas]', ideas.length, 'ideas para', JSON.stringify(peticion.slice(0, 80)));
+        return NextResponse.json({ ideas });
     } catch (e) {
         console.error('[fotogramas-ideas]', e);
         return NextResponse.json({ error: 'ia', message: 'La IA no ha respondido. Inténtalo de nuevo.' }, { status: 502 });

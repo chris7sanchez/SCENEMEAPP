@@ -290,7 +290,7 @@ function Peliculas({ uid, items, setItems, abrirFicha }: {
             setResultados(await buscarPeliculas(q));
         } catch (err: any) {
             setError(err instanceof SinClaveError
-                ? 'La búsqueda automática necesita una clave de TMDB (gratuita). Mientras tanto puedes añadir películas a mano.'
+                ? 'Esta búsqueda está desactivada. Para encontrar escenas y referencias de cualquier película usa Fotogramas (botón de arriba o pestaña de abajo). Aquí puedes añadir la película a mano.'
                 : 'No se pudo buscar ahora mismo. Inténtalo de nuevo.');
             setManual(true);
             console.warn('[estudios] búsqueda:', err);

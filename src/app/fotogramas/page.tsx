@@ -45,6 +45,8 @@ export default function FotogramasPage() {
     const [peticion, setPeticion] = useState('');
     const [ideas, setIdeas] = useState<Idea[]>([]);
     const [pensando, setPensando] = useState(false);
+    /** Lo último que se buscó: con ello se ofrecen siempre YouTube y Google Imágenes directos. */
+    const [buscado, setBuscado] = useState('');
     const [clips, setClips] = useState<Record<string, Video[] | 'sin_clave' | 'cargando'>>({});
     const [video, setVideo] = useState<string | null>(null);
 
@@ -89,7 +91,7 @@ export default function FotogramasPage() {
         e.preventDefault();
         if (peticion.trim().length < 3) return;
         if (!uid) { setAviso('Inicia sesión para pedir ideas a la IA.'); return; }
-        setPensando(true); setAviso(null);
+        setPensando(true); setAviso(null); setBuscado(peticion.trim());
         try {
             const res = await fetch('/api/fotogramas/ideas', await conSesion({
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ peticion }),
@@ -97,7 +99,7 @@ export default function FotogramasPage() {
             const d = await res.json();
             if (!res.ok) throw new Error(d?.message || 'No se pudo');
             setIdeas(d.ideas);
-            if (d.ideas.length === 0) setAviso('La IA no ha encontrado escenas para eso. Prueba a describirlo de otra forma.');
+            if (d.ideas.length === 0) setAviso('La IA no ha encontrado escenas para eso. Prueba con el título, el director o describiéndolo de otra forma, o búscalo directamente en YouTube o Google Imágenes.');
         } catch (err: any) {
             setAviso(err?.message && err.message !== 'No se pudo' ? err.message : 'La IA no ha respondido. Inténtalo de nuevo.');
         } finally { setPensando(false); }
@@ -288,6 +290,15 @@ export default function FotogramasPage() {
                                     {pensando ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Sparkles className="h-4 w-4" /> Buscar escenas</>}
                                 </button>
                             </form>
+                            <p className="mt-2 text-xs text-[#D9CFBD]">Escribe una película («Moulin Rouge»), un director, un actor o lo que quieres ver en pantalla.</p>
+
+                            {buscado && !pensando && (
+                                <p className="mt-3 flex flex-wrap items-center gap-x-3 text-sm text-[#D9CFBD]">
+                                    <span>Buscar «{buscado}» directamente:</span>
+                                    <a href={urlBusquedaYoutube(buscado)} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1 text-amber-400 underline">YouTube <ExternalLink className="h-3 w-3" /></a>
+                                    <a href={urlGoogleImagenes(buscado)} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1 text-amber-400 underline">Google Imágenes <ExternalLink className="h-3 w-3" /></a>
+                                </p>
+                            )}
 
                             {ideas.length > 0 && (
                                 <ul className="mt-5 grid gap-4 md:grid-cols-2">
