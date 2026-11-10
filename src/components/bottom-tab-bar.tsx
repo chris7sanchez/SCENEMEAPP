@@ -2,19 +2,25 @@
 
 import { Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Home, Clapperboard, Users, User, Film } from 'lucide-react';
+import { Clapperboard, Film, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// 10/11/2026 (Christian): tres pestañas. Lo primero al entrar es comprar el
+// material (Servicios: Book, Scene Me y Self-tape). Todo lo de entrenar va
+// detrás de Studios: las salas, Fotogramas y el tablón (lo que antes eran las
+// pestañas Fotogramas y Talentos). «Inicio» y «Servicios» abrían la misma
+// pantalla, así que queda una sola.
 const TABS = [
-    { id: 'home', label: 'Inicio', icon: Home, path: '/creator' },
-    { id: 'services', label: 'Servicios', icon: Clapperboard, path: '/creator?tab=services' },
-    { id: 'talents', label: 'Talentos', icon: Users, path: '/talents' },
-    { id: 'fotogramas', label: 'Fotogramas', icon: Film, path: '/fotogramas' },
+    { id: 'services', label: 'Servicios', icon: Clapperboard, path: '/creator' },
+    { id: 'studios', label: 'Studios', icon: Film, path: '/los-estudios' },
     { id: 'profile', label: 'Perfil', icon: User, path: '/creator?tab=profile' },
 ] as const;
 
 // Rutas donde NO mostrar la barra
 const HIDDEN_ROUTES = ['/actorlogia', '/admin', '/exquisit', '/hub', '/login', '/astro-lab', '/astrologia', '/alquimia', '/xalvaje', '/hero-3d', '/propuesta', '/scroll'];
+
+// Todo lo que cuelga de la pestaña Studios.
+const RUTAS_STUDIOS = ['/los-estudios', '/estudios', '/studio', '/comunidad', '/fotogramas', '/talents'];
 
 function TabBarInner() {
     const pathname = usePathname();
@@ -26,18 +32,11 @@ function TabBarInner() {
         return null;
     }
 
-    // La pestaña activa se decide por ruta + query: antes Servicios y Perfil
-    // nunca se iluminaban (todo /creator contaba como "Inicio").
+    // La pestaña activa se decide por ruta + query.
     const getActiveTab = () => {
-        if (pathname === '/talents') return 'talents';
-        if (pathname.startsWith('/fotogramas')) return 'fotogramas';
-        if (pathname.startsWith('/creator')) {
-            const tab = searchParams.get('tab');
-            if (tab === 'profile') return 'profile';
-            if (tab === 'services') return 'services';
-            return 'home';
-        }
-        return 'home';
+        if (RUTAS_STUDIOS.some(r => pathname === r || pathname.startsWith(r + '/'))) return 'studios';
+        if (pathname.startsWith('/creator') && searchParams.get('tab') === 'profile') return 'profile';
+        return 'services';
     };
 
     const activeTab = getActiveTab();

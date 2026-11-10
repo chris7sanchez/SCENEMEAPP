@@ -112,7 +112,8 @@ function CreatorContent() {
         contact: { name: "", email: "", phone: "" },
         professionalScript: false,
         reviewByProfessional: false,
-        professionalActors: false
+        professionalActors: false,
+        companero: null
     });
 
     const updateForm = (data: Partial<FormData>) => {

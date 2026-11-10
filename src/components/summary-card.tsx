@@ -94,6 +94,7 @@ export function SummaryCard({ formData, dynamicLabel }: SummaryCardProps) {
                     <>
                         <SummaryItem label="Género" value={genre} />
                         <SummaryItem label="Reparto" value={dynamicLabel} />
+                        {formData.companero && <SummaryItem label="Compañero propuesto" value={formData.companero.nombre} />}
                         <SummaryItem label="Tono(s)" value={tones.join(", ")} />
                         <SummaryItem label="Ubicaciones" value={locations.join(", ")} />
                         <SummaryItem label="Duración Estimada" value={`${length} minutos`} />

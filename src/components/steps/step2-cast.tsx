@@ -7,6 +7,8 @@ import { Button } from "../ui/button";
 import { ArrowLeft, ArrowRight, User, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { cn } from "@/lib/utils";
+import Tablon from "@/components/estudios/Tablon";
+import { llevaCompanero } from "@/lib/tablon";
 
 interface Step2CastProps {
     formData: FormData;
@@ -28,7 +30,9 @@ export default function Step2Cast({ formData, updateForm, setStep }: Step2CastPr
 
     const updateScene = (sceneIndex: 0 | 1, data: Partial<SceneData>) => {
         if (sceneIndex === 0) {
-            updateForm(data);
+            // Al pasar a monólogo ya no hay compañero que proponer.
+            const sinCompanero = data.dynamic !== undefined && !llevaCompanero(data.dynamic);
+            updateForm(sinCompanero ? { ...data, companero: null } : data);
         } else {
             updateForm({
                 scene2: { ...formData.scene2, ...data }
@@ -104,6 +108,38 @@ export default function Step2Cast({ formData, updateForm, setStep }: Step2CastPr
                 </Tabs>
             ) : (
                 <CastSelection sceneIndex={0} currentDynamic={formData.dynamic} />
+            )}
+
+            {/* 10/11/2026 (Christian): los compañeros se eligen aquí, dentro de
+                la compra de la escena, y salen del tablón de los Estudios.
+                Antes era la pestaña Talentos, con perfiles de ejemplo. */}
+            {llevaCompanero(formData.dynamic) && (
+                <section aria-labelledby="companero" className="mt-8 border-t border-border pt-6">
+                    <h3 id="companero" className="text-base font-bold text-foreground">¿Con quién te gustaría rodar?</h3>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                        Opcional. Puedes proponer a un actor del tablón de los Estudios. Es una preferencia: se guarda con tu pedido.
+                    </p>
+                    {formData.companero && (
+                        <p className="mt-3 text-sm text-foreground">
+                            Has propuesto a <strong>{formData.companero.nombre}</strong>.{" "}
+                            <button
+                                type="button"
+                                onClick={() => updateForm({ companero: null })}
+                                className="font-bold text-primary underline underline-offset-4"
+                            >
+                                Quitar
+                            </button>
+                        </p>
+                    )}
+                    <div className="mt-4">
+                        <Tablon
+                            modo="elegir"
+                            tope={9}
+                            elegido={formData.companero}
+                            onElegir={(c) => updateForm({ companero: c })}
+                        />
+                    </div>
+                </section>
             )}
         </StepCard>
     );

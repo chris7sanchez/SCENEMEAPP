@@ -659,6 +659,12 @@ export default function AdminPage() {
                                                     <span className="text-zinc-500 block text-xs uppercase">Logline</span>
                                                     <p className="line-clamp-3 text-zinc-400 italic">"{order.logline || order.surpriseData?.word || 'Sin logline'}"</p>
                                                 </div>
+                                                {order.companero?.nombre && (
+                                                    <div>
+                                                        <span className="text-zinc-500 block text-xs uppercase">Compañero propuesto (tablón)</span>
+                                                        {order.companero.nombre}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </Card>

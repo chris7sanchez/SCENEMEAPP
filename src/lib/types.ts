@@ -50,6 +50,12 @@ export interface FormData extends SceneData {
     professionalScript: boolean;
     reviewByProfessional: boolean;
     professionalActors: boolean;
+    /**
+     * Compañero de escena propuesto desde el tablón de los Estudios, o null si
+     * no se ha elegido. Es una preferencia: viaja con el pedido. Nunca
+     * undefined, que Firestore no lo guarda.
+     */
+    companero: { uid: string; nombre: string } | null;
 
     // Photo Booking Fields
     serviceType: "scene" | "photo";

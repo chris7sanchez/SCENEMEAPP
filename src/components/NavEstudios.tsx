@@ -60,10 +60,16 @@ export default function NavEstudios({ actual }: { actual: Sala['id'] }) {
                     Patio de los estudios
                 </Link>
                 <Link
+                    href="/los-estudios"
+                    className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-white/60 transition-colors hover:border-amber-400/40 hover:text-white"
+                >
+                    Todas las salas
+                </Link>
+                <Link
                     href="/creator"
                     className="rounded-full border border-amber-400/40 bg-amber-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.15em] text-amber-300 transition-colors hover:bg-amber-500/20"
                 >
-                    Volver a la app
+                    Ir a Servicios
                 </Link>
             </div>
         </nav>
