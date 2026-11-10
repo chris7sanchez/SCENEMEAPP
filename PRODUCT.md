@@ -74,6 +74,10 @@ compra, el actor se entrena»**.
   (`src/ai`, `/studio`).
 - Comunidad de actores (`src/components/comunidad`, `src/lib/comunidad-db.ts`).
 - Reserva de sesiones con calendario y señal (`/booking`, `/api/bookings`).
+- Puntos de los Estudios (`src/lib/puntos.ts`, `/api/puntos`): se ganan
+  compartiendo tomas, recibiendo bravos y comentando, y se canjean por un código
+  de descuento del 5, 10 o 15 % para Book, reel o Self-tape. El descuento no se
+  aplica solo: se revisa y se marca en el panel de administración.
 
 **Anunciado pero todavía sin construir.** El usuario quiere que aparezca en la
 página para irlo definiendo, así que se presenta sin precio inventado y sin
@@ -83,8 +87,8 @@ botón que no lleve a ningún sitio:
 - Packs de self-tape de 5 y de 10 (no hay precio decidido).
 - Packtor Pro a 14,99 €/mes (maquetado en el landing; el cobro no está
   verificado).
-- Tokens por constancia canjeables por descuentos, fotos y escenas gratis (cero
-  código: no existe saldo, ni reglas, ni canje).
+- Fotos y escenas gratis por constancia (los puntos de abajo sólo dan
+  descuentos).
 
 **Fuera del relato por decisión del usuario:** Actorlogía existe como sección
 del producto (`/actorlogia`, `/astrologia`, `/alquimia`) pero no se nombra al

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { ArrowRight, Images, MonitorPlay, Sparkles, Video, type LucideIcon } from 'lucide-react';
 import { SALAS, destinoDe, type Sala } from '@/lib/estudios-nav';
 import Tablon from '@/components/estudios/Tablon';
+import Puntos from '@/components/estudios/Puntos';
 
 export const metadata = {
     title: 'Los Estudios · Scene Me',
@@ -20,6 +21,7 @@ export const metadata = {
  * - Fotogramas, que antes tenía pestaña propia;
  * - el tablón, que antes era la pestaña Talentos con perfiles de ejemplo y
  *   ahora se hace con los actores que comparten toma (lib/tablon.ts);
+ * - los puntos que da esa actividad y sus descuentos (lib/puntos.ts);
  * - y, al final, los tres servicios como reclamo secundario.
  *
  * El patio (/backlot) sigue siendo la entrada de cine; esto es el índice.
@@ -215,6 +217,8 @@ export default function LosEstudiosPage() {
                         })}
                     </div>
                 </section>
+
+                <Puntos />
 
                 <section aria-labelledby="referencias" className="mt-12">
                     <h2 id="referencias" className={ROTULO}>Referencias</h2>

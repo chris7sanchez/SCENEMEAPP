@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import SalaVisionado from '@/components/comunidad/SalaVisionado';
 import NavEstudios from '@/components/NavEstudios';
 
@@ -22,6 +23,9 @@ export default function ComunidadPage() {
                         llegue y deja un comentario que le sirva a quien lo grabó. Lo tuyo no
                         aparece aquí a menos que tú lo compartas desde el Plató.
                     </p>
+                    <Link href="/los-estudios#puntos" className="mt-3 inline-block text-sm font-bold text-amber-300 underline-offset-4 hover:underline">
+                        Compartir y comentar da puntos para descuentos · Ver mis puntos
+                    </Link>
                 </header>
 
                 <SalaVisionado />

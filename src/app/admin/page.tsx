@@ -34,6 +34,7 @@ declare global {
     }
 }
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import CanjesAdmin from "@/components/admin/CanjesAdmin";
 import { db } from "@/lib/firebase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signInWithCustomToken } from 'firebase/auth';
@@ -51,6 +52,7 @@ export default function AdminPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loadingOrders, setLoadingOrders] = useState(true);
     const [activeTab, setActiveTab] = useState("orders");
+    const [canjesPendientes, setCanjesPendientes] = useState(0);
 
     // AI Generator State
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -558,10 +560,17 @@ export default function AdminPage() {
                 </div>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 bg-zinc-900">
+                    <TabsList className="grid w-full grid-cols-3 bg-zinc-900">
                         <TabsTrigger value="orders">📦 Pedidos ({orders.length})</TabsTrigger>
                         <TabsTrigger value="generator">✨ Generador IA {selectedOrderId && `(Pedido Activo)`}</TabsTrigger>
+                        <TabsTrigger value="canjes">🎟 Canjes{canjesPendientes > 0 && ` (${canjesPendientes})`}</TabsTrigger>
                     </TabsList>
+
+                    {/* forceMount: la lista se pide al entrar al panel, y así la
+                        pestaña ya enseña cuántos canjes hay pendientes. */}
+                    <TabsContent value="canjes" forceMount className="mt-6 data-[state=inactive]:hidden">
+                        <CanjesAdmin onContar={setCanjesPendientes} />
+                    </TabsContent>
 
                     <TabsContent value="orders" className="mt-6">
                         {firestoreError && (
