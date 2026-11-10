@@ -39,6 +39,15 @@ de Firestore y 2 de Storage. Con las reglas antiguas, 7 de los abusos pasaban.
 
 ## Pendiente, fuera del código
 
+- **Permiso de Firestore para el servidor** (visto el 10/11/2026): la cuenta
+  de servicio que hay en Vercel (`GOOGLE_SERVICE_ACCOUNT_EMAIL`) es la del
+  calendario de reservas y no tiene acceso a Firestore. Todo lo que el servidor
+  lee o escribe en la base de datos responde `PERMISSION_DENIED`: los canjes de
+  puntos (`/api/puntos`, `/api/admin/canjes`) y, en Fotogramas, compartir un
+  deck y el plan Pro. Se arregla en Google Cloud → IAM dando a esa cuenta el
+  rol **Usuario de Cloud Datastore** en el proyecto `xperimental-hub`. Mientras
+  tanto los puntos se enseñan con un recuento provisional hecho en el navegador
+  (`src/lib/puntos-cliente.ts`) y los canjes quedan apagados.
 - **Vercel Firewall**: una regla de rate limit para `/api/*` (p. ej. 60
   peticiones/minuto por IP) hace el tope a prueba de varias instancias.
 - **Supabase → Auth → «Leaked password protection»**: rechaza contraseñas que

@@ -33,7 +33,7 @@ export default function CanjesAdmin({ onContar }: { onContar?: (pendientes: numb
         try {
             const res = await fetch('/api/admin/canjes', await conSesion(init));
             const datos = await res.json().catch(() => ({}));
-            if (!res.ok) { setError(res.status === 403 ? 'Sólo el administrador puede ver los canjes.' : 'No se han podido leer los canjes.'); return; }
+            if (!res.ok) { setError(res.status === 403 ? 'Sólo el administrador puede ver los canjes.' : 'No se han podido leer los canjes. Si pasa siempre, al servidor le falta el permiso de Firestore: los pasos están en docs/SEGURIDAD.md, en «Pendiente».'); return; }
             recibir(datos.canjes ?? []);
         } catch {
             setError('No se han podido leer los canjes.');

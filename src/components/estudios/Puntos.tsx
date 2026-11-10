@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { conSesion, tokenSesion } from '@/lib/fotogramas-db';
-import { PUNTOS, PREMIOS, DONDE_VALE, type Resumen, type MotivoNoCanje } from '@/lib/puntos';
+import { PUNTOS, PREMIOS, DONDE_VALE, hacerResumen, type Resumen, type MotivoNoCanje } from '@/lib/puntos';
 
 /*
  * «Tus puntos», en /los-estudios. El número lo calcula el servidor
@@ -27,16 +27,29 @@ export default function Puntos() {
     const [r, setR] = useState<Resumen | null>(null);
     const [canjeando, setCanjeando] = useState<string | null>(null);
     const [aviso, setAviso] = useState('');
+    const [provisional, setProvisional] = useState(false);
 
     const cargar = useCallback(async () => {
         try {
             // Hay que esperar a que Firebase recupere la sesión guardada.
             const { auth } = await import('@/lib/auth');
-            if (!(await auth.getSesion()) || !(await tokenSesion())) { setEstado('sin-sesion'); return; }
-            const res = await fetch('/api/puntos', await conSesion());
-            if (res.status === 401) { setEstado('sin-sesion'); return; }
-            if (!res.ok) { setEstado('error'); return; }
-            setR(await res.json());
+            const sesion = await auth.getSesion();
+            if (!sesion || !(await tokenSesion())) { setEstado('sin-sesion'); return; }
+
+            const res = await fetch('/api/puntos', await conSesion()).catch(() => null);
+            if (res?.status === 401) { setEstado('sin-sesion'); return; }
+            if (res?.ok) {
+                setR(await res.json());
+                setProvisional(false);
+                setEstado('listo');
+                return;
+            }
+
+            // El servidor no ha podido contar: se cuenta aquí, sólo para
+            // enseñarlo. Los canjes quedan apagados hasta que él responda.
+            const { actividadProvisional } = await import('@/lib/puntos-cliente');
+            setR(hacerResumen(await actividadProvisional(sesion.uid), []));
+            setProvisional(true);
             setEstado('listo');
         } catch {
             setEstado('error');
@@ -73,6 +86,7 @@ export default function Puntos() {
         <PuntosVista
             estado={estado}
             r={r}
+            provisional={provisional}
             canjeando={canjeando}
             aviso={aviso}
             onCanjear={canjear}
@@ -84,6 +98,8 @@ export default function Puntos() {
 interface VistaProps {
     estado: Estado;
     r: Resumen | null;
+    /** Recuento hecho en el navegador porque el servidor no respondía: se enseña, pero no se canjea. */
+    provisional?: boolean;
     canjeando: string | null;
     aviso: string;
     onCanjear: (premioId: string) => void;
@@ -91,7 +107,7 @@ interface VistaProps {
 }
 
 /** Sólo pinta: lo que enseña depende de lo que le pasen. */
-export function PuntosVista({ estado, r, canjeando, aviso, onCanjear, onReintentar }: VistaProps) {
+export function PuntosVista({ estado, r, provisional = false, canjeando, aviso, onCanjear, onReintentar }: VistaProps) {
     return (
         <section id="puntos" aria-labelledby="puntos-titulo" className="mt-12 scroll-mt-6">
             <h2 id="puntos-titulo" className={ROTULO}>Tus puntos</h2>
@@ -187,7 +203,7 @@ export function PuntosVista({ estado, r, canjeando, aviso, onCanjear, onReintent
                                             <span className="text-2xl font-black leading-none tracking-tighter text-primary">{p.descuento} %</span>
                                             <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white/60">de descuento</span>
                                             <span className="mt-2 text-xs text-zinc-400 tabular-nums">{p.puntos} puntos</span>
-                                            {estado === 'listo' && (
+                                            {estado === 'listo' && !provisional && (
                                                 <button
                                                     type="button"
                                                     disabled={!alcanza || canjeando !== null}
@@ -204,9 +220,15 @@ export function PuntosVista({ estado, r, canjeando, aviso, onCanjear, onReintent
                                     );
                                 })}
                             </ul>
-                            <p className="mt-3 text-xs leading-relaxed text-zinc-500">
-                                Al canjear recibes un código. Díselo a SCENE ME al reservar y el descuento se aplica al confirmar tu sesión. Un descuento por sesión.
-                            </p>
+                            {provisional ? (
+                                <p className="mt-3 text-xs leading-relaxed text-amber-200/80">
+                                    Los canjes se activan muy pronto. Mientras tanto tus puntos ya se están sumando: no se pierde nada.
+                                </p>
+                            ) : (
+                                <p className="mt-3 text-xs leading-relaxed text-zinc-500">
+                                    Al canjear recibes un código. Díselo a SCENE ME al reservar y el descuento se aplica al confirmar tu sesión. Un descuento por sesión.
+                                </p>
+                            )}
                             {aviso && <p role="alert" className="mt-3 text-sm font-bold text-amber-300">{aviso}</p>}
                         </div>
                     </div>
