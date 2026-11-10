@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowRight, Images, MonitorPlay, Video, type LucideIcon } from 'lucide-react';
 import { SALAS, destinoDe, type Sala } from '@/lib/estudios-nav';
 import Tablon from '@/components/estudios/Tablon';
 
@@ -23,11 +24,68 @@ export const metadata = {
  * El patio (/backlot) sigue siendo la entrada de cine; esto es el índice.
  */
 
-const QUE_SE_HACE: Record<Sala['id'], string> = {
-    produccion: 'Tu archivo de trabajo: tus películas, tus personajes, tus escenas y tus guiones.',
-    plato: 'La escena del día y el ensayo de un guion entero, con las réplicas de los demás personajes.',
-    pantalla: 'Las tomas que otros actores han querido enseñar. Mira, aplaude y comenta.',
+/*
+ * 10/11/2026 (Christian): las tres salas se pintan como las tarjetas de
+ * Servicios (steps/step0-intro.tsx): franja arriba, icono, titular grande y
+ * botón de color, con la del medio destacada. El fondo es la foto de su nave
+ * en el patio (public/backlot), y la frase es la que ya tiene allí cada sala.
+ */
+interface Cartel {
+    foto: string;
+    Icono: LucideIcon;
+    frase: string;
+    boton: string;
+    /** La del medio manda, como SCENE ME en Servicios. */
+    protagonista?: boolean;
+    /** Borde, franja, icono y botón: oro, o azul como el Self-tape. */
+    tono: 'oro' | 'blanco' | 'azul';
+}
+
+const CARTELES: Record<Sala['id'], Cartel> = {
+    produccion: {
+        foto: '/backlot/nave2.jpg',
+        Icono: Images,
+        frase: 'Crea un espacio de referencias que te definan y te sirvan de inspiración.',
+        boton: 'Entrar en Mis Estudios',
+        tono: 'blanco',
+    },
+    plato: {
+        foto: '/backlot/nave1.jpg',
+        Icono: Video,
+        frase: 'Porque un actor se hace entrenando.',
+        boton: 'Entrar en el Plató',
+        protagonista: true,
+        tono: 'oro',
+    },
+    pantalla: {
+        foto: '/backlot/nave3.jpg',
+        Icono: MonitorPlay,
+        frase: 'Comparte y visualiza tu trabajo junto a otros actores para seguir mejorando.',
+        boton: 'Entrar en la Sala',
+        tono: 'azul',
+    },
 };
+
+const TONOS = {
+    blanco: {
+        borde: 'border-white/15 hover:border-white/40',
+        franja: 'bg-black/55 text-primary border-b border-white/10',
+        icono: 'border-primary/30 bg-black/50 text-primary',
+        boton: 'bg-white text-black',
+    },
+    oro: {
+        borde: 'border-primary/60 hover:border-primary shadow-[0_0_50px_rgba(251,191,36,0.18)]',
+        franja: 'bg-primary text-black',
+        icono: 'border-primary/40 bg-black/50 text-primary',
+        boton: 'bg-primary text-black shadow-xl shadow-primary/30',
+    },
+    azul: {
+        borde: 'border-blue-500/30 hover:border-blue-400/70',
+        franja: 'bg-black/55 text-blue-400 border-b border-white/10',
+        icono: 'border-blue-400/40 bg-black/50 text-blue-400',
+        boton: 'bg-blue-500 text-white shadow-xl shadow-blue-500/20',
+    },
+} as const;
 
 const SERVICIOS = [
     { nombre: 'Book', que: 'Fotos para presentarte a la industria.', href: '/creator?flow=photo&step=1' },
@@ -60,15 +118,45 @@ export default function LosEstudiosPage() {
 
                 <section aria-labelledby="salas">
                     <h2 id="salas" className={ROTULO}>Las salas</h2>
-                    <div className="mt-4 grid gap-3 md:grid-cols-3">
-                        {SALAS.map((s, i) => (
-                            <Link key={s.id} href={destinoDe(i)} className={TARJETA}>
-                                <span className="text-[10px] uppercase tracking-[0.2em] text-white/40">{s.stage}</span>
-                                <span className="mt-1 text-lg font-bold text-white">{s.sala}</span>
-                                <span className="mt-2 text-sm leading-relaxed text-zinc-400">{QUE_SE_HACE[s.id]}</span>
-                                <span className="mt-4 text-[11px] font-black uppercase tracking-[0.15em] text-amber-300">Entrar ▶</span>
-                            </Link>
-                        ))}
+                    <div className="mt-4 grid gap-4 md:grid-cols-3 md:items-stretch">
+                        {SALAS.map((s, i) => {
+                            const c = CARTELES[s.id];
+                            const t = TONOS[c.tono];
+                            return (
+                                <Link
+                                    key={s.id}
+                                    href={destinoDe(i)}
+                                    className={`group relative isolate flex flex-col overflow-hidden rounded-[2rem] border-2 bg-black transition-all duration-500 md:min-h-[460px] ${c.protagonista ? 'min-h-[300px] md:-my-2' : 'min-h-[240px]'} ${t.borde}`}
+                                >
+                                    {/* La foto de la nave, y encima un velo para que el texto se lea siempre. */}
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={c.foto}
+                                        alt=""
+                                        loading="lazy"
+                                        className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                                    />
+                                    <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-black via-black/75 to-black/35" />
+
+                                    <span className={`block py-2.5 text-center text-sm font-black uppercase tracking-[0.3em] ${t.franja}`}>
+                                        {s.stage}
+                                    </span>
+
+                                    <span className="flex flex-1 flex-col items-center justify-end gap-3 p-5 text-center">
+                                        <span className={`flex h-14 w-14 items-center justify-center rounded-full border transition-transform duration-500 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${t.icono}`}>
+                                            <c.Icono className="h-7 w-7" aria-hidden="true" />
+                                        </span>
+                                        <span className={`font-display uppercase leading-none tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] ${c.protagonista ? 'text-4xl' : 'text-3xl'}`}>
+                                            {s.sala}
+                                        </span>
+                                        <span className="max-w-xs text-sm font-medium leading-snug text-white/85">{c.frase}</span>
+                                        <span className={`mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-[0.2em] ${t.boton}`}>
+                                            {c.boton} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                                        </span>
+                                    </span>
+                                </Link>
+                            );
+                        })}
                     </div>
                 </section>
 
