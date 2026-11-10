@@ -2,7 +2,7 @@
     "name": "Scene Me",
     "short_name": "SceneMe",
     "description": "Tu carrera actoral merece una estrategia ganadora.",
-    "start_url": "/",
+    "start_url": "/creator",
     "id": "/",
     "scope": "/",
     "display": "standalone",

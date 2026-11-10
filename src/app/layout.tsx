@@ -45,6 +45,8 @@ import EntradaBacklot from '@/components/EntradaBacklot';
 import { GlobalErrorBoundary } from '@/components/GlobalErrorBoundary';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { SceneMeProviders } from '@/components/SceneMeProviders';
+import { ModoApp } from '@/components/pwa/modo-app';
+import { SCRIPT_SALTO_APP } from '@/lib/modo-app';
 
 export default function RootLayout({
     children,
@@ -58,6 +60,9 @@ export default function RootLayout({
     return (
         <html lang="es" className="dark" data-theme="dark" suppressHydrationWarning>
             <head>
+                {/* La app instalada no enseña la portada: si el icono abre en el
+                    escaparate, salta a la app antes de pintar. Ver lib/modo-app.ts. */}
+                <script dangerouslySetInnerHTML={{ __html: SCRIPT_SALTO_APP }} />
                 {/* Limpia cualquier service worker/caché viejo (PWA) para que los
                     despliegues nuevos lleguen siempre sin quedarse en versión cacheada.
 
@@ -83,6 +88,7 @@ export default function RootLayout({
             <body className="font-body antialiased flex flex-col min-h-screen" style={{ backgroundColor: 'var(--sm-bg-base)', color: 'var(--sm-text-primary)' }} suppressHydrationWarning>
                 <SceneMeProviders>
                     <SplashScreen />
+                    <ModoApp />
                     {/* Llegada desde el backlot: la seccion nace sobre el ultimo
                         fotograma del paso. No pinta nada si no vienes de ahi. */}
                     <EntradaBacklot />
