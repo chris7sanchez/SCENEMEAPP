@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { ArrowRight, Images, MonitorPlay, Video, type LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { ArrowRight, Images, MonitorPlay, Sparkles, Video, type LucideIcon } from 'lucide-react';
 import { SALAS, destinoDe, type Sala } from '@/lib/estudios-nav';
 import Tablon from '@/components/estudios/Tablon';
 
@@ -26,63 +27,111 @@ export const metadata = {
 
 /*
  * 10/11/2026 (Christian): las tres salas se pintan como las tarjetas de
- * Servicios (steps/step0-intro.tsx): franja arriba, icono, titular grande y
- * botón de color, con la del medio destacada. El fondo es la foto de su nave
- * en el patio (public/backlot), y la frase es la que ya tiene allí cada sala.
+ * Servicios (steps/step0-intro.tsx), para que la app sea una sola cosa:
+ *
+ * - arriba, una franja con el nombre de la sala y, debajo y más pequeño, su
+ *   stage; el símbolo va a la derecha del todo, como en Servicios;
+ * - en el centro, la explicación con el mismo ritmo que allí: una línea
+ *   pequeña, un titular grande de color y las palabras clave resaltadas;
+ * - abajo, el botón de color. El Plató va en medio y destacado en oro.
+ *
+ * El fondo es la foto de su nave en el patio (public/backlot). Los textos son
+ * de Christian.
  */
 interface Cartel {
     foto: string;
     Icono: LucideIcon;
-    frase: string;
     boton: string;
     /** La del medio manda, como SCENE ME en Servicios. */
     protagonista?: boolean;
-    /** Borde, franja, icono y botón: oro, o azul como el Self-tape. */
     tono: 'oro' | 'blanco' | 'azul';
+    /** Recibe la clase de color de las palabras resaltadas. */
+    explicacion: (acento: string) => ReactNode;
 }
+
+const TITULAR = 'block font-black uppercase leading-none tracking-tighter';
+const LINEA = 'block text-sm font-medium leading-snug text-white/85';
 
 const CARTELES: Record<Sala['id'], Cartel> = {
     produccion: {
         foto: '/backlot/nave2.jpg',
         Icono: Images,
-        frase: 'Crea un espacio de referencias que te definan y te sirvan de inspiración.',
         boton: 'Entrar en Mis Estudios',
         tono: 'blanco',
+        explicacion: (acento) => (
+            <>
+                <span className="block text-sm font-bold uppercase tracking-wide text-white/85">Crea tu propio</span>
+                <span className={`${TITULAR} text-4xl ${acento} drop-shadow-[0_0_15px_rgba(251,191,36,0.4)]`}>Moodboard</span>
+                <span className={LINEA}>
+                    o <strong className={`font-black uppercase ${acento}`}>libro de referencias</strong>
+                </span>
+                <span className="block text-xs font-medium text-white/70">Personajes, escenas, películas y producciones.</span>
+            </>
+        ),
     },
     plato: {
         foto: '/backlot/nave1.jpg',
         Icono: Video,
-        frase: 'Porque un actor se hace entrenando.',
         boton: 'Entrar en el Plató',
         protagonista: true,
         tono: 'oro',
+        explicacion: (acento) => (
+            <>
+                <span className={`${TITULAR} text-5xl ${acento} drop-shadow-[0_0_15px_rgba(251,191,36,0.45)]`}>Réplica Star!</span>
+                <span className={LINEA}>
+                    Escoge cuántos <strong className={`font-black uppercase ${acento}`}>personajes</strong> intervienen y personaliza la voz y el ritmo de cada uno.
+                </span>
+                <span className={LINEA}>
+                    Ensaya tus <strong className={`font-black uppercase ${acento}`}>escenas</strong> como en una verdadera{' '}
+                    <strong className={`font-black uppercase ${acento}`}>lectura de guion</strong>.
+                </span>
+            </>
+        ),
     },
     pantalla: {
         foto: '/backlot/nave3.jpg',
         Icono: MonitorPlay,
-        frase: 'Comparte y visualiza tu trabajo junto a otros actores para seguir mejorando.',
         boton: 'Entrar en la Sala',
         tono: 'azul',
+        explicacion: (acento) => (
+            <>
+                <span className={`${TITULAR} text-4xl ${acento} drop-shadow-[0_2px_10px_rgba(0,0,0,1)]`}>Comparte</span>
+                <span className={LINEA}>tus escenas con tu comunidad actoral.</span>
+                <span className={LINEA}>
+                    Recibe feedback y comenta para ganar{' '}
+                    <strong className={`font-black uppercase ${acento}`}>descuentos y premios sorprendentes</strong> para mejorar tu material!
+                </span>
+            </>
+        ),
     },
 };
 
 const TONOS = {
     blanco: {
         borde: 'border-white/15 hover:border-white/40',
-        franja: 'bg-black/55 text-primary border-b border-white/10',
-        icono: 'border-primary/30 bg-black/50 text-primary',
+        franja: 'bg-black/60 border-b border-white/10',
+        nombre: 'text-white',
+        stage: 'text-primary',
+        icono: 'text-primary',
+        acento: 'text-primary',
         boton: 'bg-white text-black',
     },
     oro: {
         borde: 'border-primary/60 hover:border-primary shadow-[0_0_50px_rgba(251,191,36,0.18)]',
-        franja: 'bg-primary text-black',
-        icono: 'border-primary/40 bg-black/50 text-primary',
+        franja: 'bg-primary',
+        nombre: 'text-black',
+        stage: 'text-black/70',
+        icono: 'text-black',
+        acento: 'text-primary',
         boton: 'bg-primary text-black shadow-xl shadow-primary/30',
     },
     azul: {
         borde: 'border-blue-500/30 hover:border-blue-400/70',
-        franja: 'bg-black/55 text-blue-400 border-b border-white/10',
-        icono: 'border-blue-400/40 bg-black/50 text-blue-400',
+        franja: 'bg-black/60 border-b border-white/10',
+        nombre: 'text-white',
+        stage: 'text-blue-400',
+        icono: 'text-blue-400',
+        acento: 'text-blue-400',
         boton: 'bg-blue-500 text-white shadow-xl shadow-blue-500/20',
     },
 } as const;
@@ -126,7 +175,7 @@ export default function LosEstudiosPage() {
                                 <Link
                                     key={s.id}
                                     href={destinoDe(i)}
-                                    className={`group relative isolate flex flex-col overflow-hidden rounded-[2rem] border-2 bg-black transition-all duration-500 md:min-h-[460px] ${c.protagonista ? 'min-h-[300px] md:-my-2' : 'min-h-[240px]'} ${t.borde}`}
+                                    className={`group relative isolate flex flex-col overflow-hidden rounded-[2rem] border-2 bg-black transition-all duration-500 md:min-h-[480px] ${c.protagonista ? 'md:-my-2' : ''} ${t.borde}`}
                                 >
                                     {/* La foto de la nave, y encima un velo para que el texto se lea siempre. */}
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -136,21 +185,28 @@ export default function LosEstudiosPage() {
                                         loading="lazy"
                                         className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                                     />
-                                    <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-black via-black/75 to-black/35" />
+                                    <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-black via-black/90 to-black/70" />
 
-                                    <span className={`block py-2.5 text-center text-sm font-black uppercase tracking-[0.3em] ${t.franja}`}>
-                                        {s.stage}
+                                    {/* Nombre y stage a la izquierda; el símbolo, a la derecha del todo. */}
+                                    <span className={`flex items-center justify-between gap-3 px-5 py-3 ${t.franja}`}>
+                                        <span className="min-w-0">
+                                            <span className={`block text-xl font-black uppercase leading-none tracking-tight ${t.nombre}`}>{s.sala}</span>
+                                            <span className={`mt-1.5 block text-[11px] font-black uppercase tracking-[0.3em] ${t.stage}`}>{s.stage}</span>
+                                        </span>
+                                        <span className={`relative shrink-0 ${t.icono}`}>
+                                            <c.Icono className={c.protagonista ? 'h-9 w-9 animate-clapper motion-reduce:animate-none' : 'h-7 w-7'} aria-hidden="true" />
+                                            {c.protagonista && (
+                                                <Sparkles className="absolute -right-2 -top-2 h-4 w-4 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+                                            )}
+                                        </span>
                                     </span>
 
-                                    <span className="flex flex-1 flex-col items-center justify-end gap-3 p-5 text-center">
-                                        <span className={`flex h-14 w-14 items-center justify-center rounded-full border transition-transform duration-500 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${t.icono}`}>
-                                            <c.Icono className="h-7 w-7" aria-hidden="true" />
-                                        </span>
-                                        <span className={`font-display uppercase leading-none tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] ${c.protagonista ? 'text-4xl' : 'text-3xl'}`}>
-                                            {s.sala}
-                                        </span>
-                                        <span className="max-w-xs text-sm font-medium leading-snug text-white/85">{c.frase}</span>
-                                        <span className={`mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-[0.2em] ${t.boton}`}>
+                                    <span className="flex flex-1 flex-col items-center justify-center gap-2.5 px-5 py-7 text-center">
+                                        {c.explicacion(t.acento)}
+                                    </span>
+
+                                    <span className="px-5 pb-5">
+                                        <span className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-[0.2em] ${t.boton}`}>
                                             {c.boton} <ArrowRight className="h-4 w-4" aria-hidden="true" />
                                         </span>
                                     </span>
