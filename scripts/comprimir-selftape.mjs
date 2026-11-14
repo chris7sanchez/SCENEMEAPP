@@ -42,6 +42,15 @@ const d = info.match(/Duration: (\d+):(\d+):([\d.]+)/);
 if (!d) { console.error('✗ No se pudo leer la duración de', origen); process.exit(1); }
 const segundos = +d[1] * 3600 + +d[2] * 60 + +d[3];
 
+// El original de SELFTAPES.mp4 trae el sonido en DOS pistas mono (izquierda y
+// derecha exportadas por separado). Sin esto ffmpeg se quedaría sólo con la
+// primera; así se juntan en una pista estéreo.
+const pistasMono = [...info.matchAll(/Stream #0:(\d+)[^:]*: Audio:[^\n]*\bmono\b/g)].length;
+const audio = pistasMono === 2
+    ? ['-filter_complex', '[0:a:0][0:a:1]amerge=inputs=2[a]', '-map', '0:v:0', '-map', '[a]']
+    : ['-map', '0:v:0', '-map', '0:a:0?'];
+if (pistasMono === 2) console.log('▸ Dos pistas mono: se juntan en estéreo.');
+
 // Bitrate máximo de vídeo para que todo quepa en MB_OBJETIVO (con un 3 % de margen).
 const kbpsTotal = Math.floor((MB_OBJETIVO * 8 * 1024 * 0.97) / segundos);
 const kbpsVideo = Math.max(800, kbpsTotal - AUDIO_KBPS);
@@ -55,11 +64,13 @@ console.log(`▸ Vídeo con techo de ${kbpsVideo} kb/s para quedar por debajo de
 
 execFileSync(ffmpeg, [
     '-hide_banner', '-y', '-i', origen,
+    ...audio,
     // Lado largo a 1920 como mucho, sea horizontal o vertical; tamaños pares para H.264.
     '-vf', "scale='if(gt(iw,ih),min(1920,iw),-2)':'if(gt(iw,ih),-2,min(1920,ih))'",
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-profile:v', 'high', '-pix_fmt', 'yuv420p',
     '-maxrate', `${kbpsVideo}k`, '-bufsize', `${kbpsVideo * 2}k`,
     '-c:a', 'aac', '-b:a', `${AUDIO_KBPS}k`, '-ac', '2',
+    '-map_metadata', '-1', '-dn',
     '-movflags', '+faststart',
     destino,
 ], { stdio: 'inherit' });
