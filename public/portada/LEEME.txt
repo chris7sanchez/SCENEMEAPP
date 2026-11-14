@@ -1,0 +1,6 @@
+Fotos de la pantalla de Servicios (src/components/steps/step0-intro.tsx).
+Tienen que llamarse exactamente así:
+
+  book.webp            Tu book (retrato de fondo dorado, 1400 x 1104)
+  escena-bano.webp     Tu escena (fotograma de la pareja, 1400 x 594)
+  selftape-beige.webp  Tu selftape (fotograma de la blusa beige, 1400 x 785)
