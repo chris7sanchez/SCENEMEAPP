@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Calendar as CalendarIcon, Clock, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import EjemploSelftape from '@/components/booking/EjemploSelftape';
 
 function BookingContent() {
     const searchParams = useSearchParams();
@@ -127,6 +128,9 @@ function BookingContent() {
                         </p>
                     </div>
                 </div>
+
+                {/* Lo que se contrata: el vídeo de ejemplo, sólo al reservar un selftape. */}
+                {serviceType === 'selftape' && step < 3 && <EjemploSelftape />}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
