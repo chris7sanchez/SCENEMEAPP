@@ -5,6 +5,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export async function getAgenda() {
+  if (!db) return { participants: {} }; // Firebase no configurado: agenda vacía
   try {
     const docRef = doc(db, 'agenda', 'main');
     const snapshot = await getDoc(docRef);
@@ -31,6 +32,7 @@ export async function saveAvailability(name: string, slots: string[]) {
     updatedAt: new Date().toISOString()
   };
 
+  if (!db) throw new Error("Error al guardar en la base de datos");
   try {
     const docRef = doc(db, 'agenda', 'main');
     await setDoc(docRef, data);

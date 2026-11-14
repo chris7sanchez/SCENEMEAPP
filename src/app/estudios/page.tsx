@@ -14,7 +14,7 @@ import { rutaReferencias } from '@/lib/guiones-ia';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search, Star, Users, Clapperboard, FileText, Plus, Trash2,
-    Play, ExternalLink, X, Loader2, ArrowLeft, Mic, Film,
+    Play, ExternalLink, X, Loader2, ArrowLeft, Mic, Film, type LucideIcon,
 } from 'lucide-react';
 import {
     listar, guardar, nuevoId, buscarPeliculas, SinClaveError,
@@ -60,7 +60,7 @@ const PIEL = `
 .cinemateca .group:hover{ transform:translateY(-2px); box-shadow:0 14px 34px rgba(0,0,0,.5) }
 `;
 
-const PESTANAS: { id: Coleccion; label: string; icono: React.ElementType }[] = [
+const PESTANAS: { id: Coleccion; label: string; icono: LucideIcon }[] = [
     { id: 'favoritas', label: 'Películas', icono: Star },
     { id: 'moodboard', label: 'Personajes', icono: Users },
     { id: 'escenas', label: 'Escenas', icono: Clapperboard },

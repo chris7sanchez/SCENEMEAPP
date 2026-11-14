@@ -13,7 +13,7 @@ export interface OrderData extends FormData {
 }
 
 export const createOrder = async (formData: FormData, totalAmount: number, depositAmount: number, paymentMethod: string) => {
-    const user = auth.currentUser;
+    const user = auth?.currentUser;
     if (!user) throw new Error("User not authenticated");
 
     const orderData = {
@@ -29,6 +29,8 @@ export const createOrder = async (formData: FormData, totalAmount: number, depos
         shootDates: formData.shootDates?.map(d => d.toISOString()) || [],
         preferredMonths: formData.preferredMonths || []
     };
+
+    if (!db) throw new Error("Sin base de datos");
 
     try {
         const docRef = await addDoc(collection(db, "orders"), orderData);

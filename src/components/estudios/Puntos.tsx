@@ -225,7 +225,7 @@ export function PuntosVista({ estado, r, provisional = false, canjeando, aviso, 
                                     Los canjes se activan muy pronto. Mientras tanto tus puntos ya se están sumando: no se pierde nada.
                                 </p>
                             ) : (
-                                <p className="mt-3 text-xs leading-relaxed text-zinc-500">
+                                <p className="mt-3 text-xs leading-relaxed text-zinc-400">
                                     Al canjear recibes un código. Díselo a SCENE ME al reservar y el descuento se aplica al confirmar tu sesión. Un descuento por sesión.
                                 </p>
                             )}

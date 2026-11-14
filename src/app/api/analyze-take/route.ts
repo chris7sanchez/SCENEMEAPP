@@ -110,7 +110,7 @@ Reglas: entre 2 y 4 notas, ninguna genérica. Si se ha saltado o cambiado texto,
 
     try {
         const ai = getAI();
-        const { text } = await withRetry(() => ai.generate({ prompt }));
+        const { text } = await withRetry(() => ai.generate({ prompt })) as { text?: string };
         const limpio = String(text ?? '').replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
         const desde = limpio.indexOf('{');
         const hasta = limpio.lastIndexOf('}');

@@ -3,6 +3,7 @@ import { storage } from "./firebase";
 
 export async function uploadFile(file: File, path: string): Promise<string> {
     if (!file) return "";
+    if (!storage) throw new Error("Sin almacenamiento en la nube");
 
     try {
         // Create a reference to the file location

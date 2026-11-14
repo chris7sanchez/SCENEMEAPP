@@ -615,7 +615,7 @@ const CharacterWorkshop: React.FC<CharacterWorkshopProps> = (props) => {
                                                                 />
                                                             </div>
                                                             <button 
-                                                                onClick={findBirthDatesByAge}
+                                                                onClick={() => findBirthDatesByAge()}
                                                                 disabled={isSearchingDates}
                                                                 className="bg-black text-white px-6 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-30 transition-all"
                                                             >

@@ -21,11 +21,14 @@ const warn = (msg) => { console.log('  ⚠', msg); avisos.push(msg); };
 async function checkRutas() {
     console.log('\n[1/4] Rutas críticas');
     const casos = [
-        { ruta: '/', esperado: 307, destino: '/login' },
+        // La portada es una página de escaparate (ya no redirige al login).
+        { ruta: '/', esperado: 200 },
         { ruta: '/login', esperado: 200 },
-        { ruta: '/actorlogia', esperado: 200 },
-        { ruta: '/antigravity', esperado: 308, destino: '/actorlogia' },
+        // Actorlogía se cerró dentro de SCENE ME a propósito (18/10/2026): aquí
+        // lo que se vigila es que SIGA cerrada.
+        { ruta: '/actorlogia', esperado: 404 },
         { ruta: '/creator', esperado: 200 },
+        { ruta: '/los-estudios', esperado: 200 },
         { ruta: '/manifest.json', esperado: 200 },
         { ruta: '/apple-touch-icon.png', esperado: 200, minBytes: 5000 },
     ];
@@ -53,11 +56,14 @@ async function checkRutas() {
 }
 
 // ---------- Auditoría de contraste WCAG (se evalúa dentro del navegador) ----------
+// effBg compone las capas de fondo de dentro afuera, cada una sobre la de más
+// afuera. Antes mezclaba cada capa translúcida como si fuera opaca y daba
+// 1,4:1 en textos que se leen bien (fondos tipo bg-white/[0.03] dentro de otro).
 const AUDIT = `(() => {
   function lum(r,g,b){const a=[r,g,b].map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)});return 0.2126*a[0]+0.7152*a[1]+0.0722*a[2];}
   function parse(c){const m=c.match(/rgba?\\(([^)]+)\\)/);if(!m)return null;const p=m[1].split(',').map(parseFloat);return{r:p[0],g:p[1],b:p[2],a:p.length>3?p[3]:1};}
   function blend(fg,bg){const a=fg.a;return{r:fg.r*a+bg.r*(1-a),g:fg.g*a+bg.g*(1-a),b:fg.b*a+bg.b*(1-a),a:1};}
-  function effBg(el){let n=el,acc=null;while(n&&n!==document.documentElement){const s=getComputedStyle(n);if(s.backgroundImage&&s.backgroundImage!=='none')return null;const c=parse(s.backgroundColor);if(c&&c.a>0){acc=acc?blend(acc,c):c;if(c.a>=1)return acc;}n=n.parentElement;}const body=parse(getComputedStyle(document.body).backgroundColor)||{r:255,g:255,b:255,a:1};return acc?blend(acc,body):body;}
+  function effBg(el){const caps=[];let n=el;while(n&&n!==document.documentElement){const s=getComputedStyle(n);if(s.backgroundImage&&s.backgroundImage!=='none')return null;const c=parse(s.backgroundColor);if(c&&c.a>0){caps.push(c);if(c.a>=1)break;}n=n.parentElement;}let base=caps.length&&caps[caps.length-1].a>=1?caps.pop():(parse(getComputedStyle(document.body).backgroundColor)||{r:255,g:255,b:255,a:1});for(let k=caps.length-1;k>=0;k--)base=blend(caps[k],base);return base;}
   const bad=[];const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
   while(w.nextNode()){const t=w.currentNode;const txt=t.textContent.trim();if(txt.length<3)continue;const el=t.parentElement;if(!el)continue;const s=getComputedStyle(el);if(s.visibility==='hidden'||s.display==='none'||parseFloat(s.opacity)===0)continue;const r=el.getBoundingClientRect();if(r.width<2||r.height<2)continue;const fg0=parse(s.color);if(!fg0)continue;const bg=effBg(el);if(!bg)continue;const fg=fg0.a<1?blend(fg0,bg):fg0;const L1=lum(fg.r,fg.g,fg.b),L2=lum(bg.r,bg.g,bg.b);const ratio=(Math.max(L1,L2)+0.05)/(Math.min(L1,L2)+0.05);const px=parseFloat(s.fontSize);const big=px>=24||(px>=18.66&&parseInt(s.fontWeight)>=700);if(ratio<(big?3:4.5))bad.push(txt.slice(0,40)+' ('+(Math.round(ratio*100)/100)+':1)');}
   return [...new Set(bad)].slice(0,8);
@@ -121,11 +127,11 @@ async function checkNavegador() {
         if (malLogin.length) fail('contraste ilegible en /login: ' + malLogin.join('; ')); else ok('/login contraste OK');
 
         erroresJS.length = 0;
-        await page.goto(BASE + '/actorlogia', { waitUntil: 'domcontentloaded', timeout: 60000 });
+        await page.goto(BASE + '/los-estudios', { waitUntil: 'domcontentloaded', timeout: 60000 });
         await new Promise((r) => setTimeout(r, 7000));
-        if (erroresJS.length) fail('errores JS en /actorlogia: ' + erroresJS.slice(0, 2).join(' | ')); else ok('/actorlogia sin excepciones JS');
-        const malActo = await page.evaluate(AUDIT);
-        if (malActo.length) fail('contraste ilegible en /actorlogia: ' + malActo.join('; ')); else ok('/actorlogia contraste OK');
+        if (erroresJS.length) fail('errores JS en /los-estudios: ' + erroresJS.slice(0, 2).join(' | ')); else ok('/los-estudios sin excepciones JS');
+        const malEstudios = await page.evaluate(AUDIT);
+        if (malEstudios.length) fail('contraste ilegible en /los-estudios: ' + malEstudios.join('; ')); else ok('/los-estudios contraste OK');
     } finally {
         await browser.close();
     }

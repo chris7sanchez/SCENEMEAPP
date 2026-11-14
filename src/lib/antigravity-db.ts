@@ -19,6 +19,7 @@ const DOC_ID = 'state';
 // Returns the Firestore ref for the current user's Antigravity state.
 // Path: users/{uid}/antigravity/state
 function getRef(uid: string) {
+    if (!db) throw new Error('Sin base de datos'); // quien llama ya lo comprueba antes
     return doc(db, COLLECTION, uid, SUBCOLLECTION, DOC_ID);
 }
 

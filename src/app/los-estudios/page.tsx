@@ -134,7 +134,7 @@ const TONOS = {
         stage: 'text-blue-400',
         icono: 'text-blue-400',
         acento: 'text-blue-400',
-        boton: 'bg-blue-500 text-white shadow-xl shadow-blue-500/20',
+        boton: 'bg-blue-600 text-white shadow-xl shadow-blue-600/20',
     },
 } as const;
 

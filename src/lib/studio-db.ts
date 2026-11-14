@@ -25,10 +25,11 @@ export interface Submission {
  * generación por día para toda la app); si no, la genera con IA y la cachea.
  */
 export async function getOrCreateDailyScene(dateKey: string): Promise<DailyScene> {
-    const sceneRef = doc(db, 'dailyScenes', dateKey);
+    // Sin Firebase configurado no hay escena compartida que reutilizar ni donde cachear: se genera local.
+    const sceneRef = db ? doc(db, 'dailyScenes', dateKey) : null;
     try {
-        const snap = await getDoc(sceneRef);
-        if (snap.exists()) {
+        const snap = sceneRef ? await getDoc(sceneRef) : null;
+        if (snap?.exists()) {
             const data: any = snap.data();
             if (isValidScene(data?.scene)) return data.scene as DailyScene;
         }
@@ -37,6 +38,7 @@ export async function getOrCreateDailyScene(dateKey: string): Promise<DailyScene
     }
 
     const scene = await generateDailyScene(dateKey);
+    if (!sceneRef) return scene;
     // Cachear para que sea LA MISMA para todos ese día. Firestore rechaza valores
     // undefined, así que saneamos la escena antes de guardarla (esto era lo que
     // hacía que el guardado fallara y se regenerara una escena distinta cada vez).
@@ -61,6 +63,7 @@ export async function uploadSubmission(
     file: File,
     title: string,
 ): Promise<Submission> {
+    if (!storage || !db) throw new Error('Sin conexión con la nube: no se puede subir la tarea');
     const storagePath = buildSubmissionPath(uid, dateKey, file.name);
     const fileRef = ref(storage, storagePath);
     await uploadBytes(fileRef, file);
@@ -81,6 +84,7 @@ export async function uploadSubmission(
 
 /** Lista las tareas del propio usuario, de la más reciente a la más antigua. */
 export async function listMySubmissions(uid: string): Promise<Submission[]> {
+    if (!db) return [];
     try {
         const col = collection(db, 'users', uid, 'submissions');
         const snap = await getDocs(query(col, orderBy('createdAt', 'desc')));

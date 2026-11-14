@@ -38,6 +38,7 @@
   "exclude": [
     "node_modules",
     "antigravity-app",
+    "_PARKING",
     "antigravity_restored",
     "EXQUISIT-ASTOR",
     "tmp_check_models.ts",
