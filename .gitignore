@@ -55,5 +55,7 @@ public/videos/*
 # Salvo los clips cortos de la portada y sus fotogramas, que sí hacen falta.
 !public/videos/*-loop.mp4
 !public/videos/*-poster.jpg
+# Y el ejemplo del selftape de la reserva (sale de npm run comprimir-selftape).
+!public/videos/selftapes-web.mp4
 !src/**
 

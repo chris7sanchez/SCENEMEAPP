@@ -10,6 +10,7 @@
         "start": "next start",
         "publicar": "bash scripts/publicar.sh",
         "videos-hd": "node scripts/videos-hd.mjs",
+        "comprimir-selftape": "node scripts/comprimir-selftape.mjs",
         "lint": "eslint src",
         "typecheck": "tsc --noEmit",
         "test": "vitest run",
