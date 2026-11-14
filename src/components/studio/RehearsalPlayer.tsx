@@ -17,6 +17,7 @@ import {
     type VoiceProfile, type SpeechVoice,
 } from '@/lib/speech';
 import { useRehearsal } from '@/hooks/useRehearsal';
+import { alAvisoTts, TEXTO_AVISO } from '@/lib/tts-cliente';
 import { VoiceTrigger } from '@/lib/voice-advance';
 
 type LineMode = 'full' | 'cue' | 'hidden';
@@ -96,6 +97,9 @@ export default function RehearsalPlayer({ script, guionId, uid, ajustes, onGuard
     const [advance, setAdvance] = useState<AdvanceMode>('tap');
     const [engine, setEngine] = useState<Engine>((ajustes?.motor as Engine) ?? 'browser');
     const [started, setStarted] = useState(false);
+    /** Por qué una voz IA ha caído a la del navegador (sin sesión, límite...). */
+    const [aviso, setAviso] = useState<string | null>(null);
+    useEffect(() => alAvisoTts(a => setAviso(TEXTO_AVISO[a])), []);
     const [browserVoices, setBrowserVoices] = useState<SpeechVoice[]>([]);
     const [cartesiaVoices, setCartesiaVoices] = useState<SpeechVoice[]>([]);
     /** Voces tocadas a mano. Lo que no esté aquí se rellena solo (`profiles`). */
@@ -230,6 +234,13 @@ export default function RehearsalPlayer({ script, guionId, uid, ajustes, onGuard
                     <h2 className="text-lg font-black uppercase tracking-wide">Ensayar con réplicas</h2>
                     <button onClick={onClose} className="rounded-full px-3 py-1 text-zinc-400 hover:text-white" aria-label="Cerrar">✕</button>
                 </div>
+
+                {aviso && (
+                    <div role="status" className="mt-3 flex items-start justify-between gap-3 rounded-xl border border-amber-500/40 bg-zinc-900 px-3 py-2 text-sm text-amber-200">
+                        <span>{aviso}</span>
+                        <button onClick={() => setAviso(null)} className="shrink-0 text-xs font-bold text-zinc-200 hover:text-white">Cerrar</button>
+                    </div>
+                )}
 
                 {conDialogo.length === 0 ? (
                     <p className="mt-8 text-center text-zinc-400">No se detectaron diálogos. Pega una escena con personajes (NOMBRE: línea).</p>

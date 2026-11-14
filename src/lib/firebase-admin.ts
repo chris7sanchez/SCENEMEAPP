@@ -29,6 +29,11 @@ export function tieneCredenciales(): boolean {
 
 export { admin };
 
+/** firebase-admin listo para usar, o null si no hay proyecto configurado. */
+export function obtenerAdmin(): typeof admin | null {
+    return ensureAdmin() ? admin : null;
+}
+
 export interface UsuarioVerificado { uid: string; email?: string }
 
 /**
